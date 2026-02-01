@@ -1,4 +1,4 @@
-name: Deploy React SPA (panel.omanihub.com)
+name: Deploy Panel SPA (panel.omanihub.com)
 
 on:
   push:
