@@ -1,0 +1,109 @@
+name: Deploy React SPA (panel.omanihub.com)
+
+on:
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: panel-react-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sanity check required secrets
+        run: |
+          [ -n "${{ secrets.VPS_HOST }}" ] || (echo "Missing VPS_HOST" && exit 1)
+          [ -n "${{ secrets.VPS_USER }}" ] || (echo "Missing VPS_USER" && exit 1)
+          [ -n "${{ secrets.VPS_SSH_KEY }}" ] || (echo "Missing VPS_SSH_KEY" && exit 1)
+          [ -n "${{ secrets.VPS_PORT }}" ] || (echo "Missing VPS_PORT" && exit 1)
+          [ -n "${{ secrets.WEB_ROOT }}" ] || (echo "Missing WEB_ROOT" && exit 1)
+          [ -n "${{ secrets.PANEL_WEB_ROOT }}" ] || (echo "Missing PANEL_WEB_ROOT" && exit 1)
+
+      - name: Build & Deploy over SSH (static)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.WEB_ROOT }}"
+            DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
+
+            echo "==> User: $(whoami)"
+            echo "==> Repo dir: $APP_DIR"
+            echo "==> Deploy dir: $DEST_DIR"
+
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            # SSH setup (avoid prompts + ensure correct key is used for GitHub)
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            touch ~/.ssh/known_hosts
+            chmod 600 ~/.ssh/known_hosts
+            ssh-keygen -F github.com >/dev/null || ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+            # Force git/ssh to use the deploy_panel key registered on GitHub
+            cat > ~/.ssh/config << "EOF"
+            Host github.com
+              HostName github.com
+              User git
+              IdentityFile ~/.ssh/gha_panel
+              IdentitiesOnly yes
+            EOF
+            chmod 600 ~/.ssh/config
+
+            # Clone/pull via SSH
+            if [ ! -d .git ]; then
+              if [ "$(ls -A . | wc -l)" -gt 0 ]; then
+                echo "ERROR: $APP_DIR is not empty but has no .git. Use an empty folder for WEB_ROOT."
+                exit 2
+              fi
+              git clone git@github.com:${{ github.repository }}.git .
+            else
+              git fetch --all --prune
+              git reset --hard origin/main
+            fi
+
+            # Optional server-side env file (if your build needs it)
+            # (For Vite, env vars must be prefixed with VITE_)
+            if [ -f .env.production ]; then
+              set -a
+              . ./.env.production
+              set +a
+              echo "==> Loaded .env.production"
+            fi
+
+            # Install deps
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
+            # Build
+            npm run build
+
+            # Detect build folder: CRA=build, Vite=dist
+            if [ -d build ]; then
+              OUT_DIR="build"
+            elif [ -d dist ]; then
+              OUT_DIR="dist"
+            else
+              echo "ERROR: Build output not found. Expected ./build (CRA) or ./dist (Vite)."
+              ls -la
+              exit 3
+            fi
+
+            # Deploy (static)
+            mkdir -p "$DEST_DIR"
+            rsync -av --delete "$OUT_DIR"/ "$DEST_DIR"/
+
+            echo "==> Deploy complete. Top-level files:"
+            ls -la "$DEST_DIR"
