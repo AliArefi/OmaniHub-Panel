@@ -10,6 +10,7 @@ concurrency:
 
 jobs:
   deploy:
+    environment: VPS_HOST
     runs-on: ubuntu-latest
 
     steps:
