@@ -6,7 +6,7 @@ module.exports = {
     darkMode: 'class',
     theme: {
         fontFamily: {
-            sans: ['Peyda', 'sans-serif'],
+            sans: ['Kook', 'sans-serif'],
             serif: [
                 'ui-serif',
                 'Georgia',

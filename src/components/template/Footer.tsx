@@ -12,11 +12,11 @@ type FooterProps = {
 
 const FooterContent = () => {
     return (
-        <div className="flex items-center justify-between flex-auto w-full">
-            <span>
+        <div className="flex items-center justify-between flex-auto w-full flex-col lg:flex-row gap-2">
+            <div>
                 حقوق الطبع والنشر  &copy; {`${new Date().getFullYear()}`}{' '}
                 <span className="font-semibold">{`${APP_NAME}`}</span> جميع الحقوق محفوظة.
-            </span>
+            </div>
             <div className="">
                 <a
                     className="text-gray"
