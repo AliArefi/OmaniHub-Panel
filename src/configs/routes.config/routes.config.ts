@@ -20,9 +20,9 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'createStore',
-        path: '/create-store',
-        component: lazy(() => import('@/views/demo/CreateStore')),
+        key: 'createCenter',
+        path: '/create-center',
+        component: lazy(() => import('@/views/center/CreateCenter')),
         authority: [],
     },
     {

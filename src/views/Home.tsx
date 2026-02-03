@@ -1,11 +1,16 @@
 import { AbbreviateNumber, IconText } from "@/components/shared";
 import { Button, Card, Progress } from "@/components/ui";
 import { MdOutlineElectricBolt } from "react-icons/md";
+import { useNavigate } from 'react-router'
 
 export default function Home() {
+    const navigate = useNavigate()
+    const handleCreate = () => {
+        navigate('/create-center')
+    }
     return (
-        <div className="grid lg:grid-cols-4 gap-4 ">
-            <div className="lg:col-span-3">
+        <div className="grid lg:grid-cols-4 gap-4">
+            <div className="lg:col-span-3" >
                 <Card>
 
                     <IconText
@@ -14,7 +19,13 @@ export default function Home() {
                     >
                         أنشئ حجرتك واربح أكثر
                     </IconText>
-                    <p></p>
+                    <p className="text-base mt-3 mr-2">
+                        خدماتنا الإعلانية الشاملة تصنع حضورك الرقمی وتضاعف وصولك إلى جمهورك المستهدف.
+                        نحو إبداعٍ مؤثر، نتائج قابلة للقیاس، ونموٍ مستدام لعلامتك التجارية.
+                    </p>
+                    <div className="mt-2 flex items-center justify-end">
+                        <Button size="sm" onClick={handleCreate} variant="solid">إنشاء مركز خدمة</Button>
+                    </div>
                 </Card>
             </div>
 

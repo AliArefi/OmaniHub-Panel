@@ -17,11 +17,9 @@ const navigationConfig: NavigationTree[] = [
         authority: [],
         subMenu: [],
     },
-    /** فقط برای مثال، لطفاً حذف کنید */
-
     {
-        key: 'createStore',
-        path: '/create-store',
+        key: 'createCenter',
+        path: '/create-center',
         title: 'ایجاد حجره',
         translateKey: 'nav.singleMenuItem',
         icon: 'store',
