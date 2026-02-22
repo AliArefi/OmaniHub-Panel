@@ -5,6 +5,7 @@ import {
 } from '@/constants/navigation.constant'
 
 import type { NavigationTree } from '@/@types/navigation'
+import { CENTER_ROLE } from '@/constants/role.constant'
 
 const navigationConfig: NavigationTree[] = [
     {
@@ -13,6 +14,16 @@ const navigationConfig: NavigationTree[] = [
         title: 'لوحة التحكم',
         translateKey: 'nav.home',
         icon: 'home',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [],
+        subMenu: [],
+    },
+    {
+        key: 'centers',
+        path: '/centers',
+        title: 'غرفي',
+        translateKey: 'nav.singleMenuItem',
+        icon: 'store',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
         subMenu: [],

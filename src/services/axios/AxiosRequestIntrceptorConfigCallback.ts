@@ -10,7 +10,6 @@ const AxiosRequestIntrceptorConfigCallback = (
     config: InternalAxiosRequestConfig,
 ) => {
     const storage = appConfig.accessTokenPersistStrategy
-
     if (storage === 'localStorage' || storage === 'sessionStorage') {
         let accessToken = ''
 
@@ -27,6 +26,8 @@ const AxiosRequestIntrceptorConfigCallback = (
                 `${TOKEN_TYPE}${accessToken}`
         }
     }
+
+
 
     return config
 }

@@ -4,15 +4,29 @@ export type SignInCredential = {
 }
 
 export type SignInResponse = {
+    success: boolean
+    message: string
     token: string
+    has_active_store: boolean
+    has_active_agency: boolean
     user: {
-        userId: string
-        userName: string
-        authority: string[]
-        avatar: string
+        id: number
+        name: string
         email: string
+        avatar: string | null
+        email_verified_at: string | null
+        google_id: string | null
+        facebook_id: string | null
+        twitter_id: string | null
+        github_id: string | null
+        deleted_at: string | null
+        created_at: string
+        updated_at: string
+        otp: string | null
+        otp_expires_at: string | null
     }
 }
+
 
 export type SignUpResponse = SignInResponse
 
@@ -37,13 +51,34 @@ export type AuthResult = Promise<{
     message: string
 }>
 
+// export type User = {
+//     userId?: string | null
+//     avatar?: string | null
+//     userName?: string | null
+//     email?: string | null
+//     authority?: string[]
+// }
+
 export type User = {
-    userId?: string | null
-    avatar?: string | null
-    userName?: string | null
+    id?: number | null
+    name?: string | null
     email?: string | null
-    authority?: string[]
+    avatar?: string | null
+    email_verified_at?: string | null
+    google_id?: string | null
+    facebook_id?: string | null
+    twitter_id?: string | null
+    github_id?: string | null
+    deleted_at?: string | null
+    created_at?: string | null
+    updated_at?: string | null
+    otp?: string | null
+    otp_expires_at?: string | null
+    hasActiveStore?: boolean
+    hasActiveAgency?: boolean
 }
+
+// export type 
 
 export type Token = {
     accessToken: string

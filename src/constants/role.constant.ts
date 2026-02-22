@@ -1,0 +1,1 @@
+export const CENTER_ROLE = 'center'

@@ -1,5 +1,6 @@
 export type AppConfig = {
     apiPrefix: string
+    urlImage: string
     authenticatedEntryPath: string
     unAuthenticatedEntryPath: string
     locale: string
@@ -9,11 +10,12 @@ export type AppConfig = {
 }
 
 const appConfig: AppConfig = {
-    apiPrefix: '/api',
+    apiPrefix: 'https://admin.omanihub.com/api/1',
+    urlImage: 'https://admin.omanihub.com',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
-    accessTokenPersistStrategy: 'cookies',
+    accessTokenPersistStrategy: 'localStorage',
     enableMock: true,
     activeNavTranslation: false,
 }

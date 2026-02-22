@@ -77,12 +77,32 @@ function AuthProvider({ children }: AuthProviderProps) {
     const signIn = async (values: SignInCredential): AuthResult => {
         try {
             const resp = await apiSignIn(values)
-            if (resp) {
-                handleSignIn({ accessToken: resp.token }, resp.user)
+            if (resp && resp.success) {
+                handleSignIn(
+                    { accessToken: resp.token },
+                    {
+                        id: resp.user.id,
+                        name: resp.user.name,
+                        email: resp.user.email,
+                        avatar: resp.user.avatar,
+                        email_verified_at: resp.user.email_verified_at,
+                        google_id: resp.user.google_id,
+                        facebook_id: resp.user.facebook_id,
+                        twitter_id: resp.user.twitter_id,
+                        github_id: resp.user.github_id,
+                        deleted_at: resp.user.deleted_at,
+                        created_at: resp.user.created_at,
+                        updated_at: resp.user.updated_at,
+                        otp: resp.user.otp,
+                        otp_expires_at: resp.user.otp_expires_at,
+                        hasActiveStore: resp.has_active_store,
+                        hasActiveAgency: resp.has_active_agency,
+                    },
+                )
                 redirect()
                 return {
                     status: 'success',
-                    message: '',
+                    message: resp.message,
                 }
             }
             return {
@@ -97,6 +117,7 @@ function AuthProvider({ children }: AuthProviderProps) {
             }
         }
     }
+
 
     const signUp = async (values: SignUpCredential): AuthResult => {
         try {

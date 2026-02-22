@@ -1,16 +1,16 @@
-import { Button, Card, Form, FormItem, Input, Select } from "@/components/ui";
+import { Button, Card, Form, FormItem, Input, Select, Spinner, toast } from "@/components/ui";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect, useState } from "react";
+import { useTranslation } from "@/store/useTranslation";
+import { apiCreateNewAgency, getServices } from "@/services/CenterService";
+import { CreateNewAgencyRequest, Services } from "@/@types/center";
+import Notification from '@/components/ui/Notification'
+import { useNavigate } from "react-router";
 
 interface HojraInformationProps {
     changeState: (value: number) => void;
-}
-
-type FormSchema = {
-    title: string,
-    service_id: number | null,
-    about_text: string
 }
 
 const validationSchema = z.object({
@@ -29,20 +29,38 @@ const validationSchema = z.object({
         .min(8, { message: 'النص قصير' })
 })
 
-const Options = [
-    { value: 1, label: 'مركز التجميل' },
-    { value: 2, label: 'مركز الليزر والعناية بالبشرة' },
-    { value: 3, label: 'صالون الجمال المتكامل' },
-    { value: 4, label: 'مركز العناية النسائية' },
-]
-
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
+
+
+    const navigate = useNavigate()
+
+    const [services, setServices] = useState<Services[]>([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const { t, setLang } = useTranslation()
+
+    useEffect(() => {
+        const fetchAgencies = async () => {
+            setLoading(true)
+            try {
+                const resp = await getServices()
+                setServices(resp.data)
+            } catch (err: any) {
+                setError(err?.response?.data?.message || 'خطا در دریافت اطلاعات')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchAgencies()
+    }, [])
+
 
     const {
         handleSubmit,
         control,
-        formState: { errors }
-    } = useForm<FormSchema>({
+        formState: { errors, isSubmitting }
+    } = useForm<CreateNewAgencyRequest>({
         defaultValues: {
             title: '',
             service_id: null,
@@ -51,13 +69,28 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         resolver: zodResolver(validationSchema)
     })
 
-    const onSubmit = async (values: FormSchema) => {
-
-        await new Promise((r) => setTimeout(r, 500))
-        changeState(2)
-
-        //alert(JSON.stringify(values, null, 2))
+    const onSubmit = async (values: CreateNewAgencyRequest) => {
+        console.log(values)
+        const resp = await apiCreateNewAgency(values)
+        console.log('RESP', resp)
+        if (resp?.success) {
+            toast.push(
+                <Notification type="success" >
+                    {resp.message}
+                </Notification>
+            )
+        }
+        await new Promise((r) => setTimeout(r, 200))
+        navigate('/centers');
+        //changeState(2)
     }
+
+
+    if (loading) return <div className="w-full text-center flex items-center justify-center flex-col">
+        <Spinner />
+        <div>{t('loading')}</div>
+    </div>
+    if (error) return <div>{error}</div>
 
     return (
         <div>
@@ -102,8 +135,15 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                     <Select
                                         size="sm"
                                         placeholder="اختر"
-                                        options={Options}
-                                        value={Options.find(opt => opt.value === field.value) || null}
+                                        options={services.map((service) => ({
+                                            value: service.id,
+                                            label: service.name,
+                                        }))}
+                                        value={
+                                            services
+                                                .map((service) => ({ value: service.id, label: service.name }))
+                                                .find((opt) => opt.value === field.value) || null
+                                        }
                                         onChange={(opt) => field.onChange(opt?.value)}
                                     />
                                 }
@@ -129,7 +169,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                         </FormItem>
                         <FormItem>
                             <div className="flex items-center justify-end">
-                                <Button size="sm" variant="solid" type="submit">
+                                <Button loading={isSubmitting} size="sm" variant="solid" type="submit">
                                     سجل حجرة جديدة
                                 </Button>
                             </div>

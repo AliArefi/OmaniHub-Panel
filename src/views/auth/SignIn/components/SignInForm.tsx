@@ -37,14 +37,16 @@ const SignInForm = (props: SignInFormProps) => {
 
     const { disableSubmit = false, className, setMessage, passwordHint } = props
 
+    // admin-01@ecme.com
+    // 123Qwe
     const {
         handleSubmit,
         formState: { errors },
         control,
     } = useForm<SignInFormSchema>({
         defaultValues: {
-            email: 'admin-01@ecme.com',
-            password: '123Qwe',
+            email: '',
+            password: '',
         },
         resolver: zodResolver(validationSchema),
     })
@@ -56,10 +58,7 @@ const SignInForm = (props: SignInFormProps) => {
 
         if (!disableSubmit) {
             setSubmitting(true)
-
-            // var email = 're';
-            // var password = 're';
-
+            
             const result = await signIn({ email, password })
 
             if (result?.status === 'failed') {
