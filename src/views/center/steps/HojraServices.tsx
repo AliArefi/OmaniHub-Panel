@@ -1,183 +1,175 @@
+// steps/HojraServices.tsx
 import { Button, Card, FormItem, Input, Select } from "@/components/ui";
+import { ServiceItem, useCreateStore } from "@/context/createStoreContext";
 import { useState } from "react";
 
-interface HojraInformationProps {
+interface HojraServicesProps {
     changeState: (value: number) => void;
 }
 
-interface Service {
-    id: number;
-    subServiceValue: number;
-    subServiceLabel: string;
-    mainServiceLabel: string;
-    duration: number;
-    price: number;
-    description: string;
-}
-
-const services = [
+const servicesData = [
     {
         value: 1,
-        label: 'عناية بالوجه',
-        group: 'العناية بالبشرة',
+        label: "عناية بالوجه",
         options: [
-            { value: 11, label: 'تنظيف الوجه' },
-            { value: 12, label: 'علاج حب الشباب' }
-        ]
+            { value: 11, label: "تنظيف الوجه" },
+            { value: 12, label: "علاج حب الشباب" },
+        ],
     },
     {
         value: 2,
-        label: 'عناية بالشعر',
-        group: 'العناية بالشعر',
+        label: "عناية بالشعر",
         options: [
-            { value: 21, label: 'تصفيف الشعر' },
-            { value: 22, label: 'صبغ الشعر' }
-        ]
+            { value: 21, label: "تصفيف الشعر" },
+            { value: 22, label: "صبغ الشعر" },
+        ],
     },
     {
         value: 3,
-        label: 'عناية بالأظافر',
-        group: 'العناية بالأظافر',
+        label: "عناية بالأظافر",
         options: [
-            { value: 31, label: 'مانيكير' },
-            { value: 32, label: 'باديكير' }
-        ]
+            { value: 31, label: "مانيكير" },
+            { value: 32, label: "باديكير" },
+        ],
     },
     {
         value: 4,
-        label: 'إزالة الشعر',
-        group: 'إزالة الشعر',
+        label: "إزالة الشعر",
         options: [
-            { value: 41, label: 'إزالة الشعر بالشمع' },
-            { value: 42, label: 'إزالة الشعر بالليزر' }
-        ]
+            { value: 41, label: "إزالة الشعر بالشمع" },
+            { value: 42, label: "إزالة الشعر بالليزر" },
+        ],
     },
     {
         value: 5,
-        label: 'التدليك',
-        group: 'التدليك',
+        label: "التدليك",
         options: [
-            { value: 51, label: 'التدليك السويدي' },
-            { value: 52, label: 'التدليك بالزيوت' }
-        ]
+            { value: 51, label: "التدليك السويدي" },
+            { value: 52, label: "التدليك بالزيوت" },
+        ],
     },
     {
         value: 6,
-        label: 'المكياج',
-        group: 'المكياج',
+        label: "المكياج",
         options: [
-            { value: 61, label: 'مكياج العروس' },
-            { value: 62, label: 'مكياج يومي' }
-        ]
+            { value: 61, label: "مكياج العروس" },
+            { value: 62, label: "مكياج يومي" },
+        ],
     },
     {
         value: 7,
-        label: 'العناية بالحواجب',
-        group: 'العناية بالحواجب',
+        label: "العناية بالحواجب",
         options: [
-            { value: 71, label: 'تشذيب الحواجب' },
-            { value: 72, label: 'تلوين الحواجب' }
-        ]
+            { value: 71, label: "تشذيب الحواجب" },
+            { value: 72, label: "تلوين الحواجب" },
+        ],
     },
     {
         value: 8,
-        label: 'الليزر',
-        group: 'الليزر',
+        label: "الليزر",
         options: [
-            { value: 81, label: 'ليزر الوجه' },
-            { value: 82, label: 'ليزر الجسم' }
-        ]
+            { value: 81, label: "ليزر الوجه" },
+            { value: 82, label: "ليزر الجسم" },
+        ],
     },
     {
         value: 9,
-        label: 'استشارة جمالية',
-        group: 'الاستشارات',
+        label: "استشارة جمالية",
         options: [
-            { value: 91, label: 'استشارة للبشرة' },
-            { value: 92, label: 'استشارة للشعر' }
-        ]
-    }
+            { value: 91, label: "استشارة للبشرة" },
+            { value: 92, label: "استشارة للشعر" },
+        ],
+    },
 ];
 
-export const HojraServices = ({ changeState }: HojraInformationProps) => {
-    const [selectedService, setSelectedService] = useState<number | null>(null);
+export const HojraServices = ({ changeState }: HojraServicesProps) => {
+    const { services, addService, removeService } = useCreateStore();
+
+    const [selectedMainService, setSelectedMainService] = useState<number | null>(null);
     const [selectedSubService, setSelectedSubService] = useState<number | null>(null);
-    const [duration, setDuration] = useState<string>('');
-    const [price, setPrice] = useState<string>('');
-    const [description, setDescription] = useState<string>('');
-    const [addedServices, setAddedServices] = useState<Service[]>([]);
+    const [duration, setDuration] = useState<string>("");
+    const [price, setPrice] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
 
     const subOptions =
-        services.find(s => s.value === selectedService)?.options || [];
+        servicesData.find((s) => s.value === selectedMainService)?.options || [];
 
-    const mainOptions = services.map(s => ({
+    const mainOptions = servicesData.map((s) => ({
         value: s.value,
-        label: s.label
+        label: s.label,
     }));
 
     const isDuplicate = (subServiceValue: number): boolean => {
-        return addedServices.some(service => service.subServiceValue === subServiceValue);
+        return services.some(
+            (service) => service.subServiceValue === subServiceValue
+        );
     };
 
     const isFormComplete = (): boolean => {
         return (
-            selectedService !== null &&
+            selectedMainService !== null &&
             selectedSubService !== null &&
-            duration.trim() !== '' &&
+            duration.trim() !== "" &&
             Number(duration) > 0 &&
-            price.trim() !== '' &&
+            price.trim() !== "" &&
             Number(price) > 0 &&
-            description.trim() !== '' &&
+            description.trim() !== "" &&
             !isDuplicate(selectedSubService)
         );
     };
 
     const handleAddService = () => {
-        if (!isFormComplete() || selectedSubService === null) return;
+        if (!isFormComplete() || selectedSubService === null || selectedMainService === null)
+            return;
 
-        const mainService = services.find(s => s.value === selectedService);
-        const subService = subOptions.find(s => s.value === selectedSubService);
+        const mainService = servicesData.find(
+            (s) => s.value === selectedMainService
+        );
+        const subService = subOptions.find(
+            (s) => s.value === selectedSubService
+        );
 
         if (!mainService || !subService) return;
 
-        const newService: Service = {
+        const newService: ServiceItem = {
             id: Date.now(),
             subServiceValue: selectedSubService,
             subServiceLabel: subService.label,
+            mainServiceValue: selectedMainService,
             mainServiceLabel: mainService.label,
             duration: Number(duration),
             price: Number(price),
-            description: description.trim()
+            description: description.trim(),
         };
 
-        setAddedServices([...addedServices, newService]);
+        addService(newService);
 
-        setSelectedService(null);
+        setSelectedMainService(null);
         setSelectedSubService(null);
-        setDuration('');
-        setPrice('');
-        setDescription('');
-    };
-
-    const handleDeleteService = (id: number) => {
-        setAddedServices(addedServices.filter(service => service.id !== id));
+        setDuration("");
+        setPrice("");
+        setDescription("");
     };
 
     return (
         <Card
             header={{
-                content: 'الخدمات وأعضاء الفريق',
+                content: "تعريف الخدمات",
                 bordered: false,
             }}
         >
             <div className="space-y-4">
-                <FormItem label="الخدمات التي تقدمها">
+                <FormItem label="نوع الخدمة الرئيسية">
                     <Select
                         placeholder="اختر نوع الخدمة"
                         options={mainOptions}
-                        value={mainOptions.find(s => s.value === selectedService) || null}
+                        value={
+                            mainOptions.find(
+                                (s) => s.value === selectedMainService
+                            ) || null
+                        }
                         onChange={(opt) => {
-                            setSelectedService(opt?.value ?? null);
+                            setSelectedMainService(opt?.value ?? null);
                             setSelectedSubService(null);
                         }}
                     />
@@ -187,9 +179,15 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
                     <Select
                         placeholder="اختر الخدمة الفرعية"
                         options={subOptions}
-                        isDisabled={!selectedService}
-                        value={subOptions.find(s => s.value === selectedSubService) || null}
-                        onChange={(opt) => setSelectedSubService(opt?.value ?? null)}
+                        isDisabled={!selectedMainService}
+                        value={
+                            subOptions.find(
+                                (s) => s.value === selectedSubService
+                            ) || null
+                        }
+                        onChange={(opt) =>
+                            setSelectedSubService(opt?.value ?? null)
+                        }
                     />
                 </FormItem>
 
@@ -202,7 +200,11 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
                 <div className="grid grid-cols-2 gap-4">
                     <FormItem
                         label="مدة الخدمة"
-                        extra={<div className="text-xs text-gray-400 mx-1">دقائق</div>}
+                        extra={
+                            <div className="text-xs text-gray-400 mx-1">
+                                دقائق
+                            </div>
+                        }
                     >
                         <Input
                             type="number"
@@ -215,7 +217,11 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
 
                     <FormItem
                         label="سعر الخدمة"
-                        extra={<div className="text-xs text-gray-400 mx-1">ريال</div>}
+                        extra={
+                            <div className="text-xs text-gray-400 mx-1">
+                                ريال
+                            </div>
+                        }
                     >
                         <Input
                             type="number"
@@ -243,23 +249,31 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
                         disabled={!isFormComplete()}
                         onClick={handleAddService}
                     >
-                        إضافة خدمات
+                        إضافة خدمة
                     </Button>
                 </FormItem>
 
-                {addedServices.length > 0 && (
+                {/* لیست خدمات اضافه شده */}
+                {services.length > 0 && (
                     <div className="mt-6 space-y-3">
-                        <h3 className="text-lg font-semibold">الخدمات المضافة</h3>
-                        {addedServices.map((service) => (
+                        <h3 className="text-lg font-semibold">
+                            الخدمات المضافة ({services.length})
+                        </h3>
+                        {services.map((service) => (
                             <Card key={service.id}>
                                 <div className="flex justify-between items-center flex-row">
                                     <div className="flex-1">
                                         <div className="font-semibold text-primary-deep text-base mb-1">
-                                            {service.mainServiceLabel} - {service.subServiceLabel}
+                                            {service.mainServiceLabel} -{" "}
+                                            {service.subServiceLabel}
                                         </div>
                                         <div className="text-sm text-gray-600 mb-1 flex gap-4">
-                                            <span>المدة: {service.duration} دقيقة</span>
-                                            <span>السعر: {service.price} ريال</span>
+                                            <span>
+                                                المدة: {service.duration} دقيقة
+                                            </span>
+                                            <span>
+                                                السعر: {service.price} ريال
+                                            </span>
                                         </div>
                                         <div className="text-sm text-gray-700">
                                             {service.description}
@@ -271,7 +285,9 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
                                             shape="circle"
                                             size="xs"
                                             className="bg-red-300 hover:bg-red-400 transition-all"
-                                            onClick={() => handleDeleteService(service.id)}
+                                            onClick={() =>
+                                                removeService(service.id)
+                                            }
                                         >
                                             حذف
                                         </Button>
@@ -282,14 +298,23 @@ export const HojraServices = ({ changeState }: HojraInformationProps) => {
                     </div>
                 )}
 
+                {/* نویگیشن */}
                 <div>
                     <div className="flex items-center justify-end gap-3">
-                        <Button size="sm" variant="default" onClick={() => changeState(1)}>
+                        <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => changeState(1)}
+                        >
                             خلف
                         </Button>
-                        {addedServices.length > 0 && (
-                            <Button size="sm" variant="solid" onClick={() => changeState(3)}>
-                                سجل وأضف فريقًا
+                        {services.length > 0 && (
+                            <Button
+                                size="sm"
+                                variant="solid"
+                                onClick={() => changeState(3)}
+                            >
+                                التالي: تعيين الفريق
                             </Button>
                         )}
                     </div>

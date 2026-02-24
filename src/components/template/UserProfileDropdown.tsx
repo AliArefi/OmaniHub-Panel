@@ -14,7 +14,13 @@ type DropdownList = {
     icon: JSX.Element
 }
 
-const dropdownItemList: DropdownList[] = []
+const dropdownItemList: DropdownList[] = [
+    {
+        label: 'الملف الشخصي',
+        path: '/profile',
+        icon: <PiUserDuotone />,
+    }
+]
 
 const _UserDropdown = () => {
     const { avatar, name, email } = useSessionUser((state) => state.user)
@@ -45,10 +51,10 @@ const _UserDropdown = () => {
                     <Avatar {...avatarProps} />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-gray-100">
-                            {name || 'ناشناس'}
+                            {name || 'مجهول'}
                         </div>
                         <div className="text-xs">
-                            {email || 'ایمیلی موجود نیست'}
+                            {email || 'لا يوجد بريد إلكتروني'}
                         </div>
                     </div>
                 </div>
@@ -76,7 +82,7 @@ const _UserDropdown = () => {
                 <span className="text-xl">
                     <PiSignOutDuotone />
                 </span>
-                <span>خروج از حساب</span>
+                <span>تسجيل الخروج</span>
             </Dropdown.Item>
         </Dropdown>
     )
