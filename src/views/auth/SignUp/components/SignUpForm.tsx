@@ -14,7 +14,7 @@ interface SignUpFormProps extends CommonProps {
 }
 
 type SignUpFormSchema = {
-    userName: string
+    name: string
     password: string
     email: string
     confirmPassword: string
@@ -23,7 +23,7 @@ type SignUpFormSchema = {
 const validationSchema = z
     .object({
         email: z.email({ message: 'الرجاء إدخال بريد إلكتروني صحيح' }),
-        userName: z.string().min(1, { message: 'الرجاء إدخال اسم المستخدم الخاص بك' }),
+        name: z.string().min(1, { message: 'الرجاء إدخال اسم الخاص بك' }),
         password: z.string().min(1, { message: 'كلمة المرور مطلوبة' }),
         confirmPassword: z.string().min(1, { message: 'يلزم تأكيد كلمة المرور'}),
     })
@@ -48,15 +48,15 @@ const SignUpForm = (props: SignUpFormProps) => {
     })
 
     const onSignUp = async (values: SignUpFormSchema) => {
-        const { userName, password, email } = values
+        const { name, password, email } = values
 
         if (!disableSubmit) {
             setSubmitting(true)
-            // const result = await signUp({ userName, password, email })
+            const result = await signUp({ name, password, email })
 
-            // if (result?.status === 'failed') {
-            //     setMessage?.(result.message)
-            // }
+            if (result?.status === 'failed') {
+                setMessage?.(result.message)
+            }
 
             setSubmitting(false)
         }
@@ -66,17 +66,17 @@ const SignUpForm = (props: SignUpFormProps) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSignUp)}>
                 <FormItem
-                    label="اسم المستخدم"
-                    invalid={Boolean(errors.userName)}
-                    errorMessage={errors.userName?.message}
+                    label="اسم"
+                    invalid={Boolean(errors.name)}
+                    errorMessage={errors.name?.message}
                 >
                     <Controller
-                        name="userName"
+                        name="name"
                         control={control}
                         render={({ field }) => (
                             <Input
                                 type="text"
-                                placeholder="اسم المستخدم"
+                                placeholder="اسم"
                                 autoComplete="off"
                                 {...field}
                             />

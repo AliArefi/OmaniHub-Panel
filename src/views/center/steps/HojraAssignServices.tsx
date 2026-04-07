@@ -1,60 +1,66 @@
-// steps/HojraAssignServices.tsx
-import { Button, Card, FormItem, Input, Select } from "@/components/ui";
-import { ServiceAssignment, TeamMember, useCreateStore, WorkScheduleEntry } from "@/context/createStoreContext";
-import { useState, useRef } from "react";
+import { Button, Card, FormItem, Input, Select } from '@/components/ui'
+import {
+    ServiceAssignment,
+    TeamMember,
+    useCreateStore,
+    WorkScheduleEntry,
+} from '@/context/createStoreContext'
+import {
+    apiCreateMemberAgency,
+    apiMemberWorkingHours,
+} from '@/services/CenterService'
+import { useState, useRef } from 'react'
 
 interface HojraAssignServicesProps {
-    changeState: (value: number) => void;
+    changeState: (value: number) => void
 }
 
 interface SelectOption {
-    value: string | number;
-    label: string;
+    value: string | number
+    label: string
 }
 
-// تولید ۳۰ روز آینده
 const generateNext30Days = (): SelectOption[] => {
-    const days: SelectOption[] = [];
-    const today = new Date();
+    const days: SelectOption[] = []
+    const today = new Date()
     const dayNames = [
-        "الأحد",
-        "الإثنين",
-        "الثلاثاء",
-        "الأربعاء",
-        "الخميس",
-        "الجمعة",
-        "السبت",
-    ];
+        'الأحد',
+        'الإثنين',
+        'الثلاثاء',
+        'الأربعاء',
+        'الخميس',
+        'الجمعة',
+        'السبت',
+    ]
 
     for (let i = 0; i < 30; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        const dayName = dayNames[date.getDay()];
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
+        const date = new Date(today)
+        date.setDate(today.getDate() + i)
+        const dayName = dayNames[date.getDay()]
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
         days.push({
             value: `${year}-${month}-${day}`,
             label: `${dayName} ${day}/${month}/${year}`,
-        });
+        })
     }
-    return days;
-};
+    return days
+}
 
-// تولید ساعات
 const generateTimeOptions = (): SelectOption[] => {
-    const times: SelectOption[] = [];
+    const times: SelectOption[] = []
     for (let h = 6; h < 23; h++) {
-        ["00", "30"].forEach((m) => {
-            const time = `${h.toString().padStart(2, "0")}:${m}`;
-            times.push({ value: time, label: time });
-        });
+        ;['00', '30'].forEach((m) => {
+            const time = `${h.toString().padStart(2, '0')}:${m}`
+            times.push({ value: time, label: time })
+        })
     }
-    return times;
-};
+    return times
+}
 
-const DATES = generateNext30Days();
-const TIME_OPTIONS = generateTimeOptions();
+const DATES = generateNext30Days()
+const TIME_OPTIONS = generateTimeOptions()
 
 export const HojraAssignServices = ({
     changeState,
@@ -62,6 +68,7 @@ export const HojraAssignServices = ({
     const {
         services,
         teamMembers,
+        newHojraData,
         addTeamMember,
         removeTeamMember,
         assignments,
@@ -69,102 +76,103 @@ export const HojraAssignServices = ({
         removeAssignment,
         addScheduleToAssignment,
         removeScheduleFromAssignment,
-    } = useCreateStore();
+    } = useCreateStore()
 
-    // --- State: ساخت عضو جدید ---
-    const [showNewMemberForm, setShowNewMemberForm] = useState(false);
-    const [newMemberName, setNewMemberName] = useState("");
-    const [newMemberRole, setNewMemberRole] = useState("");
-    const [newMemberImage, setNewMemberImage] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showNewMemberForm, setShowNewMemberForm] = useState(false)
+    const [newMemberName, setNewMemberName] = useState('')
+    const [newMemberRole, setNewMemberRole] = useState('')
+    const [newMemberImage, setNewMemberImage] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // --- State: اختصاص خدمت به عضو ---
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+        null,
+    )
+    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(
+        null,
+    )
 
-    // --- State: زمان‌بندی برای assignment فعال ---
-    const [activeAssignmentId, setActiveAssignmentId] = useState<number | null>(null);
-    const [scheduleDate, setScheduleDate] = useState<string>("");
-    const [scheduleStartTime, setScheduleStartTime] = useState<string>("");
-    const [scheduleEndTime, setScheduleEndTime] = useState<string>("");
-
-    // ============ بخش ساخت عضو جدید ============
+    const [activeAssignmentId, setActiveAssignmentId] = useState<number | null>(
+        null,
+    )
+    const [scheduleDate, setScheduleDate] = useState<string>('')
+    const [scheduleStartTime, setScheduleStartTime] = useState<string>('')
+    const [scheduleEndTime, setScheduleEndTime] = useState<string>('')
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !file.type.startsWith("image/")) return;
-        const reader = new FileReader();
-        reader.onloadend = () => setNewMemberImage(reader.result as string);
-        reader.readAsDataURL(file);
-    };
+        const file = e.target.files?.[0]
+        if (!file || !file.type.startsWith('image/')) return
+        const reader = new FileReader()
+        reader.onloadend = () => setNewMemberImage(reader.result as string)
+        reader.readAsDataURL(file)
+    }
 
     const handleRemoveImage = () => {
-        setNewMemberImage(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
+        setNewMemberImage(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
 
     const isNewMemberFormComplete = (): boolean => {
         return (
-            newMemberName.trim() !== "" &&
-            newMemberRole.trim() !== "" &&
+            newMemberName.trim() !== '' &&
+            newMemberRole.trim() !== '' &&
             newMemberImage !== null
-        );
-    };
+        )
+    }
 
-    const handleCreateMember = () => {
-        if (!isNewMemberFormComplete()) return;
+    const handleCreateMember = async () => {
+        if (!isNewMemberFormComplete()) return
 
         const newMember: TeamMember = {
             id: Date.now(),
             name: newMemberName.trim(),
-            role: newMemberRole.trim(),
+            position: newMemberRole.trim(),
             image: newMemberImage,
-        };
+        }
 
-        addTeamMember(newMember);
-        setNewMemberName("");
-        setNewMemberRole("");
-        setNewMemberImage(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setShowNewMemberForm(false);
-    };
+        const resp = await apiCreateMemberAgency(newMember, newHojraData.slug)
 
-    // ============ بخش اختصاص خدمت ============
+        addTeamMember(newMember)
+        setNewMemberName('')
+        setNewMemberRole('')
+        setNewMemberImage(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        setShowNewMemberForm(false)
+    }
 
     const serviceOptions: SelectOption[] = services.map((s) => ({
         value: s.id,
         label: `${s.mainServiceLabel} - ${s.subServiceLabel}`,
-    }));
+    }))
 
     const memberOptions: SelectOption[] = teamMembers.map((m) => ({
         value: m.id,
         label: m.name,
-    }));
+    }))
 
     const isAssignmentDuplicate = (): boolean => {
-        if (!selectedServiceId || !selectedMemberId) return false;
+        if (!selectedServiceId || !selectedMemberId) return false
         return assignments.some(
             (a) =>
                 a.serviceId === selectedServiceId &&
-                a.memberId === selectedMemberId
-        );
-    };
+                a.memberId === selectedMemberId,
+        )
+    }
 
     const canAssign = (): boolean => {
         return (
             selectedServiceId !== null &&
             selectedMemberId !== null &&
             !isAssignmentDuplicate()
-        );
-    };
+        )
+    }
 
-    const handleAssign = () => {
-        if (!canAssign() || !selectedServiceId || !selectedMemberId) return;
+    const handleAssign = async () => {
+        if (!canAssign() || !selectedServiceId || !selectedMemberId) return
 
-        const service = services.find((s) => s.id === selectedServiceId);
-        const member = teamMembers.find((m) => m.id === selectedMemberId);
+        const service = services.find((s) => s.id === selectedServiceId)
+        const member = teamMembers.find((m) => m.id === selectedMemberId)
 
-        if (!service || !member) return;
+        if (!service || !member) return
 
         const newAssignment: ServiceAssignment = {
             id: Date.now(),
@@ -173,30 +181,33 @@ export const HojraAssignServices = ({
             memberId: member.id,
             memberName: member.name,
             schedules: [],
-        };
+        }
 
-        addAssignment(newAssignment);
-        setSelectedServiceId(null);
-        setSelectedMemberId(null);
-    };
+        const prepair = {
+            days: ["0"],
+        }
+        const resp = await apiMemberWorkingHours(prepair, member.id)
 
-    // ============ بخش زمان‌بندی ============
+        addAssignment(newAssignment)
+        setSelectedServiceId(null)
+        setSelectedMemberId(null)
+    }
 
     const canAddSchedule = (): boolean => {
         return (
             activeAssignmentId !== null &&
-            scheduleDate !== "" &&
-            scheduleStartTime !== "" &&
-            scheduleEndTime !== "" &&
+            scheduleDate !== '' &&
+            scheduleStartTime !== '' &&
+            scheduleEndTime !== '' &&
             scheduleStartTime < scheduleEndTime
-        );
-    };
+        )
+    }
 
     const handleAddSchedule = () => {
-        if (!canAddSchedule() || !activeAssignmentId) return;
+        if (!canAddSchedule() || !activeAssignmentId) return
 
         const dateLabel =
-            DATES.find((d) => d.value === scheduleDate)?.label || "";
+            DATES.find((d) => d.value === scheduleDate)?.label || ''
 
         const newSchedule: WorkScheduleEntry = {
             id: Date.now(),
@@ -204,31 +215,29 @@ export const HojraAssignServices = ({
             dateLabel,
             startTime: scheduleStartTime,
             endTime: scheduleEndTime,
-        };
+        }
 
-        addScheduleToAssignment(activeAssignmentId, newSchedule);
-        setScheduleDate("");
-        setScheduleStartTime("");
-        setScheduleEndTime("");
-    };
+        addScheduleToAssignment(activeAssignmentId, newSchedule)
+        setScheduleDate('')
+        setScheduleStartTime('')
+        setScheduleEndTime('')
+    }
 
-    // بررسی آیا همه assignment ها حداقل یک schedule دارن
     const allAssignmentsHaveSchedules = (): boolean => {
         return (
             assignments.length > 0 &&
             assignments.every((a) => a.schedules.length > 0)
-        );
-    };
+        )
+    }
 
     return (
         <Card
             header={{
-                content: "تعيين الخدمات للفريق",
+                content: 'تعيين الخدمات للفريق',
                 bordered: false,
             }}
         >
             <div className="space-y-6">
-                {/* ===== بخش اعضای تیم ===== */}
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-base font-semibold">
@@ -236,16 +245,15 @@ export const HojraAssignServices = ({
                         </h3>
                         <Button
                             size="xs"
-                            variant={showNewMemberForm ? "default" : "solid"}
+                            variant={showNewMemberForm ? 'default' : 'solid'}
                             onClick={() =>
                                 setShowNewMemberForm(!showNewMemberForm)
                             }
                         >
-                            {showNewMemberForm ? "إلغاء" : "+ عضو جديد"}
+                            {showNewMemberForm ? 'إلغاء' : '+ عضو جديد'}
                         </Button>
                     </div>
 
-                    {/* فرم ساخت عضو جدید */}
                     {showNewMemberForm && (
                         <Card className="mb-4">
                             <div className="space-y-3">
@@ -353,7 +361,6 @@ export const HojraAssignServices = ({
                         </Card>
                     )}
 
-                    {/* لیست اعضای موجود */}
                     {teamMembers.length > 0 && (
                         <div className="space-y-2 mb-4">
                             {teamMembers.map((member) => (
@@ -375,7 +382,7 @@ export const HojraAssignServices = ({
                                             {member.name}
                                         </div>
                                         <div className="text-xs text-gray-500 truncate">
-                                            {member.role}
+                                            {member.position}
                                         </div>
                                     </div>
                                     <Button
@@ -394,7 +401,6 @@ export const HojraAssignServices = ({
                     )}
                 </div>
 
-                {/* ===== بخش اختصاص خدمت به عضو ===== */}
                 {teamMembers.length > 0 && services.length > 0 && (
                     <div>
                         <h3 className="text-base font-semibold mb-3">
@@ -414,13 +420,11 @@ export const HojraAssignServices = ({
                                     value={
                                         serviceOptions.find(
                                             (s) =>
-                                                s.value === selectedServiceId
+                                                s.value === selectedServiceId,
                                         ) || null
                                     }
                                     onChange={(opt: any) =>
-                                        setSelectedServiceId(
-                                            opt?.value ?? null
-                                        )
+                                        setSelectedServiceId(opt?.value ?? null)
                                     }
                                 />
                             </FormItem>
@@ -431,14 +435,11 @@ export const HojraAssignServices = ({
                                     options={memberOptions as any}
                                     value={
                                         memberOptions.find(
-                                            (m) =>
-                                                m.value === selectedMemberId
+                                            (m) => m.value === selectedMemberId,
                                         ) || null
                                     }
                                     onChange={(opt: any) =>
-                                        setSelectedMemberId(
-                                            opt?.value ?? null
-                                        )
+                                        setSelectedMemberId(opt?.value ?? null)
                                     }
                                 />
                             </FormItem>
@@ -462,7 +463,6 @@ export const HojraAssignServices = ({
                     </div>
                 )}
 
-                {/* ===== لیست Assignment ها ===== */}
                 {assignments.length > 0 && (
                     <div className="space-y-4">
                         <h3 className="text-base font-semibold">
@@ -471,22 +471,21 @@ export const HojraAssignServices = ({
 
                         {assignments.map((assignment) => {
                             const isActive =
-                                activeAssignmentId === assignment.id;
+                                activeAssignmentId === assignment.id
                             const member = teamMembers.find(
-                                (m) => m.id === assignment.memberId
-                            );
+                                (m) => m.id === assignment.memberId,
+                            )
 
                             return (
                                 <Card
                                     key={assignment.id}
                                     className={`border-2 transition-all ${
                                         isActive
-                                            ? "border-primary-deep"
-                                            : "border-transparent"
+                                            ? 'border-primary-deep'
+                                            : 'border-transparent'
                                     }`}
                                 >
                                     <div className="space-y-3">
-                                        {/* هدر Assignment */}
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-center gap-3">
                                                 {member?.image && (
@@ -514,21 +513,21 @@ export const HojraAssignServices = ({
                                                 <Button
                                                     variant={
                                                         isActive
-                                                            ? "solid"
-                                                            : "default"
+                                                            ? 'solid'
+                                                            : 'default'
                                                     }
                                                     size="xs"
                                                     onClick={() =>
                                                         setActiveAssignmentId(
                                                             isActive
                                                                 ? null
-                                                                : assignment.id
+                                                                : assignment.id,
                                                         )
                                                     }
                                                 >
                                                     {isActive
-                                                        ? "إغلاق"
-                                                        : "أوقات العمل"}
+                                                        ? 'إغلاق'
+                                                        : 'أوقات العمل'}
                                                 </Button>
                                                 <Button
                                                     variant="solid"
@@ -536,7 +535,7 @@ export const HojraAssignServices = ({
                                                     className="bg-red-300 hover:bg-red-400"
                                                     onClick={() =>
                                                         removeAssignment(
-                                                            assignment.id
+                                                            assignment.id,
                                                         )
                                                     }
                                                 >
@@ -545,7 +544,6 @@ export const HojraAssignServices = ({
                                             </div>
                                         </div>
 
-                                        {/* نمایش Schedule های موجود */}
                                         {assignment.schedules.length > 0 && (
                                             <div className="space-y-1">
                                                 {assignment.schedules.map(
@@ -579,8 +577,8 @@ export const HojraAssignServices = ({
                                                                 <span className="text-gray-500">
                                                                     {
                                                                         sch.startTime
-                                                                    }{" "}
-                                                                    -{" "}
+                                                                    }{' '}
+                                                                    -{' '}
                                                                     {
                                                                         sch.endTime
                                                                     }
@@ -593,14 +591,14 @@ export const HojraAssignServices = ({
                                                                 onClick={() =>
                                                                     removeScheduleFromAssignment(
                                                                         assignment.id,
-                                                                        sch.id
+                                                                        sch.id,
                                                                     )
                                                                 }
                                                             >
                                                                 ✕
                                                             </Button>
                                                         </div>
-                                                    )
+                                                    ),
                                                 )}
                                             </div>
                                         )}
@@ -611,7 +609,6 @@ export const HojraAssignServices = ({
                                             </div>
                                         )}
 
-                                        {/* فرم اضافه کردن Schedule */}
                                         {isActive && (
                                             <div className="border-t pt-3 space-y-3">
                                                 <div className="text-sm font-medium text-gray-700">
@@ -621,22 +618,18 @@ export const HojraAssignServices = ({
                                                 <FormItem label="التاريخ">
                                                     <Select
                                                         placeholder="اختر التاريخ"
-                                                        options={
-                                                            DATES as any
-                                                        }
+                                                        options={DATES as any}
                                                         value={
                                                             (DATES as any).find(
                                                                 (d: any) =>
                                                                     d.value ===
-                                                                    scheduleDate
+                                                                    scheduleDate,
                                                             ) || null
                                                         }
-                                                        onChange={(
-                                                            val: any
-                                                        ) =>
+                                                        onChange={(val: any) =>
                                                             setScheduleDate(
                                                                 val?.value ??
-                                                                    ""
+                                                                    '',
                                                             )
                                                         }
                                                     />
@@ -655,15 +648,15 @@ export const HojraAssignServices = ({
                                                                 ).find(
                                                                     (t: any) =>
                                                                         t.value ===
-                                                                        scheduleStartTime
+                                                                        scheduleStartTime,
                                                                 ) || null
                                                             }
                                                             onChange={(
-                                                                val: any
+                                                                val: any,
                                                             ) =>
                                                                 setScheduleStartTime(
                                                                     val?.value ??
-                                                                        ""
+                                                                        '',
                                                                 )
                                                             }
                                                         />
@@ -681,15 +674,15 @@ export const HojraAssignServices = ({
                                                                 ).find(
                                                                     (t: any) =>
                                                                         t.value ===
-                                                                        scheduleEndTime
+                                                                        scheduleEndTime,
                                                                 ) || null
                                                             }
                                                             onChange={(
-                                                                val: any
+                                                                val: any,
                                                             ) =>
                                                                 setScheduleEndTime(
                                                                     val?.value ??
-                                                                        ""
+                                                                        '',
                                                                 )
                                                             }
                                                         />
@@ -702,8 +695,7 @@ export const HojraAssignServices = ({
                                                         scheduleEndTime && (
                                                         <div className="text-red-500 text-xs">
                                                             وقت البداية يجب أن
-                                                            يكون قبل وقت
-                                                            النهاية
+                                                            يكون قبل وقت النهاية
                                                         </div>
                                                     )}
 
@@ -711,9 +703,7 @@ export const HojraAssignServices = ({
                                                     variant="default"
                                                     size="sm"
                                                     block
-                                                    disabled={
-                                                        !canAddSchedule()
-                                                    }
+                                                    disabled={!canAddSchedule()}
                                                     onClick={handleAddSchedule}
                                                 >
                                                     إضافة وقت عمل
@@ -722,12 +712,11 @@ export const HojraAssignServices = ({
                                         )}
                                     </div>
                                 </Card>
-                            );
+                            )
                         })}
                     </div>
                 )}
 
-                {/* ===== اگر هنوز عضوی نیست ===== */}
                 {teamMembers.length === 0 && !showNewMemberForm && (
                     <div className="text-center py-8 text-gray-500">
                         <div className="text-lg mb-2">لا يوجد أعضاء بعد</div>
@@ -737,7 +726,6 @@ export const HojraAssignServices = ({
                     </div>
                 )}
 
-                {/* ===== نویگیشن ===== */}
                 <div className="border-t pt-4">
                     <div className="flex items-center justify-end gap-3">
                         <Button
@@ -760,5 +748,5 @@ export const HojraAssignServices = ({
                 </div>
             </div>
         </Card>
-    );
-};
+    )
+}
