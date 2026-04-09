@@ -10,8 +10,8 @@ export type AppConfig = {
 }
 
 const appConfig: AppConfig = {
-    apiPrefix: 'https://admin.omanihub.com/api/1',
-    urlImage: 'https://admin.omanihub.com',
+    apiPrefix: 'https://api.iranronagh.ir/api/1',
+    urlImage: 'https://api.iranronagh.ir',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',

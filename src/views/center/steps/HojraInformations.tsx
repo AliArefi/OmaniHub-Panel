@@ -35,7 +35,6 @@ const validationSchema = z.object({
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const { hojraInfo, setHojraInfo } = useCreateStore();
-
     const [servicesList, setServicesList] = useState<Services[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

@@ -14,22 +14,24 @@ interface SignUpFormProps extends CommonProps {
 }
 
 type SignUpFormSchema = {
-    userName: string
+    name: string
+    mobile: string
     password: string
     email: string
-    confirmPassword: string
+    password_confirmation: string
 }
 
 const validationSchema = z
     .object({
-        email: z.email({ message: 'الرجاء إدخال بريد إلكتروني صحيح' }),
-        userName: z.string().min(1, { message: 'الرجاء إدخال اسم المستخدم الخاص بك' }),
+        name: z.string().min(1, { message: 'الرجاء إدخال اسم الخاص بك' }),
+        email: z.email({ message: 'الرجاء إدخال موبایل صحيح' }),
+        mobile: z.string().min(1, { message: 'كلمة المرور مطلوبة' }),
         password: z.string().min(1, { message: 'كلمة المرور مطلوبة' }),
-        confirmPassword: z.string().min(1, { message: 'يلزم تأكيد كلمة المرور'}),
+        password_confirmation: z.string().min(1, { message: 'يلزم تأكيد كلمة المرور' }),
     })
-    .refine((data) => data.password === data.confirmPassword, {
+    .refine((data) => data.password === data.password_confirmation, {
         message: "كلمات المرور غير متطابقة",
-        path: ['confirmPassword'],
+        path: ['password_confirmation'],
     })
 
 const SignUpForm = (props: SignUpFormProps) => {
@@ -48,11 +50,11 @@ const SignUpForm = (props: SignUpFormProps) => {
     })
 
     const onSignUp = async (values: SignUpFormSchema) => {
-        const { userName, password, email } = values
+        const { password, email, name, mobile, password_confirmation } = values
 
         if (!disableSubmit) {
             setSubmitting(true)
-            // const result = await signUp({ userName, password, email })
+            const result = await signUp({ name, mobile, email, password, password_confirmation })
 
             // if (result?.status === 'failed') {
             //     setMessage?.(result.message)
@@ -66,17 +68,35 @@ const SignUpForm = (props: SignUpFormProps) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSignUp)}>
                 <FormItem
-                    label="اسم المستخدم"
-                    invalid={Boolean(errors.userName)}
-                    errorMessage={errors.userName?.message}
+                    label="اسم"
+                    invalid={Boolean(errors.name)}
+                    errorMessage={errors.name?.message}
                 >
                     <Controller
-                        name="userName"
+                        name="name"
                         control={control}
                         render={({ field }) => (
                             <Input
                                 type="text"
-                                placeholder="اسم المستخدم"
+                                placeholder="اسم"
+                                autoComplete="off"
+                                {...field}
+                            />
+                        )}
+                    />
+                </FormItem>
+                <FormItem
+                    label="موبایل"
+                    invalid={Boolean(errors.mobile)}
+                    errorMessage={errors.mobile?.message}
+                >
+                    <Controller
+                        name="mobile"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                type="text"
+                                placeholder="موبایل"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -121,11 +141,11 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
                 <FormItem
                     label="تأكيد كلمة المرور"
-                    invalid={Boolean(errors.confirmPassword)}
-                    errorMessage={errors.confirmPassword?.message}
+                    invalid={Boolean(errors.password_confirmation)}
+                    errorMessage={errors.password_confirmation?.message}
                 >
                     <Controller
-                        name="confirmPassword"
+                        name="password_confirmation"
                         control={control}
                         render={({ field }) => (
                             <Input

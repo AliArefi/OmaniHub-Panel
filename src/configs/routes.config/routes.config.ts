@@ -6,10 +6,16 @@ import type { Routes } from '@/@types/routes'
 export const publicRoutes: Routes = [...authRoute]
 
 export const protectedRoutes: Routes = [
+    // {
+    //     key: 'home',
+    //     path: '/home',
+    //     component: lazy(() => import('@/views/Home')),
+    //     authority: [],
+    // },
     {
         key: 'home',
         path: '/home',
-        component: lazy(() => import('@/views/Home')),
+        component: lazy(() => import('@/views/dashboard')),
         authority: [],
     },
     /** Example purpose only, please remove */
@@ -35,6 +41,18 @@ export const protectedRoutes: Routes = [
         key: 'profile',
         path: '/profile',
         component: lazy(() => import('@/views/profile')),
+        authority: [],
+    },
+    {
+        key: 'members',
+        path: '/members',
+        component: lazy(() => import('@/views/members')),
+        authority: [],
+    },
+    {
+        key: 'gateways',
+        path: '/gateways',
+        component: lazy(() => import('@/views/gateway')),
         authority: [],
     },
     // {
