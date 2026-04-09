@@ -23,7 +23,7 @@ export default function Centers() {
                 const resp = await getMyAgencies()
                 setAgencies(resp.data)
             } catch (err: any) {
-                setError(err?.response?.data?.message || 'خطا در دریافت اطلاعات')
+                setError(err?.response?.data?.message)
             } finally {
                 setLoading(false)
             }

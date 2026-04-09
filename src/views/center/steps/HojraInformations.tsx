@@ -8,33 +8,33 @@ import {
     Select,
     Spinner,
     toast,
-} from "@/components/ui";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useEffect, useState } from "react";
-import { useTranslation } from "@/store/useTranslation";
-import { getServices } from "@/services/CenterService";
-import { Services } from "@/@types/center";
-import { HojraInfo, useCreateStore } from "@/context/createStoreContext";
+} from '@/components/ui'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useEffect, useState } from 'react'
+import { useTranslation } from '@/store/useTranslation'
+import { apiCreateNewAgency, getServices } from '@/services/CenterService'
+import { Services } from '@/@types/center'
+import { HojraInfo, useCreateStore } from '@/context/createStoreContext'
 
 interface HojraInformationProps {
-    changeState: (value: number) => void;
+    changeState: (value: number) => void
 }
 
 const validationSchema = z.object({
-    title: z.string().min(1, { message: "اسم المركز إلزامي" }),
+    title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
     service_id: z.any().refine((val) => Number(val) > 0, {
-        message: "يجب اختيار نوع الخدمة",
+        message: 'يجب اختيار نوع الخدمة',
     }),
     about_text: z
         .string()
-        .min(1, { message: "الوصف إلزامي" })
-        .min(8, { message: "النص قصير" }),
-});
+        .min(1, { message: 'الوصف إلزامي' })
+        .min(8, { message: 'النص قصير' }),
+})
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
-    const { hojraInfo, setHojraInfo } = useCreateStore();
+    const { hojraInfo, setHojraInfo, setNewHojraData } = useCreateStore();
     const [servicesList, setServicesList] = useState<Services[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -42,20 +42,20 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
 
     useEffect(() => {
         const fetchServices = async () => {
-            setLoading(true);
+            setLoading(true)
             try {
                 const resp = await getServices();
-                setServicesList(resp.data);
+                setServicesList(resp.data)
             } catch (err: any) {
                 setError(
-                    err?.response?.data?.message || "خطا در دریافت اطلاعات"
-                );
+                    err?.response?.data?.message || 'خطا در دریافت اطلاعات',
+                )
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
-        fetchServices();
-    }, []);
+        }
+        fetchServices()
+    }, [])
 
     const {
         handleSubmit,
@@ -63,33 +63,37 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         formState: { errors, isSubmitting },
     } = useForm<HojraInfo>({
         defaultValues: {
-            title: hojraInfo.title || "",
+            title: hojraInfo.title || '',
             service_id: hojraInfo.service_id || null,
-            about_text: hojraInfo.about_text || "",
+            about_text: hojraInfo.about_text || '',
         },
         resolver: zodResolver(validationSchema),
-    });
+    })
 
     const onSubmit = async (values: HojraInfo) => {
-        setHojraInfo(values);
-        changeState(2);
-    };
+        const resp = await apiCreateNewAgency(values)
+        if (resp.success) {
+            setNewHojraData(resp?.data)
+            setHojraInfo(values)
+            changeState(2)
+        }
+    }
 
     if (loading)
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>{t("loading")}</div>
+                <div>{t('loading')}</div>
             </div>
-        );
+        )
 
-    if (error) return <div>{error}</div>;
+    if (error) return <div>{error}</div>
 
     return (
         <div>
             <Card
                 header={{
-                    content: "معلومات الحجرة",
+                    content: 'معلومات الحجرة',
                     bordered: false,
                 }}
             >
@@ -128,10 +132,12 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                     <Select
                                         size="sm"
                                         placeholder="اختر"
-                                        options={servicesList.map((service) => ({
-                                            value: service.id,
-                                            label: service.name,
-                                        }))}
+                                        options={servicesList.map(
+                                            (service) => ({
+                                                value: service.id,
+                                                label: service.name,
+                                            }),
+                                        )}
                                         value={
                                             servicesList
                                                 .map((service) => ({
@@ -140,7 +146,8 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                                 }))
                                                 .find(
                                                     (opt) =>
-                                                        opt.value === field.value
+                                                        opt.value ===
+                                                        field.value,
                                                 ) || null
                                         }
                                         onChange={(opt) =>
@@ -186,5 +193,5 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                 </div>
             </Card>
         </div>
-    );
-};
+    )
+}

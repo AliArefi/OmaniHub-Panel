@@ -11,18 +11,47 @@ export type Agency = {
 export type Services = {
     id: number
     name: string
-    slug: string
+    slug: string | null
     icon: string | null
     image: string | null
 }
 
 export type CreateNewAgencyRequest = {
-    title: string,
-    service_id: number | null,
+    title: string
+    service_id: number | null
     about_text: string
 }
 
 export type CreateNewAgencyResponse = {
-    message: string,
+    message: string
     success: boolean
+    data: {
+        id: number
+        slug: string
+    }
+}
+
+export type CreateMemberAgencyRequest = {
+    name: string
+    position: string
+    image: string | null
+}
+
+export type CreateNewMemberAgencyResponse = {
+    message: string
+    success: boolean
+    data: {
+        id: number
+    }
+}
+
+export type MemberWorkingHoursRequest = {
+    days: []
+}
+
+export type MemberWorkingHoursResponse = {
+    message: string
+    success: boolean
+    member_id: number
+    days: []
 }
