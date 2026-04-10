@@ -9,56 +9,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  deploy:
+    environment: VPS_HOST
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # 2️⃣ Setup Node
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      # 3️⃣ Install deps
-      - name: Install dependencies
-        run: npm ci
-
-      # 4️⃣ Build
-      - name: Build
-        run: npm run build
-
-      # 5️⃣ Detect build dir
-      - name: Detect build directory
-        id: builddir
+      - name: Sanity check required secrets
         run: |
-          if [ -d "dist" ]; then
-            echo "DIR=dist" >> $GITHUB_OUTPUT
-          elif [ -d "build" ]; then
-            echo "DIR=build" >> $GITHUB_OUTPUT
-          else
-            echo "No build folder found!"
-            exit 1
-          fi
+          [ -n "${{ secrets.VPS_HOST }}" ] || (echo "Missing VPS_HOST" && exit 1)
+          [ -n "${{ secrets.VPS_USER }}" ] || (echo "Missing VPS_USER" && exit 1)
+          [ -n "${{ secrets.VPS_SSH_KEY }}" ] || (echo "Missing VPS_SSH_KEY" && exit 1)
+          [ -n "${{ secrets.VPS_PORT }}" ] || (echo "Missing VPS_PORT" && exit 1)
+          [ -n "${{ secrets.WEB_ROOT }}" ] || (echo "Missing WEB_ROOT" && exit 1)
+          [ -n "${{ secrets.PANEL_WEB_ROOT }}" ] || (echo "Missing PANEL_WEB_ROOT" && exit 1)
 
-      # 6️⃣ Deploy via rsync (FIXED VERSION)
-      - name: Deploy to VPS
-        uses: burnett01/rsync-deployments@v8
-        with:
-          switches: -avzr --delete
-          path: ${{ steps.builddir.outputs.DIR }}/
-          remote_path: ${{ secrets.PANEL_WEB_ROOT }}
-          remote_host: ${{ secrets.VPS_HOST }}
-          remote_user: ${{ secrets.VPS_USER }}
-          remote_port: ${{ secrets.VPS_PORT }}
-          remote_key: ${{ secrets.VPS_SSH_KEY }}
-
-      # 7️⃣ Verify
-      - name: Verify deploy
+      - name: Build & Deploy over SSH (static)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -66,5 +31,80 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            echo "==> Files:"
-            ls -la ${{ secrets.PANEL_WEB_ROOT }}
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.WEB_ROOT }}"
+            DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
+
+            echo "==> User: $(whoami)"
+            echo "==> Repo dir: $APP_DIR"
+            echo "==> Deploy dir: $DEST_DIR"
+
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            # SSH setup (avoid prompts + ensure correct key is used for GitHub)
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            touch ~/.ssh/known_hosts
+            chmod 600 ~/.ssh/known_hosts
+            ssh-keygen -F github.com >/dev/null || ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+            # Force git/ssh to use the deploy_panel key registered on GitHub
+            cat > ~/.ssh/config << "EOF"
+            Host github.com
+              HostName github.com
+              User git
+              IdentityFile ~/.ssh/gha_panel
+              IdentitiesOnly yes
+            EOF
+            chmod 600 ~/.ssh/config
+
+            # Clone/pull via SSH
+            if [ ! -d .git ]; then
+              if [ "$(ls -A . | wc -l)" -gt 0 ]; then
+                echo "ERROR: $APP_DIR is not empty but has no .git. Use an empty folder for WEB_ROOT."
+                exit 2
+              fi
+              git clone git@github.com:${{ github.repository }}.git .
+            else
+              git fetch --all --prune
+              git reset --hard origin/main
+            fi
+
+            # Optional server-side env file (if your build needs it)
+            # (For Vite, env vars must be prefixed with VITE_)
+            if [ -f .env.production ]; then
+              set -a
+              . ./.env.production
+              set +a
+              echo "==> Loaded .env.production"
+            fi
+
+            # Install deps
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
+            # Build
+            npm run build
+
+            # Detect build folder: CRA=build, Vite=dist
+            if [ -d build ]; then
+              OUT_DIR="build"
+            elif [ -d dist ]; then
+              OUT_DIR="dist"
+            else
+              echo "ERROR: Build output not found. Expected ./build (CRA) or ./dist (Vite)."
+              ls -la
+              exit 3
+            fi
+
+            # Deploy (static)
+            mkdir -p "$DEST_DIR"
+            rsync -av --delete "$OUT_DIR"/ "$DEST_DIR"/
+
+            echo "==> Deploy complete. Top-level files:"
+            ls -la "$DEST_DIR"
