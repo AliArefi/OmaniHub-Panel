@@ -120,7 +120,7 @@
       "react-dom": "19.0.0"
     },
     "react-syntax-highlighter": {
-      "prismjs": "1.30.0" 
+      "prismjs": "1.30.0"
     }
   }
 }
