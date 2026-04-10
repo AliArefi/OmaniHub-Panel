@@ -86,7 +86,6 @@ jobs:
             # -------------------------
             # ⚡ NODE STABILITY FIX
             # -------------------------
-            npm install -g npm@9
 
             export NODE_ENV=development
 
