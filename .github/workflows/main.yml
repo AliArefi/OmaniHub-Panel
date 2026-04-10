@@ -98,7 +98,7 @@ jobs:
             # -------------------------
             # ⚡ CACHE SYSTEM (FAST DEPLOY)
             # -------------------------
-            CACHE_DIR="/var/cache/panel-node-modules"
+            CACHE_DIR="$HOME/.cache/panel-node-modules"
             mkdir -p "$CACHE_DIR"
 
             PROJECT_HASH=$(sha1sum package-lock.json 2>/dev/null | awk '{print $1}' || echo "no-lock")
