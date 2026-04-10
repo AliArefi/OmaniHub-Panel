@@ -10,7 +10,6 @@ concurrency:
 
 jobs:
   deploy:
-    environment: VPS_HOST
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +22,7 @@ jobs:
           [ -n "${{ secrets.WEB_ROOT }}" ] || (echo "Missing WEB_ROOT" && exit 1)
           [ -n "${{ secrets.PANEL_WEB_ROOT }}" ] || (echo "Missing PANEL_WEB_ROOT" && exit 1)
 
-      - name: Build & Deploy over SSH (static)
+      - name: Build & Deploy over SSH (stable)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -43,14 +42,13 @@ jobs:
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
-            # SSH setup (avoid prompts + ensure correct key is used for GitHub)
+            # SSH setup
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
             touch ~/.ssh/known_hosts
             chmod 600 ~/.ssh/known_hosts
             ssh-keygen -F github.com >/dev/null || ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-            # Force git/ssh to use the deploy_panel key registered on GitHub
             cat > ~/.ssh/config << "EOF"
             Host github.com
               HostName github.com
@@ -60,10 +58,10 @@ jobs:
             EOF
             chmod 600 ~/.ssh/config
 
-            # Clone/pull via SSH
+            # Clone or update repo
             if [ ! -d .git ]; then
               if [ "$(ls -A . | wc -l)" -gt 0 ]; then
-                echo "ERROR: $APP_DIR is not empty but has no .git. Use an empty folder for WEB_ROOT."
+                echo "ERROR: $APP_DIR is not empty but has no .git."
                 exit 2
               fi
               git clone git@github.com:${{ github.repository }}.git .
@@ -72,8 +70,7 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Optional server-side env file (if your build needs it)
-            # (For Vite, env vars must be prefixed with VITE_)
+            # Load env if exists
             if [ -f .env.production ]; then
               set -a
               . ./.env.production
@@ -81,30 +78,54 @@ jobs:
               echo "==> Loaded .env.production"
             fi
 
-            # Install deps
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
+            # =========================
+            # 🔥 STABLE NPM SECTION
+            # =========================
+
+            export NODE_ENV=development
+
+            echo "==> Node: $(node -v)"
+            echo "==> NPM: $(npm -v)"
+
+            # Fix npm instability
+            npm config set fund false
+            npm config set audit false
+
+            # Fix cache issues (main cause of your error)
+            npm cache verify || npm cache clean --force
+
+            # Clean install (KEEP package-lock.json)
+            rm -rf node_modules
+
+            # Install dependencies safely
+            npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+
+            # Ensure vite exists
+            if [ ! -f node_modules/.bin/vite ]; then
+              echo "ERROR: vite not installed"
+              ls -la node_modules/.bin || true
+              exit 4
             fi
 
             # Build
             npm run build
 
-            # Detect build folder: CRA=build, Vite=dist
-            if [ -d build ]; then
-              OUT_DIR="build"
-            elif [ -d dist ]; then
+            # =========================
+            # 🚀 DEPLOY
+            # =========================
+
+            if [ -d dist ]; then
               OUT_DIR="dist"
+            elif [ -d build ]; then
+              OUT_DIR="build"
             else
-              echo "ERROR: Build output not found. Expected ./build (CRA) or ./dist (Vite)."
+              echo "ERROR: No build output found"
               ls -la
               exit 3
             fi
 
-            # Deploy (static)
             mkdir -p "$DEST_DIR"
             rsync -av --delete "$OUT_DIR"/ "$DEST_DIR"/
 
-            echo "==> Deploy complete. Top-level files:"
+            echo "==> Deploy complete"
             ls -la "$DEST_DIR"
