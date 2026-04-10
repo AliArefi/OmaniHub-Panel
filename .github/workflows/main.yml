@@ -84,7 +84,7 @@ jobs:
             # =========================
 
             export NODE_ENV=development
-            npm install -g npm@9
+            
             echo "==> Node: $(node -v)"
             echo "==> NPM: $(npm -v)"
 
