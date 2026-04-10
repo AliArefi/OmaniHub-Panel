@@ -23,7 +23,7 @@ jobs:
           [ -n "${{ secrets.WEB_ROOT }}" ] || (echo "Missing WEB_ROOT" && exit 1)
           [ -n "${{ secrets.PANEL_WEB_ROOT }}" ] || (echo "Missing PANEL_WEB_ROOT" && exit 1)
 
-      - name: Build & Deploy over SSH (stable)
+      - name: Deploy over SSH (FAST CACHE BUILD)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -37,17 +37,20 @@ jobs:
             DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
 
             echo "==> User: $(whoami)"
-            echo "==> Repo dir: $APP_DIR"
+            echo "==> App dir: $APP_DIR"
             echo "==> Deploy dir: $DEST_DIR"
 
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
-            # SSH setup
+            # -------------------------
+            # Git setup
+            # -------------------------
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
             touch ~/.ssh/known_hosts
             chmod 600 ~/.ssh/known_hosts
+
             ssh-keygen -F github.com >/dev/null || ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
             cat > ~/.ssh/config << "EOF"
@@ -59,10 +62,9 @@ jobs:
             EOF
             chmod 600 ~/.ssh/config
 
-            # Clone or update repo
             if [ ! -d .git ]; then
               if [ "$(ls -A . | wc -l)" -gt 0 ]; then
-                echo "ERROR: $APP_DIR is not empty but has no .git."
+                echo "ERROR: directory not empty without git repo"
                 exit 2
               fi
               git clone git@github.com:${{ github.repository }}.git .
@@ -71,56 +73,76 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Load env if exists
+            # -------------------------
+            # ENV
+            # -------------------------
             if [ -f .env.production ]; then
               set -a
               . ./.env.production
               set +a
-              echo "==> Loaded .env.production"
+              echo "==> Loaded env"
             fi
 
-            # =========================
-            # 🔥 STABLE NPM SECTION
-            # =========================
+            # -------------------------
+            # ⚡ NODE STABILITY FIX
+            # -------------------------
+            npm install -g npm@9
 
             export NODE_ENV=development
-            
+
             echo "==> Node: $(node -v)"
             echo "==> NPM: $(npm -v)"
 
-            # Fix npm instability
             npm config set fund false
             npm config set audit false
 
-            # Fix cache issues (main cause of your error)
-            npm cache verify || npm cache clean --force
+            # -------------------------
+            # ⚡ CACHE SYSTEM (FAST DEPLOY)
+            # -------------------------
+            CACHE_DIR="/var/cache/panel-node-modules"
+            mkdir -p "$CACHE_DIR"
 
-            # Clean install (KEEP package-lock.json)
-            rm -rf node_modules
+            PROJECT_HASH=$(sha1sum package-lock.json 2>/dev/null | awk '{print $1}' || echo "no-lock")
 
-            # Install dependencies safely
-            npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+            echo "==> Cache hash: $PROJECT_HASH"
 
-            # Ensure vite exists
-            if [ ! -f node_modules/.bin/vite ]; then
-              echo "ERROR: vite not installed"
-              ls -la node_modules/.bin || true
-              exit 4
+            if [ -d "$CACHE_DIR/node_modules-$PROJECT_HASH" ]; then
+              echo "==> Reusing cached node_modules"
+              rm -rf node_modules
+              cp -R "$CACHE_DIR/node_modules-$PROJECT_HASH" node_modules
+            else
+              echo "==> Fresh install required"
+
+              npm cache verify || npm cache clean --force
+              rm -rf node_modules
+
+              if [ -f package-lock.json ]; then
+                npm ci --no-audit --no-fund
+              else
+                npm install --no-audit --no-fund
+              fi
+
+              echo "==> Saving cache"
+              rm -rf "$CACHE_DIR/node_modules-$PROJECT_HASH"
+              cp -R node_modules "$CACHE_DIR/node_modules-$PROJECT_HASH"
             fi
 
-            # Build
+            # -------------------------
+            # BUILD
+            # -------------------------
+            export NODE_OPTIONS=--max-old-space-size=2048
+
             npm run build
 
-            # =========================
-            # 🚀 DEPLOY
-            # =========================
-
+            # -------------------------
+            # DEPLOY
+            # -------------------------
             if [ -d dist ]; then
               OUT_DIR="dist"
             elif [ -d build ]; then
               OUT_DIR="build"
             else
-              echo "ERROR: No build output found"
+              echo "ERROR: build output missing"
               ls -la
               exit 3
             fi
@@ -128,5 +150,5 @@ jobs:
             mkdir -p "$DEST_DIR"
             rsync -av --delete "$OUT_DIR"/ "$DEST_DIR"/
 
-            echo "==> Deploy complete"
+            echo "==> DEPLOY COMPLETE"
             ls -la "$DEST_DIR"
