@@ -13,26 +13,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node (stable)
+      # 2️⃣ Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install deps
       - name: Install dependencies
         run: npm ci
 
-      # 4️⃣ Build project
+      # 4️⃣ Build
       - name: Build
         run: npm run build
 
-      # 5️⃣ Detect build folder (Vite=dist, CRA=build)
+      # 5️⃣ Detect build dir
       - name: Detect build directory
         id: builddir
         run: |
@@ -45,18 +45,11 @@ jobs:
             exit 1
           fi
 
-      # 6️⃣ Upload build as artifact (optional but good for debug)
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: panel-build
-          path: ${{ steps.builddir.outputs.DIR }}
-
-      # 7️⃣ Deploy to VPS via rsync over SSH
+      # 6️⃣ Deploy via rsync (FIXED VERSION)
       - name: Deploy to VPS
-        uses: burnett01/rsync-deployments@v7.0.1
+        uses: burnett01/rsync-deployments@v8
         with:
-          switches: -avz --delete
+          switches: -avzr --delete
           path: ${{ steps.builddir.outputs.DIR }}/
           remote_path: ${{ secrets.PANEL_WEB_ROOT }}
           remote_host: ${{ secrets.VPS_HOST }}
@@ -64,7 +57,7 @@ jobs:
           remote_port: ${{ secrets.VPS_PORT }}
           remote_key: ${{ secrets.VPS_SSH_KEY }}
 
-      # 8️⃣ Post-deploy check
+      # 7️⃣ Verify
       - name: Verify deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -73,5 +66,5 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            echo "==> Deployed files:"
+            echo "==> Files:"
             ls -la ${{ secrets.PANEL_WEB_ROOT }}
