@@ -5,12 +5,14 @@ import type {
     SignUpCredential,
     ForgotPassword,
     ResetPassword,
-    SignInResponse,
-    SignUpResponse,
+    AuthChallengeResponse,
+    AuthConfigResponse,
+    VerifyOtpRequest,
+    ResendOtpRequest,
 } from '@/@types/auth'
 
 export async function apiSignIn(data: SignInCredential) {
-    return ApiService.fetchDataWithAxios<SignInResponse>({
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
         url: endpointConfig.signIn,
         method: 'post',
         data,
@@ -18,7 +20,7 @@ export async function apiSignIn(data: SignInCredential) {
 }
 
 export async function apiSignUp(data: SignUpCredential) {
-    return ApiService.fetchDataWithAxios<SignUpResponse>({
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
         url: endpointConfig.signUp,
         method: 'post',
         data,
@@ -29,6 +31,29 @@ export async function apiSignOut() {
     return ApiService.fetchDataWithAxios({
         url: endpointConfig.signOut,
         method: 'post',
+    })
+}
+
+export async function apiAuthConfig() {
+    return ApiService.fetchDataWithAxios<AuthConfigResponse>({
+        url: endpointConfig.authConfig,
+        method: 'get',
+    })
+}
+
+export async function apiVerifyOtp(data: VerifyOtpRequest) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
+        url: endpointConfig.otpVerify,
+        method: 'post',
+        data,
+    })
+}
+
+export async function apiResendOtp(data: ResendOtpRequest) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
+        url: endpointConfig.otpResend,
+        method: 'post',
+        data,
     })
 }
 

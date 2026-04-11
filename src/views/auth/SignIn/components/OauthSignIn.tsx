@@ -1,9 +1,11 @@
 import Button from '@/components/ui/Button'
 import { useAuth } from '@/auth'
-import {
-    apiGoogleOauthSignIn,
-    apiGithubOauthSignIn,
-} from '@/services/OAuthServices'
+import { apiGoogleOauthLogin } from '@/services/OAuthServices'
+import { loadGisClient } from '@/utils/google/loadGisClient'
+import { useEffect, useRef, useState } from 'react'
+import { useAuthChallengeStore } from '@/store/authChallengeStore'
+import { useGoogleSignupStore } from '@/store/googleSignupStore'
+import { useNavigate } from 'react-router'
 
 type OauthSignInProps = {
     setMessage?: (message: string) => void
@@ -12,71 +14,134 @@ type OauthSignInProps = {
 
 const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
     const { oAuthSignIn } = useAuth()
+    const navigate = useNavigate()
+    const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
+    const setGoogleSignup = useGoogleSignupStore((s) => s.set)
 
-    const handleGoogleSignIn = async () => {
-        if (!disableSubmit) {
-            oAuthSignIn(async ({ redirect, onSignIn }) => {
-                try {
-                    const resp = await apiGoogleOauthSignIn()
-                    if (resp) {
-                        const { token, user } = resp
-                        onSignIn({ accessToken: token }, user)
-                        redirect()
-                    }
-                } catch (error) {
-                    setMessage?.((error as string)?.toString() || '')
-                }
-            })
-        }
-    }
+    const [isReady, setReady] = useState(false)
+    const buttonRef = useRef<HTMLDivElement | null>(null)
 
-    const handleGithubSignIn = async () => {
-        if (!disableSubmit) {
-            oAuthSignIn(async ({ redirect, onSignIn }) => {
-                try {
-                    const resp = await apiGithubOauthSignIn()
-                    if (resp) {
-                        const { token, user } = resp
-                        onSignIn({ accessToken: token }, user)
-                        redirect()
-                    }
-                } catch (error) {
-                    setMessage?.((error as string)?.toString() || '')
-                }
-            })
+    useEffect(() => {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+        if (!clientId) {
+            setMessage?.('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).')
+            return
         }
-    }
+
+        let cancelled = false
+
+        loadGisClient()
+            .then(() => {
+                if (cancelled) return
+                if (!buttonRef.current) return
+                if (!window.google?.accounts?.id) return
+
+                window.google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: ({ credential }) => {
+                        if (!credential) {
+                            setMessage?.('Google sign-in failed to return a credential.')
+                            return
+                        }
+
+                        if (disableSubmit) {
+                            return
+                        }
+
+                        oAuthSignIn(async ({ redirect, onSignIn }) => {
+                            try {
+                                const resp = await apiGoogleOauthLogin({
+                                    id_token: credential,
+                                })
+
+                                if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+                                    setPendingChallenge({
+                                        challenge_id: resp.challenge_id,
+                                        expires_at: resp.expires_at,
+                                        meta: resp.meta ?? {},
+                                        user: resp.user ?? null,
+                                    })
+                                    navigate('/otp-verification')
+                                    return
+                                }
+
+                                if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+                                    onSignIn({ accessToken: resp.token }, resp.user ?? undefined)
+                                    redirect()
+                                    return
+                                }
+
+                                if (resp?.success === false && resp.next_step === 'register') {
+                                    const prefill = (resp.meta as any)?.prefill ?? {}
+                                    setGoogleSignup({
+                                        id_token: credential,
+                                        prefill: {
+                                            email: prefill.email ?? null,
+                                            name: prefill.name ?? null,
+                                            avatar_url: prefill.avatar_url ?? null,
+                                        },
+                                    })
+                                    navigate('/sign-up')
+                                    return
+                                }
+
+                                setMessage?.(resp?.message || 'Unable to sign in with Google.')
+                            } catch (err: any) {
+                                const data = err?.response?.data
+                                if (data?.success === false && data?.next_step === 'register') {
+                                    const prefill = data?.meta?.prefill ?? {}
+                                    setGoogleSignup({
+                                        id_token: credential,
+                                        prefill: {
+                                            email: prefill.email ?? null,
+                                            name: prefill.name ?? null,
+                                            avatar_url: prefill.avatar_url ?? null,
+                                        },
+                                    })
+                                    navigate('/sign-up')
+                                    return
+                                }
+
+                                const serverMessage = data?.message
+                                setMessage?.(serverMessage || 'Unable to sign in with Google.')
+                            }
+                        })
+                    },
+                })
+
+                // Render Google's official button (more reliable than programmatic prompt).
+                buttonRef.current.innerHTML = ''
+                window.google.accounts.id.renderButton(buttonRef.current, {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'pill',
+                    width: 260,
+                    logo_alignment: 'left',
+                })
+
+                setReady(true)
+            })
+            .catch((e) => {
+                if (cancelled) return
+                setMessage?.(e instanceof Error ? e.message : 'Failed to load Google sign-in.')
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [disableSubmit, navigate, oAuthSignIn, setGoogleSignup, setMessage, setPendingChallenge])
 
     return (
         <div className="flex items-center gap-2">
-            <Button
-                className="flex-1"
-                type="button"
-                // onClick={handleGoogleSignIn}
-            >
-                <div className="flex items-center justify-center gap-2">
-                    <img
-                        className="h-[25px] w-[25px]"
-                        src="/img/others/google.png"
-                        alt="Google sign in"
-                    />
-                    <span>Google</span>
-                </div>
-            </Button>
-            {/* <Button
-                className="flex-1"
-                type="button"
-                onClick={handleGithubSignIn}
-            >
-                <div className="flex items-center justify-center gap-2">
-                    <img
-                        className="h-[25px] w-[25px]"
-                        src="/img/others/github.png"
-                        alt="Google sign in"
-                    />
-                    <span>Github</span>
-                </div>
-            </Button> */}
+            <div className="flex-1 flex justify-center">
+                <div ref={buttonRef} />
+            </div>
+            {!isReady ? (
+                <Button className="hidden" type="button">
+                    Google
+                </Button>
+            ) : null}
         </div>
     )
 }

@@ -9,14 +9,34 @@ export type AppConfig = {
     activeNavTranslation: boolean
 }
 
+const readBoolEnv = (value: unknown, fallback: boolean) => {
+    if (typeof value !== 'string') {
+        return fallback
+    }
+
+    const normalized = value.trim().toLowerCase()
+    if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) {
+        return true
+    }
+    if (['0', 'false', 'no', 'n', 'off'].includes(normalized)) {
+        return false
+    }
+
+    return fallback
+}
+
 const appConfig: AppConfig = {
-    apiPrefix: 'https://api.iranronagh.ir/api/1',
-    urlImage: 'https://api.iranronagh.ir',
+    apiPrefix:
+        (import.meta.env.VITE_API_PREFIX as string | undefined) ??
+        'https://api.iranronagh.ir/api/1',
+    urlImage:
+        (import.meta.env.VITE_URL_IMAGE as string | undefined) ??
+        'https://api.iranronagh.ir',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
     accessTokenPersistStrategy: 'localStorage',
-    enableMock: true,
+    enableMock: readBoolEnv(import.meta.env.VITE_ENABLE_MOCK, false),
     activeNavTranslation: false,
 }
 

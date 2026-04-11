@@ -1,31 +1,24 @@
-type OAuthResponse = {
-    token: string
-    user: {
-        id: string
-        name: string
-        email: string
-    }
-}
+import ApiService from './ApiService'
+import endpointConfig from '@/configs/endpoint.config'
+import type {
+    AuthChallengeResponse,
+    GoogleLoginRequest,
+    GoogleRegisterRequest,
+} from '@/@types/auth'
 
-async function placeholderFunction(): Promise<OAuthResponse> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                token: 'placeholder_token',
-                user: {
-                    id: 'placeholder_id',
-                    name: 'Placeholder User',
-                    email: 'user@example.com',
-                },
-            })
-        }, 500)
+export async function apiGoogleOauthLogin(data: GoogleLoginRequest) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
+        url: endpointConfig.googleLogin,
+        method: 'post',
+        data,
     })
 }
 
-export async function apiGoogleOauthSignIn(): Promise<OAuthResponse> {
-    return await placeholderFunction()
+export async function apiGoogleOauthRegister(data: GoogleRegisterRequest) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({
+        url: endpointConfig.googleRegister,
+        method: 'post',
+        data,
+    })
 }
 
-export async function apiGithubOauthSignIn(): Promise<OAuthResponse> {
-    return await placeholderFunction()
-}

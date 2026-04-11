@@ -1,59 +1,114 @@
 import Alert from '@/components/ui/Alert'
 import OtpVerificationForm from './components/OtpVerificationForm'
-import sleep from '@/utils/sleep'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
+import { useAuthChallengeStore } from '@/store/authChallengeStore'
+import { apiResendOtp } from '@/services/AuthService'
+import { Navigate } from 'react-router'
+
+const otpDeliveryText = (deliveryChannel?: string) => {
+    if (deliveryChannel === 'whatsapp') return 'Enter the OTP sent via WhatsApp.'
+    if (deliveryChannel === 'sms') return 'Enter the OTP sent via SMS.'
+    if (deliveryChannel === 'email') return 'Enter the OTP sent via Email.'
+    return 'Enter the OTP sent to your account.'
+}
+
+const maskIdentifier = (identifier: string) => {
+    const trimmed = identifier.trim()
+    if (trimmed.includes('@')) {
+        const [local, domain] = trimmed.split('@')
+        const safeLocal =
+            local.length <= 2 ? `${local[0] ?? '*'}*` : `${local.slice(0, 2)}***`
+        return `${safeLocal}@${domain ?? ''}`
+    }
+
+    // Likely mobile. Keep last 3 digits.
+    const digits = trimmed.replace(/[^\d+]/g, '')
+    if (digits.length <= 4) return '***'
+    return `${digits.slice(0, 2)}***${digits.slice(-3)}`
+}
 
 export const OtpVerificationBase = () => {
     const [otpVerified, setOtpVerified] = useTimeOutMessage()
     const [otpResend, setOtpResend] = useTimeOutMessage()
     const [message, setMessage] = useTimeOutMessage()
 
+    const pending = useAuthChallengeStore((s) => s.pending)
+    const setPending = useAuthChallengeStore((s) => s.setPending)
+
     const handleResendOtp = async () => {
+        if (!pending?.challenge_id) {
+            setMessage('No active challenge found. Please sign in again.')
+            return
+        }
+
         try {
-            /** simulate api call with sleep */
-            await sleep(500)
-            setOtpResend('ما یک رمز یکبار مصرف برای شما ارسال کردیم.')
+            const resp = await apiResendOtp({ challenge_id: pending.challenge_id })
+
+            if (resp?.success && resp.challenge_id) {
+                setPending({
+                    challenge_id: resp.challenge_id,
+                    expires_at: resp.expires_at,
+                    meta: resp.meta ?? {},
+                    user: resp.user ?? null,
+                })
+            }
+
+            setOtpResend(resp?.message || 'OTP resent.')
         } catch (errors) {
-            setMessage?.(
-                typeof errors === 'string' ? errors : 'خطایی رخ داده است!',
-            )
+            setMessage(typeof errors === 'string' ? errors : 'An error occurred!')
         }
     }
+
+    if (!pending?.challenge_id) {
+        return <Navigate to="/sign-in" replace />
+    }
+
+    const deliveryChannel =
+        pending.meta && typeof pending.meta === 'object' && 'delivery_channel' in pending.meta
+            ? String((pending.meta as any).delivery_channel ?? '')
+            : ''
 
     return (
         <div>
             <div className="mb-8">
-                <h3 className="mb-2">تأیید هویت OTP</h3>
+                <h3 className="mb-2">OTP Verification</h3>
                 <p className="font-semibold heading-text">
-                    ما یک رمز یکبار مصرف به ایمیل شما ارسال کردیم.
+                    {otpDeliveryText(deliveryChannel)}
                 </p>
+                {pending.meta &&
+                typeof pending.meta === 'object' &&
+                'identifier' in pending.meta &&
+                (pending.meta as any).identifier ? (
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all">
+                        {maskIdentifier(String((pending.meta as any).identifier))}
+                    </p>
+                ) : null}
             </div>
-            {message && (
+
+            {message ? (
                 <Alert showIcon className="mb-4" type="danger">
                     <span className="break-all">{message}</span>
                 </Alert>
-            )}
-            {otpResend && (
+            ) : null}
+
+            {otpResend ? (
                 <Alert showIcon className="mb-4" type="info">
                     <span className="break-all">{otpResend}</span>
                 </Alert>
-            )}
-            {otpVerified && (
+            ) : null}
+
+            {otpVerified ? (
                 <Alert showIcon className="mb-4" type="success">
                     <span className="break-all">{otpVerified}</span>
                 </Alert>
-            )}
-            <OtpVerificationForm
-                setMessage={setMessage}
-                setOtpVerified={setOtpVerified}
-            />
+            ) : null}
+
+            <OtpVerificationForm setMessage={setMessage} setOtpVerified={setOtpVerified} />
+
             <div className="mt-4 text-center">
-                <span className="font-semibold">رمز یکبار مصرف را دریافت نکردید؟ </span>
-                <button
-                    className="heading-text font-bold underline"
-                    onClick={handleResendOtp}
-                >
-                    ارسال مجدد OTP
+                <span className="font-semibold">Didn’t receive the OTP? </span>
+                <button className="heading-text font-bold underline" onClick={handleResendOtp}>
+                    Resend OTP
                 </button>
             </div>
         </div>

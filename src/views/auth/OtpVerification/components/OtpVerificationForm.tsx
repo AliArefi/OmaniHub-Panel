@@ -1,67 +1,115 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import { FormItem, Form } from '@/components/ui/Form'
-import sleep from '@/utils/sleep'
 import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import type { CommonProps } from '@/@types/common'
 import OTPInput from '@/components/shared/OtpInput'
+import { useAuthChallengeStore } from '@/store/authChallengeStore'
+import { apiAuthConfig, apiVerifyOtp } from '@/services/AuthService'
+import { useAuth } from '@/auth'
 
-interface OtpVerificationFormProps extends CommonProps {
+interface OtpVerificationFormProps {
     setOtpVerified?: (message: string) => void
     setMessage?: (message: string) => void
 }
 
-type ForgotPasswordFormSchema = {
+type OtpFormSchema = {
     otp: string
 }
 
-const OTP_LENGTH = 6
-
-const validationSchema= z.object({
-    otp: z.string().min(OTP_LENGTH, { message: 'يرجى إدخال رمز التحقق لمرة واحدة (OTP) صحيح.' }),
-})
-
 const OtpVerificationForm = (props: OtpVerificationFormProps) => {
-    const [isSubmitting, setSubmitting] = useState<boolean>(false)
+    const { setMessage, setOtpVerified } = props
+    const [isSubmitting, setSubmitting] = useState(false)
+    const [otpLength, setOtpLength] = useState(6)
 
-    const { className, setMessage, setOtpVerified } = props
+    const pending = useAuthChallengeStore((s) => s.pending)
+    const clearPending = useAuthChallengeStore((s) => s.clear)
+    const { completeAuth } = useAuth()
+
+    useEffect(() => {
+        let mounted = true
+        apiAuthConfig()
+            .then((resp) => {
+                if (!mounted) return
+                const len = resp?.otp?.code_length
+                if (typeof len === 'number' && len >= 4 && len <= 10) {
+                    setOtpLength(len)
+                }
+            })
+            .catch(() => {})
+
+        return () => {
+            mounted = false
+        }
+    }, [])
 
     const {
         handleSubmit,
         formState: { errors },
         control,
-    } = useForm<ForgotPasswordFormSchema>({
-        resolver: zodResolver(validationSchema),
+        reset,
+    } = useForm<OtpFormSchema>({
+        defaultValues: { otp: '' },
     })
 
-    const onOtpSend = async (values: ForgotPasswordFormSchema) => {
-        const { otp } = values
-        setSubmitting(true)
-        try {
-            /** simulate api call with sleep */
-            await sleep(1000)
-            setSubmitting(false)
-            setOtpVerified?.('تم التحقق من صحة رمز التحقق لمرة واحدة!')
-        } catch (errors) {
-            setMessage?.(
-                typeof errors === 'string' ? errors : 'حدث خطأ!',
-            )
-            setSubmitting(false)
+    const onSubmit = async (values: OtpFormSchema) => {
+        if (!pending?.challenge_id) {
+            setMessage?.('No active challenge found. Please sign in again.')
+            return
         }
 
-        console.log('otp', otp)
-        setSubmitting(false)
+        const otp = String(values.otp || '').trim()
+        if (otp.length !== otpLength) {
+            setMessage?.('Please enter a valid OTP.')
+            return
+        }
+
+        setSubmitting(true)
+        try {
+            const resp = await apiVerifyOtp({
+                challenge_id: pending.challenge_id,
+                otp,
+            })
+
+            if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+                clearPending()
+                reset()
+                setOtpVerified?.(resp.message || 'OTP verified successfully.')
+                completeAuth(resp)
+                return
+            }
+
+            setMessage?.(resp?.message || 'Unable to verify OTP.')
+        } catch (err: any) {
+            const status = err?.response?.status
+            const serverMessage = err?.response?.data?.message
+
+            if (status === 410) {
+                clearPending()
+                setMessage?.(serverMessage || 'This OTP challenge has expired. Please sign in again.')
+                return
+            }
+
+            if (status === 429) {
+                setMessage?.(serverMessage || 'Too many attempts. Please wait and try again.')
+                return
+            }
+
+            if (status === 409) {
+                clearPending()
+                setMessage?.(serverMessage || 'This challenge is already completed. Please sign in again.')
+                return
+            }
+
+            setMessage?.(serverMessage || 'An error occurred while verifying OTP.')
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     return (
-        <div className={className} dir='ltr'>
-            <Form onSubmit={handleSubmit(onOtpSend)}>
-                <FormItem
-                    invalid={Boolean(errors.otp)}
-                    errorMessage={errors.otp?.message}
-                >
+        <div dir="ltr">
+            <Form onSubmit={handleSubmit(onSubmit)}>
+                <FormItem invalid={Boolean(errors.otp)} errorMessage={errors.otp?.message}>
                     <Controller
                         name="otp"
                         control={control}
@@ -69,19 +117,14 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
                             <OTPInput
                                 placeholder=""
                                 inputClass="h-[58px]"
-                                length={OTP_LENGTH}
+                                length={otpLength}
                                 {...field}
                             />
                         )}
                     />
                 </FormItem>
-                <Button
-                    block
-                    loading={isSubmitting}
-                    variant="solid"
-                    type="submit"
-                >
-                    {isSubmitting ? "جارٍ التأكيد..." : "التحقق من كلمة المرور لمرة واحدة"}
+                <Button block loading={isSubmitting} variant="solid" type="submit">
+                    {isSubmitting ? 'Verifying...' : 'Verify OTP'}
                 </Button>
             </Form>
         </div>

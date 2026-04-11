@@ -5,6 +5,7 @@ import { useSessionUser, useToken } from '@/store/authStore'
 import { apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
+import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import type {
     SignInCredential,
     SignUpCredential,
@@ -12,6 +13,7 @@ import type {
     OauthSignInCallbackPayload,
     User,
     Token,
+    AuthChallengeResponse,
 } from '@/@types/auth'
 import type { ReactNode, Ref } from 'react'
 import type { NavigateFunction } from 'react-router'
@@ -43,6 +45,8 @@ function AuthProvider({ children }: AuthProviderProps) {
     )
     const { token, setToken } = useToken()
     const [tokenState, setTokenState] = useState(token)
+    const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
+    const clearPendingChallenge = useAuthChallengeStore((s) => s.clear)
 
     const authenticated = Boolean(tokenState && signedIn)
 
@@ -59,6 +63,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const handleSignIn = (tokens: Token, user?: User) => {
+        clearPendingChallenge()
         setToken(tokens.accessToken)
         setTokenState(tokens.accessToken)
         setSessionSignedIn(true)
@@ -72,39 +77,58 @@ function AuthProvider({ children }: AuthProviderProps) {
         setToken('')
         setUser({})
         setSessionSignedIn(false)
+        clearPendingChallenge()
+    }
+
+    const completeAuth = (resp: AuthChallengeResponse) => {
+        if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+            handleSignIn(
+                { accessToken: resp.token },
+                resp.user
+                    ? {
+                          ...resp.user,
+                          authority: [],
+                      }
+                    : undefined,
+            )
+            redirect()
+            return
+        }
     }
 
     const signIn = async (values: SignInCredential): AuthResult => {
         try {
             const resp = await apiSignIn(values)
-            if (resp && resp.success) {
+
+            if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+                setPendingChallenge({
+                    challenge_id: resp.challenge_id,
+                    expires_at: resp.expires_at,
+                    meta: resp.meta ?? {},
+                    user: resp.user ?? null,
+                })
+                navigatorRef.current?.navigate('/otp-verification')
+                return { status: 'success', message: resp.message }
+            }
+
+            if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
                 handleSignIn(
                     { accessToken: resp.token },
-                    {
-                        id: resp.user.id,
-                        name: resp.user.name,
-                        email: resp.user.email,
-                        avatar: resp.user.avatar,
-                        email_verified_at: resp.user.email_verified_at,
-                        google_id: resp.user.google_id,
-                        facebook_id: resp.user.facebook_id,
-                        twitter_id: resp.user.twitter_id,
-                        github_id: resp.user.github_id,
-                        deleted_at: resp.user.deleted_at,
-                        created_at: resp.user.created_at,
-                        updated_at: resp.user.updated_at,
-                        otp: resp.user.otp,
-                        otp_expires_at: resp.user.otp_expires_at,
-                        hasActiveStore: resp.has_active_store,
-                        hasActiveAgency: resp.has_active_agency,
-                    },
+                    resp.user
+                        ? {
+                              ...resp.user,
+                              authority: [],
+                          }
+                        : undefined,
                 )
                 redirect()
-                return {
-                    status: 'success',
-                    message: resp.message,
-                }
+                return { status: 'success', message: resp.message }
             }
+
+            if (resp?.success === false) {
+                return { status: 'failed', message: resp.message || 'Unable to sign in' }
+            }
+
             return {
                 status: 'failed',
                 message: 'Unable to sign in',
@@ -122,14 +146,36 @@ function AuthProvider({ children }: AuthProviderProps) {
     const signUp = async (values: SignUpCredential): AuthResult => {
         try {
             const resp = await apiSignUp(values)
-            if (resp) {
-                handleSignIn({ accessToken: resp.token }, resp.user)
-                redirect()
-                return {
-                    status: 'success',
-                    message: '',
-                }
+
+            if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+                setPendingChallenge({
+                    challenge_id: resp.challenge_id,
+                    expires_at: resp.expires_at,
+                    meta: resp.meta ?? {},
+                    user: resp.user ?? null,
+                })
+                navigatorRef.current?.navigate('/otp-verification')
+                return { status: 'success', message: resp.message }
             }
+
+            if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+                handleSignIn(
+                    { accessToken: resp.token },
+                    resp.user
+                        ? {
+                              ...resp.user,
+                              authority: [],
+                          }
+                        : undefined,
+                )
+                redirect()
+                return { status: 'success', message: resp.message }
+            }
+
+            if (resp?.success === false) {
+                return { status: 'failed', message: resp.message || 'Unable to sign up' }
+            }
+
             return {
                 status: 'failed',
                 message: 'Unable to sign up',
@@ -167,6 +213,7 @@ function AuthProvider({ children }: AuthProviderProps) {
                 user,
                 signIn,
                 signUp,
+                completeAuth,
                 signOut,
                 oAuthSignIn,
             }}

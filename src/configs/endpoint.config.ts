@@ -1,12 +1,15 @@
-
-export const apiPrefix = 'https://api.iranronagh.ir/api/1'
-
 const endpointConfig = {
     signIn: '/auth/login',
-    signOut: '/sign-out',
     signUp: '/auth/register',
-    forgotPassword: '/forgot-password',
-    resetPassword: '/reset-password',
+    signOut: '/auth/logout',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
+    otpVerify: '/auth/otp/verify',
+    otpResend: '/auth/otp/resend',
+    authConfig: '/auth/config',
+    authChallenge: '/auth/challenge',
+    googleLogin: '/auth/oauth/google/login',
+    googleRegister: '/auth/oauth/google/register',
     getMyAgencies: '/my-agencies',
     getServices: '/get/services',
     createNewAgency: '/my-agencies'
