@@ -47,6 +47,8 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
         formState: { errors },
         control,
         reset,
+        setError,
+        clearErrors,
     } = useForm<OtpFormSchema>({
         defaultValues: { otp: '' },
     })
@@ -59,9 +61,10 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
 
         const otp = String(values.otp || '').trim()
         if (otp.length !== otpLength) {
-            setMessage?.('Please enter a valid OTP.')
+            setError('otp', { type: 'manual', message: 'Please enter a valid OTP.' })
             return
         }
+        clearErrors('otp')
 
         setSubmitting(true)
         try {

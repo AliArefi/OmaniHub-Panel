@@ -9,6 +9,8 @@ export type SignInCredential = {
 export type SignUpCredential = {
     name: string
     mobile: string
+    mobile_country_code?: string
+    mobile_local_number?: string
     email?: string
     password: string
     password_confirmation: string
@@ -32,6 +34,8 @@ export type GoogleLoginRequest = {
 export type GoogleRegisterRequest = {
     id_token: string
     mobile: string
+    mobile_country_code?: string
+    mobile_local_number?: string
     otp_channel?: OtpChannel
 }
 
@@ -95,10 +99,14 @@ export type AuthConfigResponse = {
         code_length: number
         resend_cooldown_seconds: number
         expires_in_seconds: number
+        static_code_hint: string | null
         default_auth_identifier_mode: string
         allow_email_identifier_fallback: boolean
         login_otp_channel_policy: string
         registration_otp_channel_policy: string
+    }
+    oauth: {
+        google_client_id: string | null
     }
 }
 
@@ -116,6 +124,7 @@ export type AuthRequestStatus = 'success' | 'failed' | ''
 export type AuthResult = Promise<{
     status: AuthRequestStatus
     message: string
+    fieldErrors?: Record<string, string[]>
 }>
 
 export type User = {
@@ -138,4 +147,3 @@ export type OauthSignInCallbackPayload = {
     onSignIn: (tokens: Token, user?: User) => void
     redirect: () => void
 }
-

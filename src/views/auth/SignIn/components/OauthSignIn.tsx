@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { useGoogleSignupStore } from '@/store/googleSignupStore'
 import { useNavigate } from 'react-router'
+import { apiAuthConfig } from '@/services/AuthService'
 
 type OauthSignInProps = {
     setMessage?: (message: string) => void
@@ -22,16 +23,33 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
     const buttonRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
-        if (!clientId) {
-            setMessage?.('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).')
-            return
-        }
+        let mounted = true
+        const envClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
         let cancelled = false
 
-        loadGisClient()
-            .then(() => {
+        const resolveClientId = async () => {
+            try {
+                const cfg = await apiAuthConfig()
+                const fromApi = cfg?.oauth?.google_client_id
+                return (fromApi && fromApi.trim()) || (envClientId && envClientId.trim()) || ''
+            } catch {
+                return (envClientId && envClientId.trim()) || ''
+            }
+        }
+
+        resolveClientId()
+            .then((clientId) => {
+                if (!mounted) return
+                if (!clientId) {
+                    setMessage?.('Google sign-in is not configured.')
+                    return
+                }
+
+                return loadGisClient().then(() => clientId)
+            })
+            .then((clientId) => {
+                if (!clientId) return
                 if (cancelled) return
                 if (!buttonRef.current) return
                 if (!window.google?.accounts?.id) return
@@ -128,6 +146,7 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
             })
 
         return () => {
+            mounted = false
             cancelled = true
         }
     }, [disableSubmit, navigate, oAuthSignIn, setGoogleSignup, setMessage, setPendingChallenge])

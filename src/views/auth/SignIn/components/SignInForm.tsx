@@ -43,6 +43,7 @@ const SignInForm = (props: SignInFormProps) => {
         handleSubmit,
         formState: { errors },
         control,
+        setError,
     } = useForm<SignInFormSchema>({
         defaultValues: {
             email: '',
@@ -63,6 +64,11 @@ const SignInForm = (props: SignInFormProps) => {
 
             if (result?.status === 'failed') {
                 setMessage?.(result.message)
+                if (result.fieldErrors) {
+                    const fe = result.fieldErrors as Record<string, string[]>
+                    if (fe.email?.[0]) setError('email', { type: 'server', message: fe.email[0] })
+                    if (fe.password?.[0]) setError('password', { type: 'server', message: fe.password[0] })
+                }
             }
         }
 

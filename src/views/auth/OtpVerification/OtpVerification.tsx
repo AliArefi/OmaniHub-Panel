@@ -4,12 +4,14 @@ import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { apiResendOtp } from '@/services/AuthService'
 import { Navigate } from 'react-router'
+import { useEffect, useState } from 'react'
+import { apiAuthConfig } from '@/services/AuthService'
 
 const otpDeliveryText = (deliveryChannel?: string) => {
-    if (deliveryChannel === 'whatsapp') return 'Enter the OTP sent via WhatsApp.'
-    if (deliveryChannel === 'sms') return 'Enter the OTP sent via SMS.'
-    if (deliveryChannel === 'email') return 'Enter the OTP sent via Email.'
-    return 'Enter the OTP sent to your account.'
+    if (deliveryChannel === 'whatsapp') return 'يرجى إدخال رمز التحقق المرسل عبر واتساب.'
+    if (deliveryChannel === 'sms') return 'يرجى إدخال رمز التحقق المرسل عبر الرسائل القصيرة.'
+    if (deliveryChannel === 'email') return 'يرجى إدخال رمز التحقق المرسل عبر البريد الإلكتروني.'
+    return 'يرجى إدخال رمز التحقق المرسل إليك.'
 }
 
 const maskIdentifier = (identifier: string) => {
@@ -34,6 +36,16 @@ export const OtpVerificationBase = () => {
 
     const pending = useAuthChallengeStore((s) => s.pending)
     const setPending = useAuthChallengeStore((s) => s.setPending)
+    const [staticHint, setStaticHint] = useState<string | null>(null)
+
+    useEffect(() => {
+        apiAuthConfig()
+            .then((resp) => {
+                const hint = resp?.otp?.static_code_hint
+                setStaticHint(typeof hint === 'string' ? hint : null)
+            })
+            .catch(() => {})
+    }, [])
 
     const handleResendOtp = async () => {
         if (!pending?.challenge_id) {
@@ -67,11 +79,15 @@ export const OtpVerificationBase = () => {
         pending.meta && typeof pending.meta === 'object' && 'delivery_channel' in pending.meta
             ? String((pending.meta as any).delivery_channel ?? '')
             : ''
+    const deliveryDriver =
+        pending.meta && typeof pending.meta === 'object' && 'delivery_driver' in pending.meta
+            ? String((pending.meta as any).delivery_driver ?? '')
+            : ''
 
     return (
         <div>
             <div className="mb-8">
-                <h3 className="mb-2">OTP Verification</h3>
+                <h3 className="mb-2">تأكيد رمز التحقق</h3>
                 <p className="font-semibold heading-text">
                     {otpDeliveryText(deliveryChannel)}
                 </p>
@@ -97,6 +113,14 @@ export const OtpVerificationBase = () => {
                 </Alert>
             ) : null}
 
+            {deliveryDriver === 'static_code' && staticHint ? (
+                <Alert showIcon className="mb-4" type="info">
+                    <span className="break-all">
+                        رمز تجريبي للتطوير: {staticHint}
+                    </span>
+                </Alert>
+            ) : null}
+
             {otpVerified ? (
                 <Alert showIcon className="mb-4" type="success">
                     <span className="break-all">{otpVerified}</span>
@@ -106,9 +130,9 @@ export const OtpVerificationBase = () => {
             <OtpVerificationForm setMessage={setMessage} setOtpVerified={setOtpVerified} />
 
             <div className="mt-4 text-center">
-                <span className="font-semibold">Didn’t receive the OTP? </span>
+                <span className="font-semibold">لم تستلم رمز التحقق؟ </span>
                 <button className="heading-text font-bold underline" onClick={handleResendOtp}>
-                    Resend OTP
+                    إعادة الإرسال
                 </button>
             </div>
         </div>
