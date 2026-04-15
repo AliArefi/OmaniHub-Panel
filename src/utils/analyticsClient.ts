@@ -101,7 +101,7 @@ export async function postAnalyticsEvent(
             ...payload,
             occurred_at: payload.occurred_at ?? new Date().toISOString(),
             page_url: payload.page_url ?? location.href,
-            referrer: payload.referrer ?? document.referrer || undefined,
+            referrer: (payload.referrer ?? document.referrer) || undefined,
         }),
         keepalive: Boolean(opts?.keepalive),
     }).then(() => undefined)
