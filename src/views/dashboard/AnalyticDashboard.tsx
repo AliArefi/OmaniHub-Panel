@@ -1,141 +1,236 @@
-import { useState } from 'react'
-import Loading from '@/components/shared/Loading'
-import AnalyticHeader from './components/AnalyticHeader'
-import Metrics from './components/Metrics'
-import WebAnalytic from './components/AnalyticChart'
-import Traffic from './components/Traffic'
-import TopChannel from './components/TopChannel'
-import DeviceSession from './components/DeviceSession'
-import TopPerformingPages from './components/TopPerformingPages'
-import { apiGetAnalyticDashboard } from '@/services/DashboardService'
+import { useMemo, useState } from 'react'
 import useSWR from 'swr'
-import type { GetAnalyticDashboardResponse, Period } from './types'
-import { AbbreviateNumber, IconText } from "@/components/shared";
-import { Button, Card, Progress } from "@/components/ui";
-import { MdOutlineElectricBolt } from "react-icons/md";
-import { useNavigate } from 'react-router'
+import dayjs from 'dayjs'
+import Loading from '@/components/shared/Loading'
+import Card from '@/components/ui/Card'
+import Chart from '@/components/shared/Chart'
+import { Button, Input, Select } from '@/components/ui'
+import { apiGetMyAnalyticsOverview, type MyAnalyticsOverviewResponse } from '@/services/AnalyticsService'
+import { COLORS } from '@/constants/chart.constant'
 
+type Preset = '7d' | '30d' | '90d'
+
+function defaultRange(preset: Preset) {
+    const to = dayjs().startOf('day')
+    const days = preset === '7d' ? 7 : preset === '90d' ? 90 : 30
+    const from = to.subtract(days - 1, 'day')
+    return { from: from.format('YYYY-MM-DD'), to: to.format('YYYY-MM-DD') }
+}
+
+function guessTz(): string {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    } catch {
+        return 'UTC'
+    }
+}
 
 const AnalyticDashboard = () => {
-    const [selectedPeriod, setSelectedPeriod] = useState<Period>('thisMonth')
+    const [preset, setPreset] = useState<Preset>('30d')
+    const [tz, setTz] = useState<string>(guessTz())
+    const [{ from, to }, setRange] = useState(() => defaultRange('30d'))
 
-    const { data, isLoading } = useSWR(
-        ['/api/dashboard/analytic'],
-        () => apiGetAnalyticDashboard<GetAnalyticDashboardResponse>(),
+    const params = useMemo(() => ({ from, to, tz }), [from, to, tz])
+
+    const { data, isLoading, mutate } = useSWR<MyAnalyticsOverviewResponse>(
+        ['my-analytics-overview', params],
+        () => apiGetMyAnalyticsOverview(params),
         {
             revalidateOnFocus: false,
             revalidateIfStale: false,
             revalidateOnReconnect: false,
         },
     )
-    const navigate = useNavigate()
-    const handleCreate = () => {
-        navigate('/create-center')
+
+    const onApplyPreset = (p: Preset) => {
+        setPreset(p)
+        setRange(defaultRange(p))
+        void mutate()
     }
+
+    const chartSeries = useMemo(() => {
+        if (!data) return []
+        return [
+            { name: 'Pageviews', data: data.series.pageviews },
+            { name: 'Reservations', data: data.series.reservations },
+            { name: 'WhatsApp Clicks', data: data.series.whatsapp_clicks },
+            { name: 'Orders', data: data.series.orders },
+        ]
+    }, [data])
+
     return (
         <Loading loading={isLoading}>
-
-            {data && (
-                <div className="flex flex-col gap-4">
-                    <AnalyticHeader
-                        selectedPeriod={selectedPeriod}
-                        onSelectedPeriodChange={setSelectedPeriod}
-                    />
-                    <div className="grid lg:grid-cols-4 gap-4">
-                        <div className="lg:col-span-3" >
-                            <Card className='h-full'>
-
-                                <IconText
-                                    className="text-xl text-primary-deep font-semibold"
-                                    icon={<MdOutlineElectricBolt className="text-xl" />}
-                                >
-                                    أنشئ حجرتك واربح أكثر
-                                </IconText>
-                                <p className="text-base mt-3 mr-2">
-                                    خدماتنا الإعلانية الشاملة تصنع حضورك الرقمی وتضاعف وصولك إلى جمهورك المستهدف.
-                                    نحو إبداعٍ مؤثر، نتائج قابلة للقیاس، ونموٍ مستدام لعلامتك التجارية.
-                                </p>
-                                <div className="mt-2 flex items-center justify-end">
-                                    <Button size="sm" onClick={handleCreate} variant="solid">إنشاء مركز خدمة</Button>
-                                </div>
-                            </Card>
-                        </div>
-
+            <div className="flex flex-col gap-4">
+                <Card>
+                    <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                         <div>
+                            <h3 className="mb-1">Business Analytics</h3>
+                            <div className="text-sm opacity-60">
+                                Unique-daily views with owner-scoped KPIs
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-3 md:items-end">
+                            <div className="min-w-[150px]">
+                                <label className="text-sm opacity-70">Preset</label>
+                                <Select
+                                    value={preset}
+                                    onChange={(v) => onApplyPreset(v as Preset)}
+                                    options={[
+                                        { label: 'Last 7 days', value: '7d' },
+                                        { label: 'Last 30 days', value: '30d' },
+                                        { label: 'Last 90 days', value: '90d' },
+                                    ]}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm opacity-70">From</label>
+                                <Input
+                                    type="date"
+                                    value={from}
+                                    onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm opacity-70">To</label>
+                                <Input
+                                    type="date"
+                                    value={to}
+                                    onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="min-w-[220px]">
+                                <label className="text-sm opacity-70">Timezone</label>
+                                <Input
+                                    value={tz}
+                                    onChange={(e) => setTz(e.target.value)}
+                                    placeholder="UTC"
+                                />
+                            </div>
+
+                            <Button variant="solid" onClick={() => void mutate()}>
+                                Refresh
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+
+                {data && (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                             <Card>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h4>إكمال الملف الشخصي</h4>
-                                    <Button variant="plain" size="xs">أكمل حسابك</Button>
-                                </div>
-                                <div className="flex items-center justify-between mt-4">
-                                    <div className="flex flex-col">
-                                        <h2>
-                                            <AbbreviateNumber
-                                                value={10}
-                                            />
-                                            <span className="opacity-60 text-base font-bold">
-                                                {' / '}
-                                                <AbbreviateNumber
-                                                    value={100}
-                                                />{' '}
-                                                %
-                                            </span>
-                                        </h2>
-                                        <div className="mt-1">
-                                            يرجى إكمال ملفك الشخصي لتحسين الأداء
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Progress
-                                            percent={10}
-                                            width={80}
-                                            variant="circle"
-                                            strokeWidth={8}
-                                        />
-                                    </div>
+                                <div className="text-sm opacity-60">Pageviews</div>
+                                <div className="text-2xl font-semibold">{data.kpis.pageviews}</div>
+                            </Card>
+                            <Card>
+                                <div className="text-sm opacity-60">Unique Visitors</div>
+                                <div className="text-2xl font-semibold">{data.kpis.unique_visitors}</div>
+                            </Card>
+                            <Card>
+                                <div className="text-sm opacity-60">Reservations</div>
+                                <div className="text-2xl font-semibold">{data.kpis.reservations.total}</div>
+                            </Card>
+                            <Card>
+                                <div className="text-sm opacity-60">Orders (Revenue)</div>
+                                <div className="text-2xl font-semibold">
+                                    {data.kpis.orders.total} ({data.kpis.orders.revenue})
                                 </div>
                             </Card>
                         </div>
-                    </div>
 
+                        <Card className="h-full">
+                            <div className="flex items-center justify-between">
+                                <h4>Daily Trends</h4>
+                                <div className="text-sm opacity-60">
+                                    {data.range.from} to {data.range.to} ({data.range.tz})
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <Chart
+                                    type="line"
+                                    series={chartSeries}
+                                    xAxis={data.series.labels}
+                                    height="360px"
+                                    customOptions={{
+                                        legend: { show: true },
+                                        colors: [COLORS[0], COLORS[7], COLORS[8], COLORS[3]],
+                                    }}
+                                />
+                            </div>
+                        </Card>
 
-                    <div className="flex flex-col 2xl:grid grid-cols-4 gap-4">
-                        <div className="col-span-4 2xl:col-span-3">
-                            <WebAnalytic
-                                data={data[selectedPeriod].webAnalytic}
-                            />
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <Card>
+                                <h4 className="mb-3">Top Agencies</h4>
+                                <div className="overflow-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="opacity-70">
+                                            <tr>
+                                                <th className="text-left py-2">Title</th>
+                                                <th className="text-right py-2">Unique</th>
+                                                <th className="text-right py-2">Views</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {data.tops.agencies.map((row) => (
+                                                <tr key={row.id} className="border-t border-gray-200/30">
+                                                    <td className="py-2">{row.title ?? row.slug ?? row.id}</td>
+                                                    <td className="py-2 text-right">{row.unique_visitors}</td>
+                                                    <td className="py-2 text-right">{row.pageviews}</td>
+                                                </tr>
+                                            ))}
+                                            {data.tops.agencies.length === 0 && (
+                                                <tr>
+                                                    <td className="py-4 opacity-60" colSpan={3}>
+                                                        No data
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <h4 className="mb-3">Top Stores</h4>
+                                <div className="overflow-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="opacity-70">
+                                            <tr>
+                                                <th className="text-left py-2">Title</th>
+                                                <th className="text-right py-2">Unique</th>
+                                                <th className="text-right py-2">Views</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {data.tops.stores.map((row) => (
+                                                <tr key={row.id} className="border-t border-gray-200/30">
+                                                    <td className="py-2">{row.title ?? row.slug ?? row.id}</td>
+                                                    <td className="py-2 text-right">{row.unique_visitors}</td>
+                                                    <td className="py-2 text-right">{row.pageviews}</td>
+                                                </tr>
+                                            ))}
+                                            {data.tops.stores.length === 0 && (
+                                                <tr>
+                                                    <td className="py-4 opacity-60" colSpan={3}>
+                                                        No data
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
                         </div>
-                        <div className="2xl:col-span-1">
-                            <Metrics
-                                data={data[selectedPeriod].metrics}
-                                selectedPeriod={selectedPeriod}
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-12 gap-4">
-                        <div className="col-span-12 md:col-span-6 xl:col-span-4">
-                            <TopPerformingPages
-                                data={data[selectedPeriod].topPages}
-                            />
-                        </div>
-                        <div className="col-span-12 md:col-span-6 xl:col-span-4">
-                            <DeviceSession
-                                data={data[selectedPeriod].deviceSession}
-                            />
-                        </div>
-                        <div className="col-span-12 xl:col-span-4">
-                            <TopChannel
-                                data={data[selectedPeriod].topChannel}
-                            />
-                        </div>
-                        <div className="col-span-12">
-                            <Traffic data={data[selectedPeriod].traffic} />
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </div>
         </Loading>
     )
 }
 
 export default AnalyticDashboard
+

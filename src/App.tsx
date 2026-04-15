@@ -4,6 +4,7 @@ import Layout from '@/components/layouts'
 import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import appConfig from './configs/app.config'
+import AnalyticsRouteTracker from '@/components/analytics/AnalyticsRouteTracker'
 
 if (appConfig.enableMock) {
     import('./mock')
@@ -13,6 +14,7 @@ function App() {
     return (
         <Theme>
             <BrowserRouter>
+                <AnalyticsRouteTracker />
                 <AuthProvider>
                     <Layout>
                         <Views />

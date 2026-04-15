@@ -35,23 +35,23 @@ type GoogleSignUpFormSchema = {
 
 const normalValidationSchema = z
     .object({
-        name: z.string().min(1, { message: 'Name is required.' }),
-        email: z.string().email({ message: 'Please enter a valid email.' }),
-        mobile_country_code: z.string().min(1, { message: 'Country code is required.' }),
-        mobile_local_number: z.string().min(4, { message: 'Mobile number is required.' }),
-        password: z.string().min(8, { message: 'Password must be at least 8 characters.' }),
+        name: z.string().min(1, { message: 'الاسم مطلوب.' }),
+        email: z.string().email({ message: 'يرجى إدخال بريد إلكتروني صحيح.' }),
+        mobile_country_code: z.string().min(1, { message: 'مقدمة الدولة مطلوبة.' }),
+        mobile_local_number: z.string().min(4, { message: 'رقم الهاتف مطلوب.' }),
+        password: z.string().min(8, { message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.' }),
         password_confirmation: z
             .string()
-            .min(1, { message: 'Password confirmation is required.' }),
+            .min(1, { message: 'تأكيد كلمة المرور مطلوب.' }),
     })
     .refine((data) => data.password === data.password_confirmation, {
-        message: 'Passwords do not match.',
+        message: 'كلمتا المرور غير متطابقتين.',
         path: ['password_confirmation'],
     })
 
 const googleValidationSchema = z.object({
-    mobile_country_code: z.string().min(1, { message: 'Country code is required.' }),
-    mobile_local_number: z.string().min(4, { message: 'Mobile number is required.' }),
+    mobile_country_code: z.string().min(1, { message: 'مقدمة الدولة مطلوبة.' }),
+    mobile_local_number: z.string().min(4, { message: 'رقم الهاتف مطلوب.' }),
 })
 
 const passwordChecks = (password: string) => {
@@ -180,7 +180,7 @@ const SignUpForm = (props: SignUpFormProps) => {
             }
         } catch (err: any) {
             const serverMessage = err?.response?.data?.message
-            setMessage?.(serverMessage || 'Unable to sign up.')
+            setMessage?.(serverMessage || 'تعذر إتمام التسجيل.')
         } finally {
             setSubmitting(false)
         }
@@ -201,7 +201,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 ) : null}
 
                 <Form onSubmit={handleSubmit(onSubmit)}>
-                    <FormItem label="Name">
+                    <FormItem label="الاسم">
                         <Input
                             type="text"
                             value={prefill?.name ?? ''}
@@ -210,7 +210,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         />
                     </FormItem>
 
-                    <FormItem label="Email">
+                    <FormItem label="البريد الإلكتروني">
                         <Input
                             type="email"
                             value={prefill?.email ?? ''}
@@ -220,7 +220,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     </FormItem>
 
                     <FormItem
-                        label="Mobile"
+                        label="رقم الهاتف"
                         invalid={Boolean((errors as any).mobile_local_number)}
                         errorMessage={(errors as any).mobile_local_number?.message}
                     >
@@ -250,7 +250,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     </FormItem>
 
                     <Button block loading={isSubmitting} variant="solid" type="submit">
-                        {isSubmitting ? 'Creating account...' : 'Create account'}
+                        {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
                     </Button>
 
                     <div className="mt-4 text-center">
@@ -261,7 +261,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                                 clearGoogleSignup()
                             }}
                         >
-                            Use normal sign up instead
+                            استخدام التسجيل العادي
                         </button>
                     </div>
                 </Form>
@@ -273,7 +273,7 @@ const SignUpForm = (props: SignUpFormProps) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <FormItem
-                    label="Name"
+                    label="الاسم"
                     invalid={Boolean((errors as any).name)}
                     errorMessage={(errors as any).name?.message}
                 >
@@ -283,7 +283,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <Input
                                 type="text"
-                                placeholder="Name"
+                                placeholder="الاسم"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -292,7 +292,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="Mobile"
+                    label="رقم الهاتف"
                     invalid={Boolean((errors as any).mobile_local_number)}
                     errorMessage={(errors as any).mobile_local_number?.message}
                 >
@@ -322,7 +322,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="Email"
+                    label="البريد الإلكتروني"
                     invalid={Boolean((errors as any).email)}
                     errorMessage={(errors as any).email?.message}
                 >
@@ -332,7 +332,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <Input
                                 type="email"
-                                placeholder="Email"
+                                placeholder="البريد الإلكتروني"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -341,7 +341,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="Password"
+                    label="كلمة المرور"
                     invalid={Boolean((errors as any).password)}
                     errorMessage={(errors as any).password?.message}
                 >
@@ -351,7 +351,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <PasswordInput
                                 autoComplete="new-password"
-                                placeholder="Password"
+                                placeholder="كلمة المرور"
                                 {...field}
                             />
                         )}
@@ -367,27 +367,27 @@ const SignUpForm = (props: SignUpFormProps) => {
                             />
                         </div>
                         <span className="text-xs text-gray-600 dark:text-gray-400 w-14 text-right">
-                            {strengthScore <= 2 ? 'Weak' : strengthScore === 3 ? 'Ok' : 'Strong'}
+                            {strengthScore <= 2 ? 'ضعيفة' : strengthScore === 3 ? 'متوسطة' : 'قوية'}
                         </span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-700 dark:text-gray-300">
                         <div className={checks.minLength ? 'text-emerald-600' : ''}>
-                            At least 8 characters
+                            8 أحرف على الأقل
                         </div>
                         <div className={checks.hasNumber ? 'text-emerald-600' : ''}>
-                            Contains a number
+                            تحتوي رقمًا
                         </div>
                         <div className={checks.hasUpper ? 'text-emerald-600' : ''}>
-                            Contains uppercase
+                            تحتوي حرفًا كبيرًا
                         </div>
                         <div className={checks.hasSymbol ? 'text-emerald-600' : ''}>
-                            Contains a symbol
+                            تحتوي رمزًا خاصًا
                         </div>
                     </div>
                 </div>
 
                 <FormItem
-                    label="Confirm Password"
+                    label="تأكيد كلمة المرور"
                     invalid={Boolean((errors as any).password_confirmation)}
                     errorMessage={(errors as any).password_confirmation?.message}
                 >
@@ -397,7 +397,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <PasswordInput
                                 autoComplete="new-password"
-                                placeholder="Confirm Password"
+                                placeholder="تأكيد كلمة المرور"
                                 {...field}
                             />
                         )}
@@ -405,7 +405,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <Button block loading={isSubmitting} variant="solid" type="submit">
-                    {isSubmitting ? 'Creating account...' : 'Sign up'}
+                    {isSubmitting ? 'جاري إنشاء الحساب...' : 'تسجيل'}
                 </Button>
             </Form>
         </div>
