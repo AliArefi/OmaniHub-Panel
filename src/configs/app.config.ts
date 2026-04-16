@@ -28,10 +28,10 @@ const readBoolEnv = (value: unknown, fallback: boolean) => {
 const appConfig: AppConfig = {
     apiPrefix:
         (import.meta.env.VITE_API_PREFIX as string | undefined) ??
-        'https://api.iranronagh.ir/api/1',
+        'https://admin.omanihub.com/api/1',
     urlImage:
         (import.meta.env.VITE_URL_IMAGE as string | undefined) ??
-        'https://api.iranronagh.ir',
+        'https://admin.omanihub.com',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
