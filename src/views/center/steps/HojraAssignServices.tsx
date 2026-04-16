@@ -129,7 +129,7 @@ export const HojraAssignServices = ({
             image: newMemberImage,
         }
 
-        const resp = await apiCreateMemberAgency(newMember, newHojraData.slug)
+        const resp = await apiCreateMemberAgency(newMember, newHojraData.id)
 
         addTeamMember(newMember)
         setNewMemberName('')

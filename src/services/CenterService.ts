@@ -31,10 +31,10 @@ export async function apiCreateNewAgency(data: CreateNewAgencyRequest) {
 
 export async function apiCreateMemberAgency(
     data: CreateMemberAgencyRequest,
-    slug: string,
+    agencyServiceId: number,
 ) {
     return ApiService.fetchDataWithAxios<CreateNewMemberAgencyResponse>({
-        url: `/my-services/${slug}/members`,
+        url: `/my-services/${agencyServiceId}/members`,
         method: 'post',
         data,
     })

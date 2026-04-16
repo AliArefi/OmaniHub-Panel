@@ -1,28 +1,129 @@
 export const TEXT_CONSTANT = {
     loading: {
         EN: 'Loading',
-        AR: 'تلقي المعلومات'
+        AR: 'جاري تحميل المعلومات',
+    },
+    businessAnalyticsTitle: {
+        EN: 'Business Analytics',
+        AR: 'تحليلات الأعمال',
+    },
+    businessAnalyticsSubtitle: {
+        EN: 'Unique-daily views with owner-scoped KPIs',
+        AR: 'مشاهدات يومية فريدة مع مؤشرات أداء خاصة بالمالك',
+    },
+    autoRefreshIn: {
+        EN: 'Auto refresh in',
+        AR: 'تحديث تلقائي خلال',
+    },
+    secondsShort: {
+        EN: 's',
+        AR: 'ث',
+    },
+    refresh: {
+        EN: 'Refresh',
+        AR: 'تحديث',
+    },
+    preset: {
+        EN: 'Preset',
+        AR: 'الفترة',
+    },
+    last7Days: {
+        EN: 'Last 7 days',
+        AR: 'آخر 7 أيام',
+    },
+    last30Days: {
+        EN: 'Last 30 days',
+        AR: 'آخر 30 يومًا',
+    },
+    last90Days: {
+        EN: 'Last 90 days',
+        AR: 'آخر 90 يومًا',
+    },
+    from: {
+        EN: 'From',
+        AR: 'من',
+    },
+    to: {
+        EN: 'To',
+        AR: 'إلى',
+    },
+    timezone: {
+        EN: 'Timezone',
+        AR: 'المنطقة الزمنية',
+    },
+    pageviews: {
+        EN: 'Pageviews',
+        AR: 'مشاهدات الصفحة',
+    },
+    uniqueVisitors: {
+        EN: 'Unique Visitors',
+        AR: 'زوار فريدون',
+    },
+    reservations: {
+        EN: 'Reservations',
+        AR: 'الحجوزات',
+    },
+    whatsappClicks: {
+        EN: 'WhatsApp Clicks',
+        AR: 'نقرات واتساب',
+    },
+    ordersRevenue: {
+        EN: 'Orders (Revenue)',
+        AR: 'الطلبات (الإيراد)',
+    },
+    orders: {
+        EN: 'Orders',
+        AR: 'الطلبات',
+    },
+    dailyTrends: {
+        EN: 'Daily Trends',
+        AR: 'الاتجاهات اليومية',
+    },
+    topAgencies: {
+        EN: 'Top Agencies',
+        AR: 'أفضل الوكالات',
+    },
+    topStores: {
+        EN: 'Top Stores',
+        AR: 'أفضل المتاجر',
+    },
+    title: {
+        EN: 'Title',
+        AR: 'العنوان',
+    },
+    unique: {
+        EN: 'Unique',
+        AR: 'فريد',
+    },
+    views: {
+        EN: 'Views',
+        AR: 'مشاهدات',
+    },
+    noData: {
+        EN: 'No data',
+        AR: 'لا توجد بيانات',
     },
     myAgenciesTitle: {
         EN: 'My Agencies',
-        AR: 'وكالاتي'
+        AR: 'وكالاتي',
     },
     myAgenciesSubtitle: {
         EN: 'Manage and view all your registered agencies in one place',
-        AR: 'إدارة وعرض جميع وكالاتك المسجلة في مكان واحد'
+        AR: 'إدارة وعرض جميع وكالاتك المسجلة في مكان واحد',
     },
     myAgenciesHojra: {
         EN: 'Center',
-        AR: 'اسم الغرفة'
+        AR: 'اسم الغرفة',
     },
     status: {
         EN: 'Status',
-        AR: 'حالة'
+        AR: 'حالة',
     },
     operation: {
         EN: 'Operation',
-        AR: 'حالة'
-    }
+        AR: 'العملية',
+    },
 } as const
 
-export type Language = keyof typeof TEXT_CONSTANT.loading 
+export type Language = keyof typeof TEXT_CONSTANT.loading
+
