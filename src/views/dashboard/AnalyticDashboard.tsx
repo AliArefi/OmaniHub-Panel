@@ -51,10 +51,10 @@ const AnalyticDashboard = () => {
     const chartSeries = useMemo(() => {
         if (!data) return []
         return [
-            { name: 'Pageviews', data: data.series.pageviews },
-            { name: 'Reservations', data: data.series.reservations },
-            { name: 'WhatsApp Clicks', data: data.series.whatsapp_clicks },
-            { name: 'Orders', data: data.series.orders },
+            { name: 'مشاهدات الصفحة', data: data.series.pageviews },
+            { name: 'الحجوزات', data: data.series.reservations },
+            { name: 'نقرات واتساب', data: data.series.whatsapp_clicks },
+            { name: 'الطلبات', data: data.series.orders },
         ]
     }, [data])
 
@@ -64,28 +64,28 @@ const AnalyticDashboard = () => {
                 <Card>
                     <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                         <div>
-                            <h3 className="mb-1">Business Analytics</h3>
+                            <h3 className="mb-1">تحليلات الأعمال</h3>
                             <div className="text-sm opacity-60">
-                                Unique-daily views with owner-scoped KPIs
+                                مشاهدات يومية فريدة مع مؤشرات الأداء الخاصة بالمالك
                             </div>
                         </div>
 
                         <div className="flex flex-col md:flex-row gap-3 md:items-end">
                             <div className="min-w-[150px]">
-                                <label className="text-sm opacity-70">Preset</label>
+                                <label className="text-sm opacity-70">الفترة</label>
                                 <Select
                                     value={preset}
                                     onChange={(v) => onApplyPreset(v as Preset)}
                                     options={[
-                                        { label: 'Last 7 days', value: '7d' },
-                                        { label: 'Last 30 days', value: '30d' },
-                                        { label: 'Last 90 days', value: '90d' },
+                                        { label: 'آخر 7 أيام', value: '7d' },
+                                        { label: 'آخر 30 يومًا', value: '30d' },
+                                        { label: 'آخر 90 يومًا', value: '90d' },
                                     ]}
                                 />
                             </div>
 
                             <div>
-                                <label className="text-sm opacity-70">From</label>
+                                <label className="text-sm opacity-70">من</label>
                                 <Input
                                     type="date"
                                     value={from}
@@ -94,7 +94,7 @@ const AnalyticDashboard = () => {
                             </div>
 
                             <div>
-                                <label className="text-sm opacity-70">To</label>
+                                <label className="text-sm opacity-70">إلى</label>
                                 <Input
                                     type="date"
                                     value={to}
@@ -103,7 +103,7 @@ const AnalyticDashboard = () => {
                             </div>
 
                             <div className="min-w-[220px]">
-                                <label className="text-sm opacity-70">Timezone</label>
+                                <label className="text-sm opacity-70">المنطقة الزمنية</label>
                                 <Input
                                     value={tz}
                                     onChange={(e) => setTz(e.target.value)}
@@ -112,7 +112,7 @@ const AnalyticDashboard = () => {
                             </div>
 
                             <Button variant="solid" onClick={() => void mutate()}>
-                                Refresh
+                                تحديث
                             </Button>
                         </div>
                     </div>
@@ -122,19 +122,19 @@ const AnalyticDashboard = () => {
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                             <Card>
-                                <div className="text-sm opacity-60">Pageviews</div>
+                                <div className="text-sm opacity-60">مشاهدات الصفحة</div>
                                 <div className="text-2xl font-semibold">{data.kpis.pageviews}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">Unique Visitors</div>
+                                <div className="text-sm opacity-60">زوار فريدون</div>
                                 <div className="text-2xl font-semibold">{data.kpis.unique_visitors}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">Reservations</div>
+                                <div className="text-sm opacity-60">الحجوزات</div>
                                 <div className="text-2xl font-semibold">{data.kpis.reservations.total}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">Orders (Revenue)</div>
+                                <div className="text-sm opacity-60">الطلبات (الإيراد)</div>
                                 <div className="text-2xl font-semibold">
                                     {data.kpis.orders.total} ({data.kpis.orders.revenue})
                                 </div>
@@ -143,9 +143,9 @@ const AnalyticDashboard = () => {
 
                         <Card className="h-full">
                             <div className="flex items-center justify-between">
-                                <h4>Daily Trends</h4>
+                                <h4>الاتجاهات اليومية</h4>
                                 <div className="text-sm opacity-60">
-                                    {data.range.from} to {data.range.to} ({data.range.tz})
+                                    {data.range.from} إلى {data.range.to} ({data.range.tz})
                                 </div>
                             </div>
                             <div className="mt-4">
@@ -164,14 +164,14 @@ const AnalyticDashboard = () => {
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <Card>
-                                <h4 className="mb-3">Top Agencies</h4>
+                                <h4 className="mb-3">أفضل الوكالات</h4>
                                 <div className="overflow-auto">
                                     <table className="w-full text-sm">
                                         <thead className="opacity-70">
                                             <tr>
-                                                <th className="text-left py-2">Title</th>
-                                                <th className="text-right py-2">Unique</th>
-                                                <th className="text-right py-2">Views</th>
+                                                <th className="text-left py-2">العنوان</th>
+                                                <th className="text-right py-2">فريد</th>
+                                                <th className="text-right py-2">المشاهدات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -185,7 +185,7 @@ const AnalyticDashboard = () => {
                                             {data.tops.agencies.length === 0 && (
                                                 <tr>
                                                     <td className="py-4 opacity-60" colSpan={3}>
-                                                        No data
+                                                        لا توجد بيانات
                                                     </td>
                                                 </tr>
                                             )}
@@ -195,14 +195,14 @@ const AnalyticDashboard = () => {
                             </Card>
 
                             <Card>
-                                <h4 className="mb-3">Top Stores</h4>
+                                <h4 className="mb-3">أفضل المتاجر</h4>
                                 <div className="overflow-auto">
                                     <table className="w-full text-sm">
                                         <thead className="opacity-70">
                                             <tr>
-                                                <th className="text-left py-2">Title</th>
-                                                <th className="text-right py-2">Unique</th>
-                                                <th className="text-right py-2">Views</th>
+                                                <th className="text-left py-2">العنوان</th>
+                                                <th className="text-right py-2">فريد</th>
+                                                <th className="text-right py-2">المشاهدات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -216,7 +216,7 @@ const AnalyticDashboard = () => {
                                             {data.tops.stores.length === 0 && (
                                                 <tr>
                                                     <td className="py-4 opacity-60" colSpan={3}>
-                                                        No data
+                                                        لا توجد بيانات
                                                     </td>
                                                 </tr>
                                             )}
@@ -233,4 +233,3 @@ const AnalyticDashboard = () => {
 }
 
 export default AnalyticDashboard
-
