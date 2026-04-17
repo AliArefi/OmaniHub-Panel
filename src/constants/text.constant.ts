@@ -123,7 +123,14 @@ export const TEXT_CONSTANT = {
         EN: 'Operation',
         AR: 'العملية',
     },
+    edit: {
+        EN: 'Edit',
+        AR: 'تعديل',
+    },
+    view: {
+        EN: 'View',
+        AR: 'عرض',
+    },
 } as const
 
 export type Language = keyof typeof TEXT_CONSTANT.loading
-
