@@ -10,6 +10,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.join(__dirname, 'src'),
+      // `jalali-moment` requires `moment/moment` (a non-existent subpath in the `moment` package).
+      // Map it to the package entry to keep builds stable across bundlers.
+      'moment/moment': 'moment',
     },
   },
   server: {

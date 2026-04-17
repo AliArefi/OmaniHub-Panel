@@ -3,151 +3,104 @@ name: Deploy Panel SPA (panel.omanihub.com)
 on:
   push:
     branches: ["main"]
+  workflow_dispatch: {}
 
 concurrency:
   group: panel-react-deploy
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Detect build output directory
+        id: out
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -d dist ]; then
+            echo "dir=dist" >> "$GITHUB_OUTPUT"
+          elif [ -d build ]; then
+            echo "dir=build" >> "$GITHUB_OUTPUT"
+          else
+            echo "ERROR: build output missing"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: panel-spa
+          path: ${{ steps.out.outputs.dir }}/
+          if-no-files-found: error
+          retention-days: 3
+
   deploy:
+    needs: build
     environment: VPS_HOST
     runs-on: ubuntu-latest
+    permissions: {}
 
     steps:
       - name: Sanity check required secrets
+        shell: bash
         run: |
+          set -euo pipefail
           [ -n "${{ secrets.VPS_HOST }}" ] || (echo "Missing VPS_HOST" && exit 1)
           [ -n "${{ secrets.VPS_USER }}" ] || (echo "Missing VPS_USER" && exit 1)
           [ -n "${{ secrets.VPS_SSH_KEY }}" ] || (echo "Missing VPS_SSH_KEY" && exit 1)
           [ -n "${{ secrets.VPS_PORT }}" ] || (echo "Missing VPS_PORT" && exit 1)
-          [ -n "${{ secrets.WEB_ROOT }}" ] || (echo "Missing WEB_ROOT" && exit 1)
           [ -n "${{ secrets.PANEL_WEB_ROOT }}" ] || (echo "Missing PANEL_WEB_ROOT" && exit 1)
 
-      - name: Deploy over SSH (FAST CACHE BUILD)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            set -euo pipefail
+          name: panel-spa
+          path: out
 
-            APP_DIR="${{ secrets.WEB_ROOT }}"
-            DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
+      - name: Prepare SSH key
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            echo "==> User: $(whoami)"
-            echo "==> App dir: $APP_DIR"
-            echo "==> Deploy dir: $DEST_DIR"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
 
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
+          printf '%s' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
 
-            # -------------------------
-            # Git setup
-            # -------------------------
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-            touch ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
+          touch ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          ssh-keyscan -p "${{ secrets.VPS_PORT }}" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
 
-            ssh-keygen -F github.com >/dev/null || ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      - name: Deploy via rsync
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            cat > ~/.ssh/config << "EOF"
-            Host github.com
-              HostName github.com
-              User git
-              IdentityFile ~/.ssh/gha_panel
-              IdentitiesOnly yes
-            EOF
-            chmod 600 ~/.ssh/config
+          DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
 
-            if [ ! -d .git ]; then
-              if [ "$(ls -A . | wc -l)" -gt 0 ]; then
-                echo "ERROR: directory not empty without git repo"
-                exit 2
-              fi
-              git clone git@github.com:${{ github.repository }}.git .
-            else
-              git fetch --all --prune
-              git reset --hard origin/main
-            fi
-
-            # -------------------------
-            # ENV
-            # -------------------------
-            if [ -f .env.production ]; then
-              set -a
-              . ./.env.production
-              set +a
-              echo "==> Loaded env"
-            fi
-
-            # -------------------------
-            # ⚡ NODE STABILITY FIX
-            # -------------------------
-
-            export NODE_ENV=development
-
-            echo "==> Node: $(node -v)"
-            echo "==> NPM: $(npm -v)"
-
-            npm config set fund false
-            npm config set audit false
-
-            # -------------------------
-            # ⚡ CACHE SYSTEM (FAST DEPLOY)
-            # -------------------------
-            CACHE_DIR="$HOME/.cache/panel-node-modules"
-            mkdir -p "$CACHE_DIR"
-
-            PROJECT_HASH=$(sha1sum package-lock.json 2>/dev/null | awk '{print $1}' || echo "no-lock")
-
-            echo "==> Cache hash: $PROJECT_HASH"
-
-            if [ -d "$CACHE_DIR/node_modules-$PROJECT_HASH" ]; then
-              echo "==> Reusing cached node_modules"
-              rm -rf node_modules
-              cp -R "$CACHE_DIR/node_modules-$PROJECT_HASH" node_modules
-            else
-              echo "==> Fresh install required"
-
-              npm cache verify || npm cache clean --force
-              rm -rf node_modules
-
-              if [ -f package-lock.json ]; then
-                npm ci --no-audit --no-fund
-              else
-                npm install --no-audit --no-fund
-              fi
-
-              echo "==> Saving cache"
-              rm -rf "$CACHE_DIR/node_modules-$PROJECT_HASH"
-              cp -R node_modules "$CACHE_DIR/node_modules-$PROJECT_HASH"
-            fi
-
-            # -------------------------
-            # BUILD
-            # -------------------------
-            export NODE_OPTIONS=--max-old-space-size=2048
-
-            npm run build
-
-            # -------------------------
-            # DEPLOY
-            # -------------------------
-            if [ -d dist ]; then
-              OUT_DIR="dist"
-            elif [ -d build ]; then
-              OUT_DIR="build"
-            else
-              echo "ERROR: build output missing"
-              ls -la
-              exit 3
-            fi
-
-            mkdir -p "$DEST_DIR"
-            rsync -av --delete "$OUT_DIR"/ "$DEST_DIR"/
-
-            echo "==> DEPLOY COMPLETE"
-            ls -la "$DEST_DIR"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/vps_key -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=yes" \
+            out/ \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEST_DIR%/}/"
