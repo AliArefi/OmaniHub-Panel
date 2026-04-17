@@ -2,7 +2,7 @@ import AxiosBase from './axios/AxiosBase'
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 
 const ApiService = {
-    fetchDataWithAxios<Response = unknown, Request = Record<string, unknown>>(
+    fetchDataWithAxios<Response = unknown, Request = unknown>(
         param: AxiosRequestConfig<Request>,
     ) {
         return new Promise<Response>((resolve, reject) => {

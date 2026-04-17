@@ -1,27 +1,25 @@
-import { Button, Card, FormItem, Input, Select } from '@/components/ui'
+import { Button, Card, FormItem, Input, Select, toast } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
 import {
     ServiceAssignment,
     TeamMember,
     useCreateStore,
     WorkScheduleEntry,
 } from '@/context/createStoreContext'
-import {
-    apiCreateMemberAgency,
-    apiMemberWorkingHours,
-} from '@/services/CenterService'
-import { useState, useRef } from 'react'
+import { apiCreateMemberAgency } from '@/services/CenterService'
+import { useEffect, useRef, useState } from 'react'
 
 interface HojraAssignServicesProps {
     changeState: (value: number) => void
 }
 
-interface SelectOption {
-    value: string | number
-    label: string
-}
+type ServiceSelectOption = { value: number; label: string }
+type MemberSelectOption = { value: number; label: string }
+type DateSelectOption = { value: string; label: string }
+type TimeSelectOption = { value: string; label: string }
 
-const generateNext30Days = (): SelectOption[] => {
-    const days: SelectOption[] = []
+const generateNext30Days = (): DateSelectOption[] => {
+    const days: DateSelectOption[] = []
     const today = new Date()
     const dayNames = [
         'الأحد',
@@ -48,8 +46,8 @@ const generateNext30Days = (): SelectOption[] => {
     return days
 }
 
-const generateTimeOptions = (): SelectOption[] => {
-    const times: SelectOption[] = []
+const generateTimeOptions = (): TimeSelectOption[] => {
+    const times: TimeSelectOption[] = []
     for (let h = 6; h < 23; h++) {
         ;['00', '30'].forEach((m) => {
             const time = `${h.toString().padStart(2, '0')}:${m}`
@@ -68,7 +66,6 @@ export const HojraAssignServices = ({
     const {
         services,
         teamMembers,
-        newHojraData,
         addTeamMember,
         removeTeamMember,
         assignments,
@@ -82,6 +79,13 @@ export const HojraAssignServices = ({
     const [newMemberName, setNewMemberName] = useState('')
     const [newMemberRole, setNewMemberRole] = useState('')
     const [newMemberImage, setNewMemberImage] = useState<string | null>(null)
+    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(
+        null,
+    )
+    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(
+        services[0]?.id ?? null,
+    )
+    const [isCreatingMember, setIsCreatingMember] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
@@ -101,6 +105,7 @@ export const HojraAssignServices = ({
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file || !file.type.startsWith('image/')) return
+        setNewMemberImageFile(file)
         const reader = new FileReader()
         reader.onloadend = () => setNewMemberImage(reader.result as string)
         reader.readAsDataURL(file)
@@ -108,6 +113,7 @@ export const HojraAssignServices = ({
 
     const handleRemoveImage = () => {
         setNewMemberImage(null)
+        setNewMemberImageFile(null)
         if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
@@ -115,36 +121,92 @@ export const HojraAssignServices = ({
         return (
             newMemberName.trim() !== '' &&
             newMemberRole.trim() !== '' &&
-            newMemberImage !== null
+            newMemberImage !== null &&
+            newMemberImageFile !== null &&
+            newMemberServiceId !== null
         )
     }
 
     const handleCreateMember = async () => {
-        if (!isNewMemberFormComplete()) return
-
-        const newMember: TeamMember = {
-            id: Date.now(),
-            name: newMemberName.trim(),
-            position: newMemberRole.trim(),
-            image: newMemberImage,
+        if (isCreatingMember || !isNewMemberFormComplete()) return
+        if (!newMemberServiceId || !newMemberImageFile || !newMemberImage) {
+            return
         }
 
-        const resp = await apiCreateMemberAgency(newMember, newHojraData.id)
+        setIsCreatingMember(true)
+        try {
+            const resp = await apiCreateMemberAgency(
+                {
+                    name: newMemberName.trim(),
+                    position: newMemberRole.trim(),
+                    image: newMemberImageFile,
+                },
+                newMemberServiceId,
+            )
 
-        addTeamMember(newMember)
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'تعذر حفظ العضو')
+            }
+
+            const newMember: TeamMember = {
+                id: resp.data.id,
+                name: newMemberName.trim(),
+                position: newMemberRole.trim(),
+                image: newMemberImage,
+            }
+
+            addTeamMember(newMember)
+        } catch (err: unknown) {
+            const apiMessage = (() => {
+                if (typeof err !== 'object' || err === null) return undefined
+                const response = (err as { response?: unknown }).response
+                if (typeof response !== 'object' || response === null)
+                    return undefined
+                const data = (response as { data?: unknown }).data
+                if (typeof data !== 'object' || data === null) return undefined
+                const message = (data as { message?: unknown }).message
+                return typeof message === 'string' && message.trim()
+                    ? message
+                    : undefined
+            })()
+
+            const message = err instanceof Error ? err.message : undefined
+
+            toast.push(
+                <Notification type="danger">
+                    {apiMessage || message || 'حدث خطأ أثناء إضافة العضو'}
+                </Notification>,
+            )
+            return
+        } finally {
+            setIsCreatingMember(false)
+        }
+
         setNewMemberName('')
         setNewMemberRole('')
         setNewMemberImage(null)
+        setNewMemberImageFile(null)
         if (fileInputRef.current) fileInputRef.current.value = ''
         setShowNewMemberForm(false)
     }
 
-    const serviceOptions: SelectOption[] = services.map((s) => ({
+    useEffect(() => {
+        if (services.length === 0) {
+            setNewMemberServiceId(null)
+            return
+        }
+
+        if (newMemberServiceId === null) {
+            setNewMemberServiceId(services[0].id)
+        }
+    }, [services, newMemberServiceId])
+
+    const serviceOptions: ServiceSelectOption[] = services.map((s) => ({
         value: s.id,
         label: `${s.mainServiceLabel} - ${s.subServiceLabel}`,
     }))
 
-    const memberOptions: SelectOption[] = teamMembers.map((m) => ({
+    const memberOptions: MemberSelectOption[] = teamMembers.map((m) => ({
         value: m.id,
         label: m.name,
     }))
@@ -166,7 +228,7 @@ export const HojraAssignServices = ({
         )
     }
 
-    const handleAssign = async () => {
+    const handleAssign = () => {
         if (!canAssign() || !selectedServiceId || !selectedMemberId) return
 
         const service = services.find((s) => s.id === selectedServiceId)
@@ -182,11 +244,6 @@ export const HojraAssignServices = ({
             memberName: member.name,
             schedules: [],
         }
-
-        const prepair = {
-            days: ["0"],
-        }
-        const resp = await apiMemberWorkingHours(prepair, member.id)
 
         addAssignment(newAssignment)
         setSelectedServiceId(null)
@@ -257,6 +314,25 @@ export const HojraAssignServices = ({
                     {showNewMemberForm && (
                         <Card className="mb-4">
                             <div className="space-y-3">
+                                <FormItem label="Member service">
+                                    <Select<ServiceSelectOption>
+                                        size="sm"
+                                        placeholder="Select a service"
+                                        options={serviceOptions}
+                                        value={
+                                            serviceOptions.find(
+                                                (opt) =>
+                                                    opt.value ===
+                                                    newMemberServiceId,
+                                            ) || null
+                                        }
+                                        onChange={(opt) =>
+                                            setNewMemberServiceId(
+                                                opt?.value ?? null,
+                                            )
+                                        }
+                                    />
+                                </FormItem>
                                 <FormItem label="صورة العضو">
                                     <div className="flex flex-col gap-3">
                                         {!newMemberImage ? (
@@ -352,7 +428,11 @@ export const HojraAssignServices = ({
                                     variant="solid"
                                     size="sm"
                                     block
-                                    disabled={!isNewMemberFormComplete()}
+                                    loading={isCreatingMember}
+                                    disabled={
+                                        isCreatingMember ||
+                                        !isNewMemberFormComplete()
+                                    }
                                     onClick={handleCreateMember}
                                 >
                                     إنشاء العضو
@@ -416,14 +496,14 @@ export const HojraAssignServices = ({
                             <FormItem label="الخدمة">
                                 <Select
                                     placeholder="اختر الخدمة"
-                                    options={serviceOptions as any}
+                                    options={serviceOptions}
                                     value={
                                         serviceOptions.find(
                                             (s) =>
                                                 s.value === selectedServiceId,
                                         ) || null
                                     }
-                                    onChange={(opt: any) =>
+                                    onChange={(opt) =>
                                         setSelectedServiceId(opt?.value ?? null)
                                     }
                                 />
@@ -432,13 +512,13 @@ export const HojraAssignServices = ({
                             <FormItem label="العضو">
                                 <Select
                                     placeholder="اختر العضو"
-                                    options={memberOptions as any}
+                                    options={memberOptions}
                                     value={
                                         memberOptions.find(
                                             (m) => m.value === selectedMemberId,
                                         ) || null
                                     }
-                                    onChange={(opt: any) =>
+                                    onChange={(opt) =>
                                         setSelectedMemberId(opt?.value ?? null)
                                     }
                                 />
@@ -618,15 +698,15 @@ export const HojraAssignServices = ({
                                                 <FormItem label="التاريخ">
                                                     <Select
                                                         placeholder="اختر التاريخ"
-                                                        options={DATES as any}
+                                                        options={DATES}
                                                         value={
-                                                            (DATES as any).find(
-                                                                (d: any) =>
+                                                            DATES.find(
+                                                                (d) =>
                                                                     d.value ===
                                                                     scheduleDate,
                                                             ) || null
                                                         }
-                                                        onChange={(val: any) =>
+                                                        onChange={(val) =>
                                                             setScheduleDate(
                                                                 val?.value ??
                                                                     '',
@@ -639,21 +719,17 @@ export const HojraAssignServices = ({
                                                     <FormItem label="من الساعة">
                                                         <Select
                                                             placeholder="--:--"
-                                                            options={
-                                                                TIME_OPTIONS as any
-                                                            }
+                                                            options={TIME_OPTIONS}
                                                             value={
                                                                 (
-                                                                    TIME_OPTIONS as any
+                                                                    TIME_OPTIONS
                                                                 ).find(
-                                                                    (t: any) =>
+                                                                    (t) =>
                                                                         t.value ===
                                                                         scheduleStartTime,
                                                                 ) || null
                                                             }
-                                                            onChange={(
-                                                                val: any,
-                                                            ) =>
+                                                            onChange={(val) =>
                                                                 setScheduleStartTime(
                                                                     val?.value ??
                                                                         '',
@@ -665,21 +741,17 @@ export const HojraAssignServices = ({
                                                     <FormItem label="إلى الساعة">
                                                         <Select
                                                             placeholder="--:--"
-                                                            options={
-                                                                TIME_OPTIONS as any
-                                                            }
+                                                            options={TIME_OPTIONS}
                                                             value={
                                                                 (
-                                                                    TIME_OPTIONS as any
+                                                                    TIME_OPTIONS
                                                                 ).find(
-                                                                    (t: any) =>
+                                                                    (t) =>
                                                                         t.value ===
                                                                         scheduleEndTime,
                                                                 ) || null
                                                             }
-                                                            onChange={(
-                                                                val: any,
-                                                            ) =>
+                                                            onChange={(val) =>
                                                                 setScheduleEndTime(
                                                                     val?.value ??
                                                                         '',

@@ -31,10 +31,30 @@ export type CreateNewAgencyResponse = {
     }
 }
 
+export type CreateAgencyServiceRequest = {
+    agency_id: number
+    service_id?: number
+    agency_service_category_id: number
+    title?: string
+    sub_title: string
+    estimate_time: number
+    price: number
+    body?: string
+}
+
+export type CreateAgencyServiceResponse = {
+    message: string
+    success: boolean
+    data: {
+        id: number
+        slug: string
+    }
+}
+
 export type CreateMemberAgencyRequest = {
     name: string
     position: string
-    image: string | null
+    image: File
 }
 
 export type CreateNewMemberAgencyResponse = {
@@ -46,12 +66,27 @@ export type CreateNewMemberAgencyResponse = {
 }
 
 export type MemberWorkingHoursRequest = {
-    days: []
+    days: Array<{
+        day_of_week: number
+        is_closed?: boolean
+        slots?: Array<{
+            start: string
+            end: string
+            is_active?: boolean
+        }>
+    }>
 }
 
 export type MemberWorkingHoursResponse = {
     message: string
     success: boolean
     member_id: number
-    days: []
+    days: Array<{
+        day_of_week: number
+        is_closed: boolean
+        slots: Array<{
+            start: string
+            end: string
+        }>
+    }>
 }

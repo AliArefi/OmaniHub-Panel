@@ -1,7 +1,9 @@
 // steps/HojraServices.tsx
-import { Button, Card, FormItem, Input, Select } from "@/components/ui";
+import { Button, Card, FormItem, Input, Select, toast } from "@/components/ui";
+import Notification from "@/components/ui/Notification";
 import { ServiceItem, useCreateStore } from "@/context/createStoreContext";
 import { useState } from "react";
+import { apiCreateAgencyService } from "@/services/CenterService";
 
 interface HojraServicesProps {
     changeState: (value: number) => void;
@@ -83,13 +85,15 @@ const servicesData = [
 ];
 
 export const HojraServices = ({ changeState }: HojraServicesProps) => {
-    const { services, addService, removeService } = useCreateStore();
+    const { services, addService, removeService, newHojraData, hojraInfo } =
+        useCreateStore();
 
     const [selectedMainService, setSelectedMainService] = useState<number | null>(null);
     const [selectedSubService, setSelectedSubService] = useState<number | null>(null);
     const [duration, setDuration] = useState<string>("");
     const [price, setPrice] = useState<string>("");
     const [description, setDescription] = useState<string>("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const subOptions =
         servicesData.find((s) => s.value === selectedMainService)?.options || [];
@@ -118,9 +122,23 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
         );
     };
 
-    const handleAddService = () => {
-        if (!isFormComplete() || selectedSubService === null || selectedMainService === null)
+    const handleAddService = async () => {
+        if (
+            isSaving ||
+            !isFormComplete() ||
+            selectedSubService === null ||
+            selectedMainService === null
+        )
             return;
+
+        if (!newHojraData?.id) {
+            toast.push(
+                <Notification type="danger">
+                    لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز أولاً.
+                </Notification>
+            );
+            return;
+        }
 
         const mainService = servicesData.find(
             (s) => s.value === selectedMainService
@@ -131,18 +149,60 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
 
         if (!mainService || !subService) return;
 
-        const newService: ServiceItem = {
-            id: Date.now(),
-            subServiceValue: selectedSubService,
-            subServiceLabel: subService.label,
-            mainServiceValue: selectedMainService,
-            mainServiceLabel: mainService.label,
-            duration: Number(duration),
-            price: Number(price),
-            description: description.trim(),
-        };
+        setIsSaving(true);
+        try {
+            const resp = await apiCreateAgencyService({
+                agency_id: newHojraData.id,
+                service_id: hojraInfo.service_id ?? undefined,
+                agency_service_category_id: selectedSubService,
+                title: `${mainService.label} - ${subService.label}`,
+                sub_title: description.trim().slice(0, 191),
+                estimate_time: Number(duration),
+                price: Number(price),
+                body: description.trim(),
+            });
 
-        addService(newService);
+            if (!resp?.success) {
+                throw new Error(resp?.message || "تعذر حفظ الخدمة");
+            }
+
+            const newService: ServiceItem = {
+                id: resp.data.id,
+                subServiceValue: selectedSubService,
+                subServiceLabel: subService.label,
+                mainServiceValue: selectedMainService,
+                mainServiceLabel: mainService.label,
+                duration: Number(duration),
+                price: Number(price),
+                description: description.trim(),
+            };
+
+            addService(newService);
+        } catch (err: unknown) {
+            const apiMessage = (() => {
+                if (typeof err !== "object" || err === null) return undefined;
+                const response = (err as { response?: unknown }).response;
+                if (typeof response !== "object" || response === null)
+                    return undefined;
+                const data = (response as { data?: unknown }).data;
+                if (typeof data !== "object" || data === null) return undefined;
+                const message = (data as { message?: unknown }).message;
+                return typeof message === "string" && message.trim()
+                    ? message
+                    : undefined;
+            })();
+
+            const message = err instanceof Error ? err.message : undefined;
+
+            toast.push(
+                <Notification type="danger">
+                    {apiMessage || message || "حدث خطأ أثناء حفظ الخدمة"}
+                </Notification>
+            );
+            return;
+        } finally {
+            setIsSaving(false);
+        }
 
         setSelectedMainService(null);
         setSelectedSubService(null);
@@ -246,7 +306,8 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                         variant="default"
                         type="button"
                         block
-                        disabled={!isFormComplete()}
+                        loading={isSaving}
+                        disabled={isSaving || !isFormComplete()}
                         onClick={handleAddService}
                     >
                         إضافة خدمة
