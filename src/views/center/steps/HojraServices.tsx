@@ -1,293 +1,263 @@
 // steps/HojraServices.tsx
-import { Button, Card, FormItem, Input, Select, toast } from "@/components/ui";
-import Notification from "@/components/ui/Notification";
-import { ServiceItem, useCreateStore } from "@/context/createStoreContext";
-import { useState } from "react";
-import { apiCreateAgencyService } from "@/services/CenterService";
+import { Button, Card, FormItem, Input, Select, toast } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
+import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
+import { useEffect, useMemo, useState } from 'react'
+import { apiCreateAgencyService, getServices } from '@/services/CenterService'
 
 interface HojraServicesProps {
-    changeState: (value: number) => void;
+    changeState: (value: number) => void
 }
 
-const servicesData = [
-    {
-        value: 1,
-        label: "عناية بالوجه",
-        options: [
-            { value: 11, label: "تنظيف الوجه" },
-            { value: 12, label: "علاج حب الشباب" },
-        ],
-    },
-    {
-        value: 2,
-        label: "عناية بالشعر",
-        options: [
-            { value: 21, label: "تصفيف الشعر" },
-            { value: 22, label: "صبغ الشعر" },
-        ],
-    },
-    {
-        value: 3,
-        label: "عناية بالأظافر",
-        options: [
-            { value: 31, label: "مانيكير" },
-            { value: 32, label: "باديكير" },
-        ],
-    },
-    {
-        value: 4,
-        label: "إزالة الشعر",
-        options: [
-            { value: 41, label: "إزالة الشعر بالشمع" },
-            { value: 42, label: "إزالة الشعر بالليزر" },
-        ],
-    },
-    {
-        value: 5,
-        label: "التدليك",
-        options: [
-            { value: 51, label: "التدليك السويدي" },
-            { value: 52, label: "التدليك بالزيوت" },
-        ],
-    },
-    {
-        value: 6,
-        label: "المكياج",
-        options: [
-            { value: 61, label: "مكياج العروس" },
-            { value: 62, label: "مكياج يومي" },
-        ],
-    },
-    {
-        value: 7,
-        label: "العناية بالحواجب",
-        options: [
-            { value: 71, label: "تشذيب الحواجب" },
-            { value: 72, label: "تلوين الحواجب" },
-        ],
-    },
-    {
-        value: 8,
-        label: "الليزر",
-        options: [
-            { value: 81, label: "ليزر الوجه" },
-            { value: 82, label: "ليزر الجسم" },
-        ],
-    },
-    {
-        value: 9,
-        label: "استشارة جمالية",
-        options: [
-            { value: 91, label: "استشارة للبشرة" },
-            { value: 92, label: "استشارة للشعر" },
-        ],
-    },
-];
+type ServiceNode = {
+    id: number
+    name: string
+    slug: string | null
+    children?: ServiceNode[]
+}
+
+type SelectOption = { value: number; label: string }
 
 export const HojraServices = ({ changeState }: HojraServicesProps) => {
     const { services, addService, removeService, newHojraData, hojraInfo } =
-        useCreateStore();
+        useCreateStore()
 
-    const [selectedMainService, setSelectedMainService] = useState<number | null>(null);
-    const [selectedSubService, setSelectedSubService] = useState<number | null>(null);
-    const [duration, setDuration] = useState<string>("");
-    const [price, setPrice] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
-    const [isSaving, setIsSaving] = useState(false);
+    const [serviceTree, setServiceTree] = useState<ServiceNode[]>([])
+    const [servicePath, setServicePath] = useState<number[]>([])
+    const [isLoadingTree, setIsLoadingTree] = useState(false)
 
-    const subOptions =
-        servicesData.find((s) => s.value === selectedMainService)?.options || [];
+    const [duration, setDuration] = useState<string>('')
+    const [price, setPrice] = useState<string>('')
+    const [description, setDescription] = useState<string>('')
+    const [isSaving, setIsSaving] = useState(false)
 
-    const mainOptions = servicesData.map((s) => ({
-        value: s.value,
-        label: s.label,
-    }));
+    useEffect(() => {
+        const rootId = hojraInfo.service_id ?? null
+        if (!rootId) return
 
-    const isDuplicate = (subServiceValue: number): boolean => {
-        return services.some(
-            (service) => service.subServiceValue === subServiceValue
-        );
-    };
+        let isMounted = true
+        setServicePath([])
+        setIsLoadingTree(true)
+
+        getServices({ parent_id: rootId, tree: 1 })
+            .then((resp) => {
+                const data = (resp?.data ?? resp) as ServiceNode[]
+                if (!isMounted) return
+                setServiceTree(Array.isArray(data) ? data : [])
+            })
+            .catch(() => {
+                if (!isMounted) return
+                setServiceTree([])
+            })
+            .finally(() => {
+                if (!isMounted) return
+                setIsLoadingTree(false)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [hojraInfo.service_id])
+
+    const levels = useMemo(() => {
+        const result: ServiceNode[][] = [serviceTree]
+        let cursor = serviceTree
+
+        for (const id of servicePath) {
+            const node = cursor.find((n) => n.id === id)
+            if (!node?.children?.length) break
+            cursor = node.children
+            result.push(cursor)
+        }
+
+        return result.filter((l) => l.length > 0)
+    }, [servicePath, serviceTree])
+
+    const selectedLabels = useMemo(() => {
+        const labels: string[] = []
+        let cursor = serviceTree
+        for (const id of servicePath) {
+            const node = cursor.find((n) => n.id === id)
+            if (!node) break
+            labels.push(node.name)
+            cursor = node.children ?? []
+        }
+        return labels
+    }, [servicePath, serviceTree])
+
+    const selectedServiceId = servicePath.length
+        ? servicePath[servicePath.length - 1]
+        : null
+
+    const serviceLabel = selectedLabels.length ? selectedLabels.join(' / ') : ''
+
+    const isDuplicate = (serviceId: number): boolean => {
+        return services.some((service) => service.serviceId === serviceId)
+    }
 
     const isFormComplete = (): boolean => {
         return (
-            selectedMainService !== null &&
-            selectedSubService !== null &&
-            duration.trim() !== "" &&
+            selectedServiceId !== null &&
+            duration.trim() !== '' &&
             Number(duration) > 0 &&
-            price.trim() !== "" &&
+            price.trim() !== '' &&
             Number(price) > 0 &&
-            description.trim() !== "" &&
-            !isDuplicate(selectedSubService)
-        );
-    };
+            description.trim() !== '' &&
+            !isDuplicate(selectedServiceId)
+        )
+    }
+
+    const handleSelectLevel = (levelIndex: number, option: SelectOption | null) => {
+        const next = servicePath.slice(0, levelIndex)
+        if (option?.value) {
+            next[levelIndex] = option.value
+        }
+        setServicePath(next)
+    }
 
     const handleAddService = async () => {
-        if (
-            isSaving ||
-            !isFormComplete() ||
-            selectedSubService === null ||
-            selectedMainService === null
-        )
-            return;
+        if (isSaving || !isFormComplete() || selectedServiceId === null) return
 
         if (!newHojraData?.id) {
             toast.push(
                 <Notification type="danger">
                     لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز أولاً.
-                </Notification>
-            );
-            return;
+                </Notification>,
+            )
+            return
         }
 
-        const mainService = servicesData.find(
-            (s) => s.value === selectedMainService
-        );
-        const subService = subOptions.find(
-            (s) => s.value === selectedSubService
-        );
-
-        if (!mainService || !subService) return;
-
-        setIsSaving(true);
+        setIsSaving(true)
         try {
             const resp = await apiCreateAgencyService({
                 agency_id: newHojraData.id,
-                service_id: hojraInfo.service_id ?? undefined,
-                agency_service_category_id: selectedSubService,
-                title: `${mainService.label} - ${subService.label}`,
+                service_id: selectedServiceId,
+                title: serviceLabel || undefined,
                 sub_title: description.trim().slice(0, 191),
                 estimate_time: Number(duration),
                 price: Number(price),
                 body: description.trim(),
-            });
+            })
 
             if (!resp?.success) {
-                throw new Error(resp?.message || "تعذر حفظ الخدمة");
+                throw new Error(resp?.message || 'تعذر حفظ الخدمة')
             }
 
             const newService: ServiceItem = {
                 id: resp.data.id,
-                subServiceValue: selectedSubService,
-                subServiceLabel: subService.label,
-                mainServiceValue: selectedMainService,
-                mainServiceLabel: mainService.label,
+                serviceId: selectedServiceId,
+                serviceLabel,
                 duration: Number(duration),
                 price: Number(price),
                 description: description.trim(),
-            };
+            }
 
-            addService(newService);
+            addService(newService)
         } catch (err: unknown) {
             const apiMessage = (() => {
-                if (typeof err !== "object" || err === null) return undefined;
-                const response = (err as { response?: unknown }).response;
-                if (typeof response !== "object" || response === null)
-                    return undefined;
-                const data = (response as { data?: unknown }).data;
-                if (typeof data !== "object" || data === null) return undefined;
-                const message = (data as { message?: unknown }).message;
-                return typeof message === "string" && message.trim()
+                if (typeof err !== 'object' || err === null) return undefined
+                const response = (err as { response?: unknown }).response
+                if (typeof response !== 'object' || response === null)
+                    return undefined
+                const data = (response as { data?: unknown }).data
+                if (typeof data !== 'object' || data === null) return undefined
+                const message = (data as { message?: unknown }).message
+                return typeof message === 'string' && message.trim()
                     ? message
-                    : undefined;
-            })();
+                    : undefined
+            })()
 
-            const message = err instanceof Error ? err.message : undefined;
+            const message = err instanceof Error ? err.message : undefined
 
             toast.push(
                 <Notification type="danger">
-                    {apiMessage || message || "حدث خطأ أثناء حفظ الخدمة"}
-                </Notification>
-            );
-            return;
+                    {apiMessage || message || 'حدث خطأ أثناء حفظ الخدمة'}
+                </Notification>,
+            )
+            return
         } finally {
-            setIsSaving(false);
+            setIsSaving(false)
         }
 
-        setSelectedMainService(null);
-        setSelectedSubService(null);
-        setDuration("");
-        setPrice("");
-        setDescription("");
-    };
+        setServicePath([])
+        setDuration('')
+        setPrice('')
+        setDescription('')
+    }
 
     return (
         <Card
             header={{
-                content: "تعريف الخدمات",
+                content: 'تعريف الخدمات',
                 bordered: false,
             }}
         >
             <div className="space-y-4">
-                <FormItem label="نوع الخدمة الرئيسية">
-                    <Select
-                        placeholder="اختر نوع الخدمة"
-                        options={mainOptions}
-                        value={
-                            mainOptions.find(
-                                (s) => s.value === selectedMainService
-                            ) || null
-                        }
-                        onChange={(opt) => {
-                            setSelectedMainService(opt?.value ?? null);
-                            setSelectedSubService(null);
-                        }}
-                    />
-                </FormItem>
+                {isLoadingTree ? (
+                    <div className="text-sm text-gray-500">
+                        جاري تحميل الخدمات...
+                    </div>
+                ) : serviceTree.length === 0 ? (
+                    <div className="text-sm text-gray-500">
+                        لا توجد خدمات فرعية متاحة لهذا النوع حالياً.
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {levels.map((nodes, idx) => {
+                            const options: SelectOption[] = nodes.map((n) => ({
+                                value: n.id,
+                                label: n.name,
+                            }))
 
-                <FormItem label="الخدمة الفرعية">
-                    <Select
-                        placeholder="اختر الخدمة الفرعية"
-                        options={subOptions}
-                        isDisabled={!selectedMainService}
-                        value={
-                            subOptions.find(
-                                (s) => s.value === selectedSubService
-                            ) || null
-                        }
-                        onChange={(opt) =>
-                            setSelectedSubService(opt?.value ?? null)
-                        }
-                    />
-                </FormItem>
+                            const label =
+                                idx === 0
+                                    ? 'نوع الخدمة الرئيسية'
+                                    : idx === 1
+                                      ? 'الخدمة الفرعية'
+                                      : `تصنيف فرعي (المستوى ${idx + 1})`
 
-                {selectedSubService && isDuplicate(selectedSubService) && (
-                    <div className="text-red-500 text-sm">
-                        هذه الخدمة موجودة بالفعل في القائمة
+                            return (
+                                <FormItem key={idx} label={label}>
+                                    <Select<SelectOption>
+                                        placeholder="اختر"
+                                        options={options}
+                                        value={
+                                            options.find(
+                                                (opt) =>
+                                                    opt.value ===
+                                                    servicePath[idx],
+                                            ) || null
+                                        }
+                                        onChange={(opt) =>
+                                            handleSelectLevel(
+                                                idx,
+                                                opt ?? null,
+                                            )
+                                        }
+                                    />
+                                </FormItem>
+                            )
+                        })}
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                    <FormItem
-                        label="مدة الخدمة"
-                        extra={
-                            <div className="text-xs text-gray-400 mx-1">
-                                دقائق
-                            </div>
-                        }
-                    >
+                <div className="grid grid-cols-2 gap-3">
+                    <FormItem label="المدة (دقيقة)">
                         <Input
                             type="number"
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
-                            placeholder="مدة الخدمة"
+                            placeholder="المدة"
                             min="1"
                         />
                     </FormItem>
 
-                    <FormItem
-                        label="سعر الخدمة"
-                        extra={
-                            <div className="text-xs text-gray-400 mx-1">
-                                ريال
-                            </div>
-                        }
-                    >
+                    <FormItem label="السعر (ريال)">
                         <Input
                             type="number"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
-                            placeholder="سعر الخدمة"
+                            placeholder="السعر"
                             min="1"
                         />
                     </FormItem>
@@ -300,6 +270,12 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                         placeholder="وصف موجز للخدمة"
                     />
                 </FormItem>
+
+                {selectedServiceId !== null && isDuplicate(selectedServiceId) && (
+                    <div className="text-red-500 text-xs">
+                        هذه الخدمة مضافة مسبقًا.
+                    </div>
+                )}
 
                 <FormItem>
                     <Button
@@ -314,7 +290,6 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                     </Button>
                 </FormItem>
 
-                {/* لیست خدمات اضافه شده */}
                 {services.length > 0 && (
                     <div className="mt-6 space-y-3">
                         <h3 className="text-lg font-semibold">
@@ -325,8 +300,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                 <div className="flex justify-between items-center flex-row">
                                     <div className="flex-1">
                                         <div className="font-semibold text-primary-deep text-base mb-1">
-                                            {service.mainServiceLabel} -{" "}
-                                            {service.subServiceLabel}
+                                            {service.serviceLabel}
                                         </div>
                                         <div className="text-sm text-gray-600 mb-1 flex gap-4">
                                             <span>
@@ -359,7 +333,6 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                     </div>
                 )}
 
-                {/* نویگیشن */}
                 <div>
                     <div className="flex items-center justify-end gap-3">
                         <Button
@@ -382,5 +355,5 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 </div>
             </div>
         </Card>
-    );
-};
+    )
+}

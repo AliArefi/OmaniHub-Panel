@@ -24,8 +24,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 service_id: hojraInfo.service_id,
                 about_text: hojraInfo.about_text,
                 services: services.map((s) => ({
-                    sub_service_id: s.subServiceValue,
-                    main_service_id: s.mainServiceValue,
+                    service_id: s.serviceId,
                     duration: s.duration,
                     price: s.price,
                     description: s.description,
@@ -114,8 +113,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                             <Card key={service.id}>
                                 <div className="text-sm space-y-1">
                                     <div className="font-semibold">
-                                        {service.mainServiceLabel} -{" "}
-                                        {service.subServiceLabel}
+                                        {service.serviceLabel}
                                     </div>
                                     <div className="flex gap-4 text-gray-600">
                                         <span>

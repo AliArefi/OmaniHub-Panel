@@ -203,7 +203,7 @@ export const HojraAssignServices = ({
 
     const serviceOptions: ServiceSelectOption[] = services.map((s) => ({
         value: s.id,
-        label: `${s.mainServiceLabel} - ${s.subServiceLabel}`,
+        label: s.serviceLabel,
     }))
 
     const memberOptions: MemberSelectOption[] = teamMembers.map((m) => ({
@@ -239,7 +239,7 @@ export const HojraAssignServices = ({
         const newAssignment: ServiceAssignment = {
             id: Date.now(),
             serviceId: service.id,
-            serviceLabel: `${service.mainServiceLabel} - ${service.subServiceLabel}`,
+            serviceLabel: service.serviceLabel,
             memberId: member.id,
             memberName: member.name,
             schedules: [],

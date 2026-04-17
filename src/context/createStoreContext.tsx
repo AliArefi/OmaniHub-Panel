@@ -4,10 +4,8 @@ import { createContext, useContext, useState, ReactNode } from 'react'
 // --- Types ---
 export interface ServiceItem {
     id: number
-    subServiceValue: number
-    subServiceLabel: string
-    mainServiceValue: number
-    mainServiceLabel: string
+    serviceId: number
+    serviceLabel: string
     duration: number
     price: number
     description: string

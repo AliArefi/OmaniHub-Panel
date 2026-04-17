@@ -7,6 +7,7 @@ import {
     CreateNewMemberAgencyResponse,
     MemberWorkingHoursRequest,
     MemberWorkingHoursResponse,
+    Services,
 } from '@/@types/center'
 import ApiService from './ApiService'
 import endpointConfig from '@/configs/endpoint.config'
@@ -17,9 +18,15 @@ export async function getMyAgencies() {
     })
 }
 
-export async function getServices() {
-    return ApiService.fetchDataWithAxios<unknown>({
+export async function getServices(params?: {
+    parent_id?: number
+    q?: string
+    with_children?: boolean | 0 | 1
+    tree?: boolean | 0 | 1
+}) {
+    return ApiService.fetchDataWithAxios<{ data: Services[] }>({
         url: endpointConfig.getServices,
+        params,
     })
 }
 

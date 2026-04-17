@@ -14,6 +14,7 @@ export type Services = {
     slug: string | null
     icon: string | null
     image: string | null
+    children?: Services[]
 }
 
 export type CreateNewAgencyRequest = {
@@ -34,7 +35,7 @@ export type CreateNewAgencyResponse = {
 export type CreateAgencyServiceRequest = {
     agency_id: number
     service_id?: number
-    agency_service_category_id: number
+    agency_service_category_id?: number
     title?: string
     sub_title: string
     estimate_time: number
