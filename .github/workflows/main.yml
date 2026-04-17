@@ -22,11 +22,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: |
+          time npm ci --no-audit --no-fund --prefer-offline --loglevel=notice
 
       - name: Build
         run: npm run build
