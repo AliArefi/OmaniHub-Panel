@@ -31,7 +31,7 @@ const appConfig: AppConfig = {
         'https://admin.omanihub.com/api/1',
     urlImage:
         (import.meta.env.VITE_URL_IMAGE as string | undefined) ??
-        'https://admin.omanihub.com',
+        '',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
     locale: 'en',
