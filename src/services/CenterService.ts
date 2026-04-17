@@ -22,7 +22,7 @@ export async function getMyAgencies() {
 }
 
 export async function apiGetMyAgency(agencySlug: string) {
-    return ApiService.fetchDataWithAxios<MyAgencyDetails>({
+    return ApiService.fetchDataWithAxios<{ data: MyAgencyDetails }>({
         url: `${endpointConfig.getMyAgencies}/${encodeURIComponent(agencySlug)}`,
     })
 }

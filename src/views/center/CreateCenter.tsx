@@ -46,7 +46,12 @@ export default function CreateStoreWizard() {
 
         Promise.resolve()
             .then(async () => {
-                const agency = await apiGetMyAgency(agencySlug as string)
+                const agencyResponse = await apiGetMyAgency(agencySlug as string)
+                const agency = agencyResponse.data
+
+                if (!agency || typeof agency !== 'object') {
+                    throw new Error('Invalid center response.')
+                }
 
                 const hojraInfo: Partial<HojraInfo> = {
                     title: agency.title,
