@@ -1,7 +1,5 @@
-// context/CreateStoreContext.tsx
 import { createContext, useContext, useState, ReactNode } from 'react'
 
-// --- Types ---
 export interface ServiceItem {
     id: number
     serviceId: number
@@ -18,10 +16,10 @@ export interface TeamMember {
     image: string | null
 }
 
-export interface WorkScheduleEntry {
-    id: number
-    date: string
-    dateLabel: string
+export interface DaySchedule {
+    day: 'saturday' | 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
+    dayLabel: string
+    isOpen: boolean
     startTime: string
     endTime: string
 }
@@ -32,7 +30,7 @@ export interface ServiceAssignment {
     serviceLabel: string
     memberId: number
     memberName: string
-    schedules: WorkScheduleEntry[]
+    weeklySchedule: DaySchedule[]
 }
 
 export interface HojraInfo {
@@ -67,13 +65,9 @@ interface CreateStoreContextType {
     setAssignments: (assignments: ServiceAssignment[]) => void
     addAssignment: (assignment: ServiceAssignment) => void
     removeAssignment: (id: number) => void
-    addScheduleToAssignment: (
+    updateAssignmentSchedule: (
         assignmentId: number,
-        schedule: WorkScheduleEntry,
-    ) => void
-    removeScheduleFromAssignment: (
-        assignmentId: number,
-        scheduleId: number,
+        weeklySchedule: DaySchedule[],
     ) => void
 }
 
@@ -118,7 +112,6 @@ export const CreateStoreProvider = ({
 
     const removeService = (id: number) => {
         setServices((prev) => prev.filter((s) => s.id !== id))
-
         setAssignments((prev) => prev.filter((a) => a.serviceId !== id))
     }
 
@@ -128,7 +121,6 @@ export const CreateStoreProvider = ({
 
     const removeTeamMember = (id: number) => {
         setTeamMembers((prev) => prev.filter((m) => m.id !== id))
-
         setAssignments((prev) => prev.filter((a) => a.memberId !== id))
     }
 
@@ -140,32 +132,14 @@ export const CreateStoreProvider = ({
         setAssignments((prev) => prev.filter((a) => a.id !== id))
     }
 
-    const addScheduleToAssignment = (
+    const updateAssignmentSchedule = (
         assignmentId: number,
-        schedule: WorkScheduleEntry,
+        weeklySchedule: DaySchedule[],
     ) => {
         setAssignments((prev) =>
             prev.map((a) =>
                 a.id === assignmentId
-                    ? { ...a, schedules: [...a.schedules, schedule] }
-                    : a,
-            ),
-        )
-    }
-
-    const removeScheduleFromAssignment = (
-        assignmentId: number,
-        scheduleId: number,
-    ) => {
-        setAssignments((prev) =>
-            prev.map((a) =>
-                a.id === assignmentId
-                    ? {
-                          ...a,
-                          schedules: a.schedules.filter(
-                              (s) => s.id !== scheduleId,
-                          ),
-                      }
+                    ? { ...a, weeklySchedule }
                     : a,
             ),
         )
@@ -190,8 +164,7 @@ export const CreateStoreProvider = ({
                 setAssignments,
                 addAssignment,
                 removeAssignment,
-                addScheduleToAssignment,
-                removeScheduleFromAssignment,
+                updateAssignmentSchedule,
             }}
         >
             {children}

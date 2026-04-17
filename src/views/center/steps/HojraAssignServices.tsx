@@ -1,824 +1,514 @@
-import { Button, Card, FormItem, Input, Select, toast } from '@/components/ui'
+import { useState } from 'react'
+import { useCreateStore, type DaySchedule } from '@/context/CreateStoreContext'
+import Card from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
+import { FormItem } from '@/components/ui/Form'
 import Notification from '@/components/ui/Notification'
-import {
-    ServiceAssignment,
-    TeamMember,
-    useCreateStore,
-    WorkScheduleEntry,
-} from '@/context/createStoreContext'
+import toast from '@/components/ui/toast'
+import { HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi'
+import Switcher from '@/components/ui/Switcher'
 import { apiCreateMemberAgency } from '@/services/CenterService'
-import { useEffect, useRef, useState } from 'react'
 
-interface HojraAssignServicesProps {
-    changeState: (value: number) => void
-}
+type SelectOption = { value: number; label: string }
 
-type ServiceSelectOption = { value: number; label: string }
-type MemberSelectOption = { value: number; label: string }
-type DateSelectOption = { value: string; label: string }
-type TimeSelectOption = { value: string; label: string }
+const WEEK_DAYS: DaySchedule[] = [
+    { day: 'saturday', dayLabel: 'السبت', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'sunday', dayLabel: 'الأحد', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'monday', dayLabel: 'الاثنين', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'tuesday', dayLabel: 'الثلاثاء', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'wednesday', dayLabel: 'الأربعاء', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'thursday', dayLabel: 'الخميس', isOpen: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'friday', dayLabel: 'الجمعة', isOpen: false, startTime: '09:00', endTime: '17:00' },
+]
 
-const generateNext30Days = (): DateSelectOption[] => {
-    const days: DateSelectOption[] = []
-    const today = new Date()
-    const dayNames = [
-        'الأحد',
-        'الإثنين',
-        'الثلاثاء',
-        'الأربعاء',
-        'الخميس',
-        'الجمعة',
-        'السبت',
-    ]
-
-    for (let i = 0; i < 30; i++) {
-        const date = new Date(today)
-        date.setDate(today.getDate() + i)
-        const dayName = dayNames[date.getDay()]
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        days.push({
-            value: `${year}-${month}-${day}`,
-            label: `${dayName} ${day}/${month}/${year}`,
-        })
+const generateTimeOptions = () => {
+    const options: { value: string; label: string }[] = []
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const hour = h.toString().padStart(2, '0')
+            const minute = m.toString().padStart(2, '0')
+            options.push({ value: `${hour}:${minute}`, label: `${hour}:${minute}` })
+        }
     }
-    return days
+    return options
 }
 
-const generateTimeOptions = (): TimeSelectOption[] => {
-    const times: TimeSelectOption[] = []
-    for (let h = 6; h < 23; h++) {
-        ;['00', '30'].forEach((m) => {
-            const time = `${h.toString().padStart(2, '0')}:${m}`
-            times.push({ value: time, label: time })
-        })
-    }
-    return times
-}
-
-const DATES = generateNext30Days()
-const TIME_OPTIONS = generateTimeOptions()
-
-export const HojraAssignServices = ({
-    changeState,
-}: HojraAssignServicesProps) => {
+export const HojraAssignServices = ({ changeState }: { changeState: (step: number) => void }) => {
     const {
         services,
         teamMembers,
+        assignments,
         addTeamMember,
         removeTeamMember,
-        assignments,
         addAssignment,
         removeAssignment,
-        addScheduleToAssignment,
-        removeScheduleFromAssignment,
+        updateAssignmentSchedule,
+        newHojraData,
     } = useCreateStore()
 
     const [showNewMemberForm, setShowNewMemberForm] = useState(false)
     const [newMemberName, setNewMemberName] = useState('')
-    const [newMemberRole, setNewMemberRole] = useState('')
-    const [newMemberImage, setNewMemberImage] = useState<string | null>(null)
-    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(
-        null,
-    )
-    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(
-        services[0]?.id ?? null,
-    )
+    const [newMemberPosition, setNewMemberPosition] = useState('')
+    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(null)
+    const [newMemberImagePreview, setNewMemberImagePreview] = useState<string | null>(null)
+    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(null)
     const [isCreatingMember, setIsCreatingMember] = useState(false)
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
-        null,
-    )
-    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(
-        null,
-    )
+    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
+    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null)
+    const [editingScheduleForAssignment, setEditingScheduleForAssignment] = useState<number | null>(null)
 
-    const [activeAssignmentId, setActiveAssignmentId] = useState<number | null>(
-        null,
-    )
-    const [scheduleDate, setScheduleDate] = useState<string>('')
-    const [scheduleStartTime, setScheduleStartTime] = useState<string>('')
-    const [scheduleEndTime, setScheduleEndTime] = useState<string>('')
+    const timeOptions = generateTimeOptions()
+
+    const serviceOptions: SelectOption[] = services.map((s) => ({
+        value: s.id,
+        label: s.serviceLabel,
+    }))
+
+    const memberOptions: SelectOption[] = teamMembers.map((m) => ({
+        value: m.id,
+        label: m.name,
+    }))
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (!file || !file.type.startsWith('image/')) return
-        setNewMemberImageFile(file)
-        const reader = new FileReader()
-        reader.onloadend = () => setNewMemberImage(reader.result as string)
-        reader.readAsDataURL(file)
-    }
-
-    const handleRemoveImage = () => {
-        setNewMemberImage(null)
-        setNewMemberImageFile(null)
-        if (fileInputRef.current) fileInputRef.current.value = ''
-    }
-
-    const isNewMemberFormComplete = (): boolean => {
-        return (
-            newMemberName.trim() !== '' &&
-            newMemberRole.trim() !== '' &&
-            newMemberImage !== null &&
-            newMemberImageFile !== null &&
-            newMemberServiceId !== null
-        )
+        if (file) {
+            setNewMemberImageFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => setNewMemberImagePreview(reader.result as string)
+            reader.readAsDataURL(file)
+        }
     }
 
     const handleCreateMember = async () => {
-        if (isCreatingMember || !isNewMemberFormComplete()) return
-        if (!newMemberServiceId || !newMemberImageFile || !newMemberImage) {
+        if (!newMemberName.trim()) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء إدخال اسم العضو
+                </Notification>,
+            )
+            return
+        }
+
+        if (!newMemberServiceId) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء اختيار الخدمة
+                </Notification>,
+            )
+            return
+        }
+
+        if (!newMemberImageFile) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء اختيار صورة للعضو
+                </Notification>,
+            )
             return
         }
 
         setIsCreatingMember(true)
+
         try {
-            const resp = await apiCreateMemberAgency(
+            const response = await apiCreateMemberAgency(
                 {
                     name: newMemberName.trim(),
-                    position: newMemberRole.trim(),
+                    position: newMemberPosition,
                     image: newMemberImageFile,
                 },
                 newMemberServiceId,
             )
 
-            if (!resp?.success) {
-                throw new Error(resp?.message || 'تعذر حفظ العضو')
+            if (response.data) {
+                const newMember = {
+                    id: response.data.id,
+                    name: newMemberName,
+                    position: newMemberPosition || 'عضو الفريق',
+                    image: newMemberImagePreview,
+                }
+
+                addTeamMember(newMember)
+
+                const selectedService = services.find((s) => s.id === newMemberServiceId)
+                if (selectedService) {
+                    addAssignment({
+                        id: Date.now(),
+                        serviceId: selectedService.id,
+                        serviceLabel: selectedService.serviceLabel,
+                        memberId: newMember.id,
+                        memberName: newMember.name,
+                        weeklySchedule: [...WEEK_DAYS],
+                    })
+                }
+
+                setNewMemberName('')
+                setNewMemberPosition('')
+                setNewMemberImageFile(null)
+                setNewMemberImagePreview(null)
+                setNewMemberServiceId(null)
+                setShowNewMemberForm(false)
+
+                toast.push(
+                    <Notification type="success" title="نجاح">
+                        تمت إضافة العضو الجديد بنجاح
+                    </Notification>,
+                )
             }
-
-            const newMember: TeamMember = {
-                id: resp.data.id,
-                name: newMemberName.trim(),
-                position: newMemberRole.trim(),
-                image: newMemberImage,
-            }
-
-            addTeamMember(newMember)
-        } catch (err: unknown) {
-            const apiMessage = (() => {
-                if (typeof err !== 'object' || err === null) return undefined
-                const response = (err as { response?: unknown }).response
-                if (typeof response !== 'object' || response === null)
-                    return undefined
-                const data = (response as { data?: unknown }).data
-                if (typeof data !== 'object' || data === null) return undefined
-                const message = (data as { message?: unknown }).message
-                return typeof message === 'string' && message.trim()
-                    ? message
-                    : undefined
-            })()
-
-            const message = err instanceof Error ? err.message : undefined
-
+        } catch (error: any) {
             toast.push(
-                <Notification type="danger">
-                    {apiMessage || message || 'حدث خطأ أثناء إضافة العضو'}
+                <Notification type="danger" title="خطأ">
+                    {error?.response?.data?.message || 'حدث خطأ أثناء إنشاء العضو'}
                 </Notification>,
             )
-            return
         } finally {
             setIsCreatingMember(false)
         }
-
-        setNewMemberName('')
-        setNewMemberRole('')
-        setNewMemberImage(null)
-        setNewMemberImageFile(null)
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        setShowNewMemberForm(false)
     }
 
-    useEffect(() => {
-        if (services.length === 0) {
-            setNewMemberServiceId(null)
+    const handleAssignService = () => {
+        if (!selectedMemberId || !selectedServiceId) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء اختيار العضو والخدمة
+                </Notification>,
+            )
             return
         }
 
-        if (newMemberServiceId === null) {
-            setNewMemberServiceId(services[0].id)
+        const alreadyAssigned = assignments.some(
+            (a) => a.memberId === selectedMemberId && a.serviceId === selectedServiceId,
+        )
+
+        if (alreadyAssigned) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    هذه الخدمة مخصصة بالفعل لهذا العضو
+                </Notification>,
+            )
+            return
         }
-    }, [services, newMemberServiceId])
 
-    const serviceOptions: ServiceSelectOption[] = services.map((s) => ({
-        value: s.id,
-        label: s.serviceLabel,
-    }))
-
-    const memberOptions: MemberSelectOption[] = teamMembers.map((m) => ({
-        value: m.id,
-        label: m.name,
-    }))
-
-    const isAssignmentDuplicate = (): boolean => {
-        if (!selectedServiceId || !selectedMemberId) return false
-        return assignments.some(
-            (a) =>
-                a.serviceId === selectedServiceId &&
-                a.memberId === selectedMemberId,
-        )
-    }
-
-    const canAssign = (): boolean => {
-        return (
-            selectedServiceId !== null &&
-            selectedMemberId !== null &&
-            !isAssignmentDuplicate()
-        )
-    }
-
-    const handleAssign = () => {
-        if (!canAssign() || !selectedServiceId || !selectedMemberId) return
-
-        const service = services.find((s) => s.id === selectedServiceId)
         const member = teamMembers.find((m) => m.id === selectedMemberId)
+        const service = services.find((s) => s.id === selectedServiceId)
 
-        if (!service || !member) return
+        if (member && service) {
+            addAssignment({
+                id: Date.now(),
+                serviceId: service.id,
+                serviceLabel: service.serviceLabel,
+                memberId: member.id,
+                memberName: member.name,
+                weeklySchedule: [...WEEK_DAYS],
+            })
+            setSelectedMemberId(null)
+            setSelectedServiceId(null)
 
-        const newAssignment: ServiceAssignment = {
-            id: Date.now(),
-            serviceId: service.id,
-            serviceLabel: service.serviceLabel,
-            memberId: member.id,
-            memberName: member.name,
-            schedules: [],
+            toast.push(
+                <Notification type="success" title="نجاح">
+                    تم تخصيص الخدمة بنجاح
+                </Notification>,
+            )
         }
-
-        addAssignment(newAssignment)
-        setSelectedServiceId(null)
-        setSelectedMemberId(null)
     }
 
-    const canAddSchedule = (): boolean => {
-        return (
-            activeAssignmentId !== null &&
-            scheduleDate !== '' &&
-            scheduleStartTime !== '' &&
-            scheduleEndTime !== '' &&
-            scheduleStartTime < scheduleEndTime
-        )
+    const handleScheduleChange = (
+        assignmentId: number,
+        dayIndex: number,
+        field: 'isOpen' | 'startTime' | 'endTime',
+        value: boolean | string,
+    ) => {
+        const assignment = assignments.find((a) => a.id === assignmentId)
+        if (!assignment) return
+
+        const updatedSchedule = [...assignment.weeklySchedule]
+        updatedSchedule[dayIndex] = { ...updatedSchedule[dayIndex], [field]: value }
+
+        updateAssignmentSchedule(assignmentId, updatedSchedule)
     }
 
-    const handleAddSchedule = () => {
-        if (!canAddSchedule() || !activeAssignmentId) return
+    const hasAnySchedule = assignments.some((a) => a.weeklySchedule.some((day) => day.isOpen))
 
-        const dateLabel =
-            DATES.find((d) => d.value === scheduleDate)?.label || ''
-
-        const newSchedule: WorkScheduleEntry = {
-            id: Date.now(),
-            date: scheduleDate,
-            dateLabel,
-            startTime: scheduleStartTime,
-            endTime: scheduleEndTime,
+    const handleNext = () => {
+        if (hasAnySchedule) {
+            changeState(4)
+        } else {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء تحديد جدول زمني واحد على الأقل
+                </Notification>,
+            )
         }
-
-        addScheduleToAssignment(activeAssignmentId, newSchedule)
-        setScheduleDate('')
-        setScheduleStartTime('')
-        setScheduleEndTime('')
-    }
-
-    const allAssignmentsHaveSchedules = (): boolean => {
-        return (
-            assignments.length > 0 &&
-            assignments.every((a) => a.schedules.length > 0)
-        )
     }
 
     return (
-        <Card
-            header={{
-                content: 'تعيين الخدمات للفريق',
-                bordered: false,
-            }}
-        >
-            <div className="space-y-6">
-                <div>
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-base font-semibold">
-                            أعضاء الفريق ({teamMembers.length})
-                        </h3>
-                        <Button
-                            size="xs"
-                            variant={showNewMemberForm ? 'default' : 'solid'}
-                            onClick={() =>
-                                setShowNewMemberForm(!showNewMemberForm)
-                            }
-                        >
-                            {showNewMemberForm ? 'إلغاء' : '+ عضو جديد'}
-                        </Button>
+        <div className="space-y-6">
+            <Card>
+                <h3 className="text-lg font-semibold mb-4">إدارة أعضاء الفريق</h3>
+
+                {!showNewMemberForm && (
+                    <Button
+                        variant="solid"
+                        icon={<HiOutlinePlus />}
+                        onClick={() => setShowNewMemberForm(true)}
+                    >
+                        إضافة عضو جديد
+                    </Button>
+                )}
+
+                {showNewMemberForm && (
+                    <div className="mt-4 p-4 border rounded-lg space-y-4">
+                        <FormItem label="اسم العضو">
+                            <Input
+                                value={newMemberName}
+                                onChange={(e) => setNewMemberName(e.target.value)}
+                                placeholder="أدخل اسم العضو"
+                            />
+                        </FormItem>
+
+                        <FormItem label="المنصب">
+                            <Input
+                                value={newMemberPosition}
+                                onChange={(e) => setNewMemberPosition(e.target.value)}
+                                placeholder="أدخل منصب العضو"
+                            />
+                        </FormItem>
+
+                        <FormItem label="الصورة">
+                            <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                            {newMemberImagePreview && (
+                                <img
+                                    src={newMemberImagePreview}
+                                    alt="معاينة"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
+                            )}
+                        </FormItem>
+
+                        <FormItem label="الخدمة">
+                            <Select<SelectOption>
+                                value={
+                                    newMemberServiceId
+                                        ? serviceOptions.find((s) => s.value === newMemberServiceId) ?? null
+                                        : null
+                                }
+                                options={serviceOptions}
+                                onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
+                                placeholder="اختر الخدمة"
+                            />
+                        </FormItem>
+
+                        <div className="flex gap-2">
+                            <Button variant="solid" onClick={handleCreateMember} loading={isCreatingMember}>
+                                حفظ العضو
+                            </Button>
+                            <Button
+                                variant="plain"
+                                onClick={() => {
+                                    setShowNewMemberForm(false)
+                                    setNewMemberName('')
+                                    setNewMemberPosition('')
+                                    setNewMemberImageFile(null)
+                                    setNewMemberImagePreview(null)
+                                    setNewMemberServiceId(null)
+                                }}
+                            >
+                                إلغاء
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {teamMembers.length > 0 && (
+                    <div className="mt-6 space-y-3">
+                        <h4 className="font-medium">أعضاء الفريق:</h4>
+                        {teamMembers.map((member) => (
+                            <div
+                                key={member.id}
+                                className="flex items-center justify-between p-3 border rounded"
+                            >
+                                <div className="flex items-center gap-3">
+                                    {member.image && (
+                                        <img
+                                            src={member.image}
+                                            alt={member.name}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">{member.name}</div>
+                                        <div className="text-sm text-gray-500">{member.position}</div>
+                                    </div>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="plain"
+                                    icon={<HiOutlineTrash />}
+                                    onClick={() => removeTeamMember(member.id)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </Card>
+
+            {teamMembers.length > 0 && services.length > 0 && (
+                <Card>
+                    <h3 className="text-lg font-semibold mb-4">تخصيص الخدمة للأعضاء</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <FormItem label="اختيار العضو">
+                            <Select<SelectOption>
+                                value={
+                                    selectedMemberId
+                                        ? memberOptions.find((m) => m.value === selectedMemberId) ?? null
+                                        : null
+                                }
+                                options={memberOptions}
+                                onChange={(option) => setSelectedMemberId(option?.value ?? null)}
+                                placeholder="اختر العضو"
+                            />
+                        </FormItem>
+
+                        <FormItem label="اختيار الخدمة">
+                            <Select<SelectOption>
+                                value={
+                                    selectedServiceId
+                                        ? serviceOptions.find((s) => s.value === selectedServiceId) ?? null
+                                        : null
+                                }
+                                options={serviceOptions}
+                                onChange={(option) => setSelectedServiceId(option?.value ?? null)}
+                                placeholder="اختر الخدمة"
+                            />
+                        </FormItem>
                     </div>
 
-                    {showNewMemberForm && (
-                        <Card className="mb-4">
-                            <div className="space-y-3">
-                                <FormItem label="Member service">
-                                    <Select<ServiceSelectOption>
-                                        size="sm"
-                                        placeholder="Select a service"
-                                        options={serviceOptions}
-                                        value={
-                                            serviceOptions.find(
-                                                (opt) =>
-                                                    opt.value ===
-                                                    newMemberServiceId,
-                                            ) || null
-                                        }
-                                        onChange={(opt) =>
-                                            setNewMemberServiceId(
-                                                opt?.value ?? null,
-                                            )
-                                        }
-                                    />
-                                </FormItem>
-                                <FormItem label="صورة العضو">
-                                    <div className="flex flex-col gap-3">
-                                        {!newMemberImage ? (
-                                            <div
+                    <Button variant="solid" onClick={handleAssignService}>
+                        تخصيص الخدمة
+                    </Button>
+
+                    {assignments.length > 0 && (
+                        <div className="mt-6 space-y-4">
+                            <h4 className="font-medium">الخدمات المخصصة:</h4>
+                            {assignments.map((assignment) => (
+                                <div key={assignment.id} className="border rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <div className="font-medium">{assignment.memberName}</div>
+                                            <div className="text-sm text-gray-500">
+                                                {assignment.serviceLabel}
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="solid"
                                                 onClick={() =>
-                                                    fileInputRef.current?.click()
+                                                    setEditingScheduleForAssignment(
+                                                        editingScheduleForAssignment === assignment.id
+                                                            ? null
+                                                            : assignment.id,
+                                                    )
                                                 }
-                                                className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary-deep hover:bg-gray-50 transition-all"
                                             >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="w-7 h-7 text-gray-400"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={1.5}
-                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                    />
-                                                </svg>
-                                                <span className="text-sm text-gray-500">
-                                                    اضغط لإضافة صورة
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
-                                                    <img
-                                                        src={newMemberImage}
-                                                        alt="Preview"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                                <div className="flex flex-col gap-2">
-                                                    <Button
-                                                        variant="default"
-                                                        size="xs"
-                                                        type="button"
-                                                        onClick={() =>
-                                                            fileInputRef.current?.click()
-                                                        }
-                                                    >
-                                                        تغيير
-                                                    </Button>
-                                                    <Button
-                                                        variant="solid"
-                                                        size="xs"
-                                                        type="button"
-                                                        className="bg-red-300 hover:bg-red-400"
-                                                        onClick={
-                                                            handleRemoveImage
-                                                        }
-                                                    >
-                                                        حذف
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleImageUpload}
-                                        />
-                                    </div>
-                                </FormItem>
-
-                                <FormItem label="اسم العضو">
-                                    <Input
-                                        value={newMemberName}
-                                        onChange={(e) =>
-                                            setNewMemberName(e.target.value)
-                                        }
-                                        placeholder="اسم العضو"
-                                    />
-                                </FormItem>
-
-                                <FormItem label="التخصص / الدور">
-                                    <Input
-                                        value={newMemberRole}
-                                        onChange={(e) =>
-                                            setNewMemberRole(e.target.value)
-                                        }
-                                        placeholder="مثلاً: مختصة في العناية بالبشرة"
-                                    />
-                                </FormItem>
-
-                                <Button
-                                    variant="solid"
-                                    size="sm"
-                                    block
-                                    loading={isCreatingMember}
-                                    disabled={
-                                        isCreatingMember ||
-                                        !isNewMemberFormComplete()
-                                    }
-                                    onClick={handleCreateMember}
-                                >
-                                    إنشاء العضو
-                                </Button>
-                            </div>
-                        </Card>
-                    )}
-
-                    {teamMembers.length > 0 && (
-                        <div className="space-y-2 mb-4">
-                            {teamMembers.map((member) => (
-                                <div
-                                    key={member.id}
-                                    className="flex items-center gap-3 p-2 border rounded-lg"
-                                >
-                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shrink-0">
-                                        {member.image && (
-                                            <img
-                                                src={member.image}
-                                                alt={member.name}
-                                                className="w-full h-full object-cover"
+                                                {editingScheduleForAssignment === assignment.id
+                                                    ? 'إغلاق الجدول'
+                                                    : 'ضبط الجدول'}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="plain"
+                                                icon={<HiOutlineTrash />}
+                                                onClick={() => removeAssignment(assignment.id)}
                                             />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-semibold text-sm truncate">
-                                            {member.name}
-                                        </div>
-                                        <div className="text-xs text-gray-500 truncate">
-                                            {member.position}
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="plain"
-                                        size="xs"
-                                        className="text-red-500 hover:text-red-700"
-                                        onClick={() =>
-                                            removeTeamMember(member.id)
-                                        }
-                                    >
-                                        حذف
-                                    </Button>
+
+                                    {editingScheduleForAssignment === assignment.id && (
+                                        <div className="space-y-3 mt-4 pt-4 border-t">
+                                            <h5 className="font-medium text-sm mb-3">الجدول الأسبوعي:</h5>
+                                            {assignment.weeklySchedule.map((daySchedule, dayIndex) => (
+                                                <div
+                                                    key={daySchedule.day}
+                                                    className="flex items-center gap-4 p-3 bg-gray-50 rounded"
+                                                >
+                                                    <div className="w-24 font-medium">
+                                                        {daySchedule.dayLabel}
+                                                    </div>
+                                                    <Switcher
+                                                        checked={daySchedule.isOpen}
+                                                        onChange={(checked) =>
+                                                            handleScheduleChange(
+                                                                assignment.id,
+                                                                dayIndex,
+                                                                'isOpen',
+                                                                checked,
+                                                            )
+                                                        }
+                                                    />
+                                                    {daySchedule.isOpen && (
+                                                        <>
+                                                            <Select<{ value: string; label: string }>
+                                                                size="sm"
+                                                                className="w-32"
+                                                                value={
+                                                                    timeOptions.find(
+                                                                        (t) => t.value === daySchedule.startTime,
+                                                                    ) ?? null
+                                                                }
+                                                                options={timeOptions}
+                                                                onChange={(option) =>
+                                                                    handleScheduleChange(
+                                                                        assignment.id,
+                                                                        dayIndex,
+                                                                        'startTime',
+                                                                        option?.value ?? '09:00',
+                                                                    )
+                                                                }
+                                                            />
+                                                            <span className="text-gray-500">إلى</span>
+                                                            <Select<{ value: string; label: string }>
+                                                                size="sm"
+                                                                className="w-32"
+                                                                value={
+                                                                    timeOptions.find(
+                                                                        (t) => t.value === daySchedule.endTime,
+                                                                    ) ?? null
+                                                                }
+                                                                options={timeOptions}
+                                                                onChange={(option) =>
+                                                                    handleScheduleChange(
+                                                                        assignment.id,
+                                                                        dayIndex,
+                                                                        'endTime',
+                                                                        option?.value ?? '17:00',
+                                                                    )
+                                                                }
+                                                            />
+                                                        </>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     )}
-                </div>
+                </Card>
+            )}
 
-                {teamMembers.length > 0 && services.length > 0 && (
-                    <div>
-                        <h3 className="text-base font-semibold mb-3">
-                            تعيين خدمة لعضو
-                        </h3>
-
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700 mb-4">
-                            اختر خدمة وعضوًا لتعيين الخدمة له، ثم حدد أوقات
-                            العمل
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                            <FormItem label="الخدمة">
-                                <Select
-                                    placeholder="اختر الخدمة"
-                                    options={serviceOptions}
-                                    value={
-                                        serviceOptions.find(
-                                            (s) =>
-                                                s.value === selectedServiceId,
-                                        ) || null
-                                    }
-                                    onChange={(opt) =>
-                                        setSelectedServiceId(opt?.value ?? null)
-                                    }
-                                />
-                            </FormItem>
-
-                            <FormItem label="العضو">
-                                <Select
-                                    placeholder="اختر العضو"
-                                    options={memberOptions}
-                                    value={
-                                        memberOptions.find(
-                                            (m) => m.value === selectedMemberId,
-                                        ) || null
-                                    }
-                                    onChange={(opt) =>
-                                        setSelectedMemberId(opt?.value ?? null)
-                                    }
-                                />
-                            </FormItem>
-                        </div>
-
-                        {isAssignmentDuplicate() && (
-                            <div className="text-red-500 text-sm mb-3">
-                                هذا التعيين موجود بالفعل
-                            </div>
-                        )}
-
-                        <Button
-                            variant="default"
-                            size="sm"
-                            block
-                            disabled={!canAssign()}
-                            onClick={handleAssign}
-                        >
-                            تعيين الخدمة للعضو
-                        </Button>
-                    </div>
-                )}
-
-                {assignments.length > 0 && (
-                    <div className="space-y-4">
-                        <h3 className="text-base font-semibold">
-                            التعيينات ({assignments.length})
-                        </h3>
-
-                        {assignments.map((assignment) => {
-                            const isActive =
-                                activeAssignmentId === assignment.id
-                            const member = teamMembers.find(
-                                (m) => m.id === assignment.memberId,
-                            )
-
-                            return (
-                                <Card
-                                    key={assignment.id}
-                                    className={`border-2 transition-all ${
-                                        isActive
-                                            ? 'border-primary-deep'
-                                            : 'border-transparent'
-                                    }`}
-                                >
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-3">
-                                                {member?.image && (
-                                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 shrink-0">
-                                                        <img
-                                                            src={member.image}
-                                                            alt={member.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                )}
-                                                <div>
-                                                    <div className="font-semibold text-primary-deep text-sm">
-                                                        {assignment.memberName}
-                                                    </div>
-                                                    <div className="text-xs text-gray-600">
-                                                        {
-                                                            assignment.serviceLabel
-                                                        }
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant={
-                                                        isActive
-                                                            ? 'solid'
-                                                            : 'default'
-                                                    }
-                                                    size="xs"
-                                                    onClick={() =>
-                                                        setActiveAssignmentId(
-                                                            isActive
-                                                                ? null
-                                                                : assignment.id,
-                                                        )
-                                                    }
-                                                >
-                                                    {isActive
-                                                        ? 'إغلاق'
-                                                        : 'أوقات العمل'}
-                                                </Button>
-                                                <Button
-                                                    variant="solid"
-                                                    size="xs"
-                                                    className="bg-red-300 hover:bg-red-400"
-                                                    onClick={() =>
-                                                        removeAssignment(
-                                                            assignment.id,
-                                                        )
-                                                    }
-                                                >
-                                                    حذف
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {assignment.schedules.length > 0 && (
-                                            <div className="space-y-1">
-                                                {assignment.schedules.map(
-                                                    (sch) => (
-                                                        <div
-                                                            key={sch.id}
-                                                            className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm"
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    className="w-4 h-4 text-gray-400"
-                                                                    fill="none"
-                                                                    viewBox="0 0 24 24"
-                                                                    stroke="currentColor"
-                                                                >
-                                                                    <path
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        strokeWidth={
-                                                                            2
-                                                                        }
-                                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                                    />
-                                                                </svg>
-                                                                <span className="font-medium">
-                                                                    {
-                                                                        sch.dateLabel
-                                                                    }
-                                                                </span>
-                                                                <span className="text-gray-500">
-                                                                    {
-                                                                        sch.startTime
-                                                                    }{' '}
-                                                                    -{' '}
-                                                                    {
-                                                                        sch.endTime
-                                                                    }
-                                                                </span>
-                                                            </div>
-                                                            <Button
-                                                                variant="plain"
-                                                                size="xs"
-                                                                className="text-red-500 hover:text-red-700"
-                                                                onClick={() =>
-                                                                    removeScheduleFromAssignment(
-                                                                        assignment.id,
-                                                                        sch.id,
-                                                                    )
-                                                                }
-                                                            >
-                                                                ✕
-                                                            </Button>
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {assignment.schedules.length === 0 && (
-                                            <div className="text-amber-600 text-xs bg-amber-50 border border-amber-200 rounded-lg p-2">
-                                                ⚠ لم يتم تحديد أوقات عمل بعد
-                                            </div>
-                                        )}
-
-                                        {isActive && (
-                                            <div className="border-t pt-3 space-y-3">
-                                                <div className="text-sm font-medium text-gray-700">
-                                                    إضافة وقت عمل
-                                                </div>
-
-                                                <FormItem label="التاريخ">
-                                                    <Select
-                                                        placeholder="اختر التاريخ"
-                                                        options={DATES}
-                                                        value={
-                                                            DATES.find(
-                                                                (d) =>
-                                                                    d.value ===
-                                                                    scheduleDate,
-                                                            ) || null
-                                                        }
-                                                        onChange={(val) =>
-                                                            setScheduleDate(
-                                                                val?.value ??
-                                                                    '',
-                                                            )
-                                                        }
-                                                    />
-                                                </FormItem>
-
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <FormItem label="من الساعة">
-                                                        <Select
-                                                            placeholder="--:--"
-                                                            options={TIME_OPTIONS}
-                                                            value={
-                                                                (
-                                                                    TIME_OPTIONS
-                                                                ).find(
-                                                                    (t) =>
-                                                                        t.value ===
-                                                                        scheduleStartTime,
-                                                                ) || null
-                                                            }
-                                                            onChange={(val) =>
-                                                                setScheduleStartTime(
-                                                                    val?.value ??
-                                                                        '',
-                                                                )
-                                                            }
-                                                        />
-                                                    </FormItem>
-
-                                                    <FormItem label="إلى الساعة">
-                                                        <Select
-                                                            placeholder="--:--"
-                                                            options={TIME_OPTIONS}
-                                                            value={
-                                                                (
-                                                                    TIME_OPTIONS
-                                                                ).find(
-                                                                    (t) =>
-                                                                        t.value ===
-                                                                        scheduleEndTime,
-                                                                ) || null
-                                                            }
-                                                            onChange={(val) =>
-                                                                setScheduleEndTime(
-                                                                    val?.value ??
-                                                                        '',
-                                                                )
-                                                            }
-                                                        />
-                                                    </FormItem>
-                                                </div>
-
-                                                {scheduleStartTime &&
-                                                    scheduleEndTime &&
-                                                    scheduleStartTime >=
-                                                        scheduleEndTime && (
-                                                        <div className="text-red-500 text-xs">
-                                                            وقت البداية يجب أن
-                                                            يكون قبل وقت النهاية
-                                                        </div>
-                                                    )}
-
-                                                <Button
-                                                    variant="default"
-                                                    size="sm"
-                                                    block
-                                                    disabled={!canAddSchedule()}
-                                                    onClick={handleAddSchedule}
-                                                >
-                                                    إضافة وقت عمل
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Card>
-                            )
-                        })}
-                    </div>
-                )}
-
-                {teamMembers.length === 0 && !showNewMemberForm && (
-                    <div className="text-center py-8 text-gray-500">
-                        <div className="text-lg mb-2">لا يوجد أعضاء بعد</div>
-                        <div className="text-sm">
-                            أنشئ عضوًا جديدًا للبدء في تعيين الخدمات
-                        </div>
-                    </div>
-                )}
-
-                <div className="border-t pt-4">
-                    <div className="flex items-center justify-end gap-3">
-                        <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => changeState(2)}
-                        >
-                            خلف
-                        </Button>
-                        {allAssignmentsHaveSchedules() && (
-                            <Button
-                                size="sm"
-                                variant="solid"
-                                onClick={() => changeState(4)}
-                            >
-                                التالي: المراجعة والتسجيل
-                            </Button>
-                        )}
-                    </div>
-                </div>
+            <div className="flex justify-between">
+                <Button variant="plain" onClick={() => changeState(2)}>
+                    رجوع
+                </Button>
+                <Button variant="solid" onClick={handleNext}>
+                    المرحلة التالية
+                </Button>
             </div>
-        </Card>
+        </div>
     )
 }

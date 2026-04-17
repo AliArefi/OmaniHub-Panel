@@ -56,7 +56,7 @@ export type MyAgencyService = {
 export type CreateAgencyServiceRequest = {
     agency_id: number
     service_id?: number
-    agency_service_category_id?: number
+    agency_service_category_id: number | null
     title?: string
     sub_title: string
     estimate_time: number
