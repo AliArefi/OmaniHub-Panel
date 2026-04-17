@@ -19,16 +19,11 @@ interface SignUpFormProps extends CommonProps {
     setMessage?: (message: string) => void
 }
 
-type NormalSignUpFormSchema = {
-    name: string
-    mobile_country_code: string
-    mobile_local_number: string
-    password: string
-    email: string
-    password_confirmation: string
-}
-
-type GoogleSignUpFormSchema = {
+type SignUpFormValues = {
+    name?: string
+    email?: string
+    password?: string
+    password_confirmation?: string
     mobile_country_code: string
     mobile_local_number: string
 }
@@ -89,7 +84,7 @@ const SignUpForm = (props: SignUpFormProps) => {
         control,
         setError,
         watch,
-    } = useForm<NormalSignUpFormSchema & GoogleSignUpFormSchema>({
+    } = useForm<SignUpFormValues>({
         resolver: zodResolver(schema),
         defaultValues: isGoogleSignup
             ? {
@@ -115,7 +110,7 @@ const SignUpForm = (props: SignUpFormProps) => {
         Number(checks.hasNumber) +
         Number(checks.hasSymbol)
 
-    const onSubmit = async (values: any) => {
+    const onSubmit = async (values: SignUpFormValues) => {
         if (disableSubmit) return
 
         setSubmitting(true)
@@ -125,33 +120,71 @@ const SignUpForm = (props: SignUpFormProps) => {
                 const local = String(values.mobile_local_number || '').replace(/\D+/g, '')
                 const mobile = cc && local ? `+${cc}${local}` : String(values.mobile_local_number || '')
 
-                const resp = await apiGoogleOauthRegister({
-                    id_token: googleIdToken,
-                    mobile,
-                    mobile_country_code: cc || undefined,
-                    mobile_local_number: local || undefined,
-                })
-
-                if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
-                    setPendingChallenge({
-                        challenge_id: resp.challenge_id,
-                        expires_at: resp.expires_at,
-                        meta: resp.meta ?? {},
-                        user: resp.user ?? null,
+                try {
+                    const resp = await apiGoogleOauthRegister({
+                        id_token: googleIdToken,
+                        mobile,
+                        mobile_country_code: cc || undefined,
+                        mobile_local_number: local || undefined,
                     })
-                    clearGoogleSignup()
-                    navigate('/otp-verification')
+
+                    if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+                        setPendingChallenge({
+                            challenge_id: resp.challenge_id,
+                            expires_at: resp.expires_at,
+                            meta: resp.meta ?? {},
+                            user: resp.user ?? null,
+                        })
+                        clearGoogleSignup()
+                        navigate('/otp-verification')
+                        return
+                    }
+
+                    if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+                        clearGoogleSignup()
+                        completeAuth(resp)
+                        return
+                    }
+
+                    setMessage?.(resp?.message || 'Unable to complete Google sign up.')
+                    return
+                } catch (err: unknown) {
+                    const data = (err as { response?: { data?: unknown } } | null)?.response?.data
+
+                    if (!data || typeof data !== 'object') {
+                        setMessage?.('Unable to complete Google sign up.')
+                        return
+                    }
+
+                    const failure = data as Record<string, unknown>
+
+                    if (failure.success === false && failure.next_step === 'login') {
+                        clearGoogleSignup()
+                        setMessage?.(
+                            typeof failure.message === 'string'
+                                ? failure.message
+                                : 'This account already exists. Please sign in to continue.',
+                        )
+                        navigate('/sign-in')
+                        return
+                    }
+
+                    const fieldErrors =
+                        (failure.errors as Record<string, string[]> | undefined) ?? undefined
+                    if (fieldErrors?.mobile?.[0]) {
+                        setError('mobile_local_number', {
+                            type: 'server',
+                            message: fieldErrors.mobile[0],
+                        })
+                    }
+
+                    setMessage?.(
+                        typeof failure.message === 'string'
+                            ? failure.message
+                            : 'Unable to complete Google sign up.',
+                    )
                     return
                 }
-
-                if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
-                    clearGoogleSignup()
-                    completeAuth(resp)
-                    return
-                }
-
-                setMessage?.(resp?.message || 'Unable to complete Google sign up.')
-                return
             }
 
             const cc = String(values.mobile_country_code || '').replace(/\D+/g, '')
@@ -159,13 +192,13 @@ const SignUpForm = (props: SignUpFormProps) => {
             const mobile = cc && local ? `+${cc}${local}` : String(values.mobile_local_number || '')
 
             const result = await signUp({
-                name: values.name,
+                name: values.name ?? '',
                 mobile,
                 mobile_country_code: cc,
                 mobile_local_number: local,
-                email: values.email,
-                password: values.password,
-                password_confirmation: values.password_confirmation,
+                email: values.email ?? '',
+                password: values.password ?? '',
+                password_confirmation: values.password_confirmation ?? '',
             })
 
             if (result?.status === 'failed') {
@@ -178,9 +211,10 @@ const SignUpForm = (props: SignUpFormProps) => {
                     if (fe.password?.[0]) setError('password', { type: 'server', message: fe.password[0] })
                 }
             }
-        } catch (err: any) {
-            const serverMessage = err?.response?.data?.message
-            setMessage?.(serverMessage || 'تعذر إتمام التسجيل.')
+        } catch (err: unknown) {
+            const serverMessage = (err as { response?: { data?: { message?: unknown } } } | null)?.response
+                ?.data?.message
+            setMessage?.(typeof serverMessage === 'string' ? serverMessage : 'تعذر إتمام التسجيل.')
         } finally {
             setSubmitting(false)
         }
@@ -221,8 +255,8 @@ const SignUpForm = (props: SignUpFormProps) => {
 
                     <FormItem
                         label="رقم الهاتف"
-                        invalid={Boolean((errors as any).mobile_local_number)}
-                        errorMessage={(errors as any).mobile_local_number?.message}
+                        invalid={Boolean(errors.mobile_local_number)}
+                        errorMessage={errors.mobile_local_number?.message}
                     >
                         <Controller
                             name="mobile_local_number"
@@ -233,7 +267,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                                     control={control}
                                     render={({ field: ccField }) => (
                                         <PhoneNumberInput
-                                            invalid={Boolean((errors as any).mobile_local_number)}
+                                            invalid={Boolean(errors.mobile_local_number)}
                                             value={{
                                                 countryCode: String(ccField.value || '+968'),
                                                 localNumber: String(localField.value || ''),
@@ -274,8 +308,8 @@ const SignUpForm = (props: SignUpFormProps) => {
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <FormItem
                     label="الاسم"
-                    invalid={Boolean((errors as any).name)}
-                    errorMessage={(errors as any).name?.message}
+                    invalid={Boolean(errors.name)}
+                    errorMessage={errors.name?.message}
                 >
                     <Controller
                         name="name"
@@ -293,8 +327,8 @@ const SignUpForm = (props: SignUpFormProps) => {
 
                 <FormItem
                     label="رقم الهاتف"
-                    invalid={Boolean((errors as any).mobile_local_number)}
-                    errorMessage={(errors as any).mobile_local_number?.message}
+                    invalid={Boolean(errors.mobile_local_number)}
+                    errorMessage={errors.mobile_local_number?.message}
                 >
                     <Controller
                         name="mobile_local_number"
@@ -305,7 +339,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                                 control={control}
                                 render={({ field: ccField }) => (
                                     <PhoneNumberInput
-                                        invalid={Boolean((errors as any).mobile_local_number)}
+                                        invalid={Boolean(errors.mobile_local_number)}
                                         value={{
                                             countryCode: String(ccField.value || '+968'),
                                             localNumber: String(localField.value || ''),
@@ -323,8 +357,8 @@ const SignUpForm = (props: SignUpFormProps) => {
 
                 <FormItem
                     label="البريد الإلكتروني"
-                    invalid={Boolean((errors as any).email)}
-                    errorMessage={(errors as any).email?.message}
+                    invalid={Boolean(errors.email)}
+                    errorMessage={errors.email?.message}
                 >
                     <Controller
                         name="email"
@@ -342,8 +376,8 @@ const SignUpForm = (props: SignUpFormProps) => {
 
                 <FormItem
                     label="كلمة المرور"
-                    invalid={Boolean((errors as any).password)}
-                    errorMessage={(errors as any).password?.message}
+                    invalid={Boolean(errors.password)}
+                    errorMessage={errors.password?.message}
                 >
                     <Controller
                         name="password"
@@ -388,8 +422,8 @@ const SignUpForm = (props: SignUpFormProps) => {
 
                 <FormItem
                     label="تأكيد كلمة المرور"
-                    invalid={Boolean((errors as any).password_confirmation)}
-                    errorMessage={(errors as any).password_confirmation?.message}
+                    invalid={Boolean(errors.password_confirmation)}
+                    errorMessage={errors.password_confirmation?.message}
                 >
                     <Controller
                         name="password_confirmation"

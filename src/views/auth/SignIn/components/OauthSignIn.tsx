@@ -13,12 +13,35 @@ type OauthSignInProps = {
     disableSubmit?: boolean
 }
 
+type GoogleSignupPrefill = {
+    email: string | null
+    name: string | null
+    avatar_url: string | null
+}
+
+const coerceStringOrNull = (value: unknown): string | null => (typeof value === 'string' ? value : null)
+
+const extractGooglePrefill = (meta: unknown): GoogleSignupPrefill | null => {
+    if (!meta || typeof meta !== 'object') return null
+    const prefill = (meta as { prefill?: unknown }).prefill
+    if (!prefill || typeof prefill !== 'object') return null
+
+    const asObj = prefill as Record<string, unknown>
+
+    return {
+        email: coerceStringOrNull(asObj.email) ?? null,
+        name: coerceStringOrNull(asObj.name) ?? null,
+        avatar_url: coerceStringOrNull(asObj.avatar_url) ?? null,
+    }
+}
+
 const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
     const { oAuthSignIn } = useAuth()
     const navigate = useNavigate()
     const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
     const setGoogleSignup = useGoogleSignupStore((s) => s.set)
 
+    const [isEnabled, setEnabled] = useState<boolean | null>(null)
     const [isReady, setReady] = useState(false)
     const buttonRef = useRef<HTMLDivElement | null>(null)
 
@@ -42,10 +65,11 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
             .then((clientId) => {
                 if (!mounted) return
                 if (!clientId) {
-                    setMessage?.('Google sign-in is not configured.')
+                    setEnabled(false)
                     return
                 }
 
+                setEnabled(true)
                 return loadGisClient().then(() => clientId)
             })
             .then((clientId) => {
@@ -58,7 +82,7 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
                     client_id: clientId,
                     callback: ({ credential }) => {
                         if (!credential) {
-                            setMessage?.('Google sign-in failed to return a credential.')
+                            setMessage?.('Unable to sign in with Google. Please try again.')
                             return
                         }
 
@@ -90,38 +114,64 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
                                 }
 
                                 if (resp?.success === false && resp.next_step === 'register') {
-                                    const prefill = (resp.meta as any)?.prefill ?? {}
+                                    const prefill = extractGooglePrefill(resp.meta) ?? {
+                                        email: null,
+                                        name: null,
+                                        avatar_url: null,
+                                    }
                                     setGoogleSignup({
                                         id_token: credential,
                                         prefill: {
-                                            email: prefill.email ?? null,
-                                            name: prefill.name ?? null,
-                                            avatar_url: prefill.avatar_url ?? null,
+                                            email: prefill.email,
+                                            name: prefill.name,
+                                            avatar_url: prefill.avatar_url,
                                         },
                                     })
                                     navigate('/sign-up')
                                     return
                                 }
 
-                                setMessage?.(resp?.message || 'Unable to sign in with Google.')
-                            } catch (err: any) {
-                                const data = err?.response?.data
-                                if (data?.success === false && data?.next_step === 'register') {
-                                    const prefill = data?.meta?.prefill ?? {}
-                                    setGoogleSignup({
-                                        id_token: credential,
-                                        prefill: {
-                                            email: prefill.email ?? null,
-                                            name: prefill.name ?? null,
-                                            avatar_url: prefill.avatar_url ?? null,
-                                        },
-                                    })
-                                    navigate('/sign-up')
+                                setMessage?.(resp?.message || 'Unable to sign in with Google. Please try again.')
+                            } catch (err: unknown) {
+                                const data = (err as { response?: { data?: unknown } } | null)?.response?.data
+                                if (data && typeof data === 'object') {
+                                    const failure = data as {
+                                        success?: unknown
+                                        next_step?: unknown
+                                        meta?: unknown
+                                        message?: unknown
+                                    }
+
+                                    if (failure.success === false && failure.next_step === 'register') {
+                                        const prefill = extractGooglePrefill(failure.meta) ?? {
+                                            email: null,
+                                            name: null,
+                                            avatar_url: null,
+                                        }
+
+                                        setGoogleSignup({
+                                            id_token: credential,
+                                            prefill: {
+                                                email: prefill.email,
+                                                name: prefill.name,
+                                                avatar_url: prefill.avatar_url,
+                                            },
+                                        })
+                                        navigate('/sign-up')
+                                        return
+                                    }
+
+                                    const serverMessage =
+                                        typeof failure.message === 'string' ? failure.message : undefined
+                                    setMessage?.(
+                                        serverMessage ||
+                                            'Unable to sign in with Google. Please try again.',
+                                    )
                                     return
                                 }
 
-                                const serverMessage = data?.message
-                                setMessage?.(serverMessage || 'Unable to sign in with Google.')
+                                setMessage?.('Unable to sign in with Google. Please try again.')
+                                return
                             }
                         })
                     },
@@ -140,9 +190,9 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
 
                 setReady(true)
             })
-            .catch((e) => {
+            .catch(() => {
                 if (cancelled) return
-                setMessage?.(e instanceof Error ? e.message : 'Failed to load Google sign-in.')
+                setMessage?.('Google sign-in is temporarily unavailable. Please try again later.')
             })
 
         return () => {
@@ -150,6 +200,10 @@ const OauthSignIn = ({ setMessage, disableSubmit }: OauthSignInProps) => {
             cancelled = true
         }
     }, [disableSubmit, navigate, oAuthSignIn, setGoogleSignup, setMessage, setPendingChallenge])
+
+    if (isEnabled === false) {
+        return null
+    }
 
     return (
         <div className="flex items-center gap-2">
