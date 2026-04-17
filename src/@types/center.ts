@@ -1,6 +1,7 @@
 export type Agency = {
     id: number
     title: string
+    slug: string
     category: string
     logo: string
     status: string
@@ -30,6 +31,26 @@ export type CreateNewAgencyResponse = {
         id: number
         slug: string
     }
+}
+
+export type MyAgencyDetails = {
+    id: number
+    title: string
+    about_text: string | null
+    service: {
+        id: number
+        name: string
+    }
+}
+
+export type MyAgencyService = {
+    id: number
+    title: string
+    slug: string
+    price: number
+    estimate_time: number
+    body: string | null
+    service: { id: number; name: string } | null
 }
 
 export type CreateAgencyServiceRequest = {

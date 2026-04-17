@@ -9,12 +9,13 @@ import {
     Spinner,
     toast,
 } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import { useTranslation } from '@/store/useTranslation'
-import { apiCreateNewAgency, getServices } from '@/services/CenterService'
+import { apiCreateNewAgency, apiUpdateMyAgency, getServices } from '@/services/CenterService'
 import { Services } from '@/@types/center'
 import { HojraInfo, useCreateStore } from '@/context/createStoreContext'
 
@@ -34,11 +35,37 @@ const validationSchema = z.object({
 })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
-    const { hojraInfo, setHojraInfo, setNewHojraData } = useCreateStore();
+    const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
+        useCreateStore()
     const [servicesList, setServicesList] = useState<Services[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation();
+
+    const getApiErrorMessage = (err: unknown): string | undefined => {
+        if (typeof err !== 'object' || err === null) return undefined
+        const response = (err as { response?: unknown }).response
+        if (typeof response !== 'object' || response === null) return undefined
+        const data = (response as { data?: unknown }).data
+        if (typeof data !== 'object' || data === null) return undefined
+
+        const errors = (data as { errors?: unknown }).errors
+        if (typeof errors === 'object' && errors !== null) {
+            const first = Object.values(errors as Record<string, unknown>).find(
+                (val) =>
+                    Array.isArray(val) &&
+                    typeof val[0] === 'string' &&
+                    val[0].trim(),
+            ) as string[] | undefined
+
+            if (first?.[0]?.trim()) return first[0].trim()
+        }
+
+        const message = (data as { message?: unknown }).message
+        if (typeof message === 'string' && message.trim()) return message.trim()
+
+        return undefined
+    }
 
     useEffect(() => {
         const fetchServices = async () => {
@@ -46,10 +73,8 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             try {
                 const resp = await getServices();
                 setServicesList(resp.data)
-            } catch (err: any) {
-                setError(
-                    err?.response?.data?.message || 'خطا در دریافت اطلاعات',
-                )
+            } catch (err: unknown) {
+                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
             } finally {
                 setLoading(false)
             }
@@ -71,11 +96,36 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     })
 
     const onSubmit = async (values: HojraInfo) => {
-        const resp = await apiCreateNewAgency(values)
-        if (resp.success) {
-            setNewHojraData(resp?.data)
+        try {
+            const canUpdate = Boolean(newHojraData?.id && newHojraData?.slug)
+
+            if (canUpdate) {
+                const resp = await apiUpdateMyAgency(newHojraData.slug, values)
+                if (!resp?.success) {
+                    throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
+                }
+
+                setHojraInfo(values)
+                changeState(2)
+                return
+            }
+
+            const resp = await apiCreateNewAgency(values)
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'تعذر إنشاء المركز')
+            }
+
+            setNewHojraData(resp.data)
             setHojraInfo(values)
             changeState(2)
+        } catch (err: unknown) {
+            const apiMessage = getApiErrorMessage(err)
+            const message = err instanceof Error ? err.message : undefined
+            toast.push(
+                <Notification type="danger">
+                    {apiMessage || message || 'حدث خطأ أثناء حفظ البيانات'}
+                </Notification>,
+            )
         }
     }
 

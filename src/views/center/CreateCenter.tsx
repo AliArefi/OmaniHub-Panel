@@ -1,19 +1,131 @@
 // CreateStoreWizard.tsx
-import { Card } from "@/components/ui";
-import { TimeLineCreateCenter } from "./TimeLineCreateCenter";
-import { useState } from "react";
-import { ProgressCreatingCenter } from "./ProgressCreatingCenter";
-import { HojraInformation } from "./steps/HojraInformations";
-import { HojraServices } from "./steps/HojraServices";
-import { CreateStoreProvider } from "@/context/createStoreContext";
-import { HojraAssignServices } from "./steps/HojraAssignServices";
-import { HojraSummary } from "./steps/HojraSummary";
+import { Card, Spinner, toast } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
+import { TimeLineCreateCenter } from './TimeLineCreateCenter'
+import { useEffect, useMemo, useState } from 'react'
+import { ProgressCreatingCenter } from './ProgressCreatingCenter'
+import { HojraInformation } from './steps/HojraInformations'
+import { HojraServices } from './steps/HojraServices'
+import {
+    CreateStoreProvider,
+    type HojraInfo,
+    type NewHojraData,
+    type ServiceItem,
+} from '@/context/createStoreContext'
+import { HojraAssignServices } from './steps/HojraAssignServices'
+import { HojraSummary } from './steps/HojraSummary'
+import { apiGetMyAgency, apiGetMyServices } from '@/services/CenterService'
+import { useParams } from 'react-router'
 
 export default function CreateStoreWizard() {
     const [step, setStep] = useState<number>(1);
+    const { agencySlug } = useParams()
+
+    const [isBootstrapping, setIsBootstrapping] = useState(false)
+    const [bootstrapError, setBootstrapError] = useState<string | null>(null)
+    const [initialHojraInfo, setInitialHojraInfo] = useState<
+        Partial<HojraInfo> | undefined
+    >(undefined)
+    const [initialNewHojraData, setInitialNewHojraData] = useState<
+        Partial<NewHojraData> | undefined
+    >(undefined)
+    const [initialServices, setInitialServices] = useState<
+        ServiceItem[] | undefined
+    >(undefined)
+
+    const isEditMode = useMemo(() => {
+        return typeof agencySlug === 'string' && agencySlug.trim() !== ''
+    }, [agencySlug])
+
+    useEffect(() => {
+        if (!isEditMode) return
+
+        let isMounted = true
+        setIsBootstrapping(true)
+        setBootstrapError(null)
+
+        Promise.resolve()
+            .then(async () => {
+                const agency = await apiGetMyAgency(agencySlug as string)
+
+                const hojraInfo: Partial<HojraInfo> = {
+                    title: agency.title,
+                    service_id: agency.service?.id ?? null,
+                    about_text: agency.about_text ?? '',
+                }
+
+                const newHojra: Partial<NewHojraData> = {
+                    id: agency.id,
+                    slug: agencySlug as string,
+                }
+
+                const servicesResp = await apiGetMyServices({
+                    agency_id: agency.id,
+                    per_page: 200,
+                })
+
+                const mappedServices: ServiceItem[] = (servicesResp.data ?? [])
+                    .map((s) => {
+                        const serviceId = s.service?.id ?? 0
+                        return {
+                            id: s.id,
+                            serviceId,
+                            serviceLabel:
+                                s.title ||
+                                s.service?.name ||
+                                s.slug ||
+                                String(s.id),
+                            duration: Number(s.estimate_time ?? 0),
+                            price: Number(s.price ?? 0),
+                            description: s.body ?? '',
+                        }
+                    })
+                    .filter((s) => s.serviceId > 0)
+
+                if (!isMounted) return
+                setInitialHojraInfo(hojraInfo)
+                setInitialNewHojraData(newHojra)
+                setInitialServices(mappedServices)
+            })
+            .catch((err: unknown) => {
+                if (!isMounted) return
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : 'حدث خطأ أثناء تحميل بيانات المركز'
+                setBootstrapError(message)
+                toast.push(
+                    <Notification type="danger">{message}</Notification>,
+                )
+            })
+            .finally(() => {
+                if (!isMounted) return
+                setIsBootstrapping(false)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [agencySlug, isEditMode])
+
+    if (isEditMode && (isBootstrapping || bootstrapError)) {
+        if (bootstrapError) {
+            return <div>{bootstrapError}</div>
+        }
+
+        return (
+            <div className="w-full text-center flex items-center justify-center flex-col">
+                <Spinner />
+            </div>
+        )
+    }
 
     return (
-        <CreateStoreProvider>
+        <CreateStoreProvider
+            initialHojraInfo={initialHojraInfo}
+            initialNewHojraData={initialNewHojraData}
+            initialServices={initialServices}
+        >
             <div className="grid lg:grid-cols-4 gap-4">
                 <div>
                     <Card>

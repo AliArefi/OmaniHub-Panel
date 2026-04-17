@@ -1,4 +1,5 @@
 import {
+    Agency,
     CreateAgencyServiceRequest,
     CreateAgencyServiceResponse,
     CreateMemberAgencyRequest,
@@ -7,14 +8,33 @@ import {
     CreateNewMemberAgencyResponse,
     MemberWorkingHoursRequest,
     MemberWorkingHoursResponse,
+    MyAgencyDetails,
+    MyAgencyService,
     Services,
 } from '@/@types/center'
 import ApiService from './ApiService'
 import endpointConfig from '@/configs/endpoint.config'
 
 export async function getMyAgencies() {
-    return ApiService.fetchDataWithAxios<unknown>({
+    return ApiService.fetchDataWithAxios<{ data: Agency[] }>({
         url: endpointConfig.getMyAgencies,
+    })
+}
+
+export async function apiGetMyAgency(agencySlug: string) {
+    return ApiService.fetchDataWithAxios<MyAgencyDetails>({
+        url: `${endpointConfig.getMyAgencies}/${encodeURIComponent(agencySlug)}`,
+    })
+}
+
+export async function apiGetMyServices(params?: {
+    agency_id?: number
+    per_page?: number
+    page?: number
+}) {
+    return ApiService.fetchDataWithAxios<{ data: MyAgencyService[] }>({
+        url: '/my-services',
+        params,
     })
 }
 
@@ -34,6 +54,17 @@ export async function apiCreateNewAgency(data: CreateNewAgencyRequest) {
     return ApiService.fetchDataWithAxios<CreateNewAgencyResponse>({
         url: endpointConfig.createNewAgency,
         method: 'post',
+        data,
+    })
+}
+
+export async function apiUpdateMyAgency(
+    agencySlug: string,
+    data: Partial<CreateNewAgencyRequest>,
+) {
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `${endpointConfig.createNewAgency}/${encodeURIComponent(agencySlug)}`,
+        method: 'put',
         data,
     })
 }

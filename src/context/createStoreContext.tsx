@@ -86,19 +86,29 @@ export const useCreateStore = () => {
     return ctx
 }
 
-export const CreateStoreProvider = ({ children }: { children: ReactNode }) => {
+export const CreateStoreProvider = ({
+    children,
+    initialHojraInfo,
+    initialNewHojraData,
+    initialServices,
+}: {
+    children: ReactNode
+    initialHojraInfo?: Partial<HojraInfo>
+    initialNewHojraData?: Partial<NewHojraData>
+    initialServices?: ServiceItem[]
+}) => {
     const [hojraInfo, setHojraInfo] = useState<HojraInfo>({
-        title: '',
-        service_id: null,
-        about_text: '',
+        title: initialHojraInfo?.title ?? '',
+        service_id: initialHojraInfo?.service_id ?? null,
+        about_text: initialHojraInfo?.about_text ?? '',
     })
 
     const [newHojraData, setNewHojraData] = useState<NewHojraData>({
-        id: 0,
-        slug: '',
+        id: initialNewHojraData?.id ?? 0,
+        slug: initialNewHojraData?.slug ?? '',
     })
 
-    const [services, setServices] = useState<ServiceItem[]>([])
+    const [services, setServices] = useState<ServiceItem[]>(initialServices ?? [])
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
     const [assignments, setAssignments] = useState<ServiceAssignment[]>([])
 

@@ -32,6 +32,12 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
+        key: 'editCenter',
+        path: '/centers/:agencySlug/edit',
+        component: lazy(() => import('@/views/center/CreateCenter')),
+        authority: [],
+    },
+    {
         key: 'centers',
         path: '/centers',
         component: lazy(() => import('@/views/center/Centers')),
