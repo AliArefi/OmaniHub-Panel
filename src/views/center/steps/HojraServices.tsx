@@ -133,7 +133,6 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 agency_id: newHojraData.id,
                 service_id: selectedServiceId,
                 title: serviceLabel || undefined,
-                agency_service_category_id: 69,
                 sub_title: description.trim().slice(0, 191),
                 estimate_time: Number(duration),
                 price: Number(price),
