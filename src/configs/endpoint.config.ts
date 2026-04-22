@@ -12,7 +12,8 @@ const endpointConfig = {
     googleRegister: '/auth/oauth/google/register',
     getMyAgencies: '/my-agencies',
     getServices: '/get/services',
-    createNewAgency: '/my-agencies'
+    createNewAgency: '/my-agencies',
+    getMyBooking: 'url',
 }
 
 export default endpointConfig

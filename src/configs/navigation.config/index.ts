@@ -47,17 +47,18 @@ const navigationConfig: NavigationTree[] = [
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
         subMenu: [],
-    },    
+    },
     {
-        key: 'gateways',
-        path: '/gateways',
-        title: 'بوابات الدفع الإلكتروني',
+        key: 'bookings',
+        path: '/bookings',
+        title: 'إدارة الحجوزات',
         translateKey: 'nav.singleMenuItem',
-        icon: 'accountPricing',
+        icon: 'groupMenu',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
         subMenu: [],
     },
+
     // {
     //     key: 'singleMenuItem',
     //     path: '/single-menu-view',

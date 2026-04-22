@@ -61,6 +61,12 @@ export const protectedRoutes: Routes = [
         component: lazy(() => import('@/views/gateway')),
         authority: [],
     },
+    {
+        key: 'bookings',
+        path: '/bookings',
+        component: lazy(() => import('@/views/bookings')),
+        authority: [],
+    },
     // {
     //     key: 'collapseMenu.item1',
     //     path: '/collapse-menu-item-view-1',
