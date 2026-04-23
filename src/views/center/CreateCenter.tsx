@@ -1,4 +1,3 @@
-// CreateStoreWizard.tsx
 import { Card, Spinner, toast } from '@/components/ui'
 import Notification from '@/components/ui/Notification'
 import { TimeLineCreateCenter } from './TimeLineCreateCenter'
@@ -16,6 +15,8 @@ import { HojraAssignServices } from './steps/HojraAssignServices'
 import { HojraSummary } from './steps/HojraSummary'
 import { apiGetMyAgency, apiGetMyServices } from '@/services/CenterService'
 import { useParams } from 'react-router'
+import { HojraExtraInformations } from './steps/HojraExtraInformations'
+import { HojraGallery } from './steps/HojraGallery'
 
 export default function CreateStoreWizard() {
     const [step, setStep] = useState<number>(1);
@@ -142,12 +143,18 @@ export default function CreateStoreWizard() {
                         <HojraInformation changeState={(state) => setStep(state)} />
                     )}
                     {step === 2 && (
-                        <HojraServices changeState={(state) => setStep(state)} />
+                        <HojraExtraInformations changeState={(state) => setStep(state)} />
                     )}
                     {step === 3 && (
-                        <HojraAssignServices changeState={(state) => setStep(state)} />
+                        <HojraGallery changeState={(state) => setStep(state)} />
                     )}
                     {step === 4 && (
+                        <HojraServices changeState={(state) => setStep(state)} />
+                    )}
+                    {step === 5 && (
+                        <HojraAssignServices changeState={(state) => setStep(state)} />
+                    )}
+                    {step === 6 && (
                         <HojraSummary changeState={(state) => setStep(state)} />
                     )}
                 </div>

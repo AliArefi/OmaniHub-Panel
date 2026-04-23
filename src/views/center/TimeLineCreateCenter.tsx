@@ -22,15 +22,23 @@ const Steps = [
     },
     {
         id: 2,
-        title: 'الخدمات',
+        title: 'المعلومات الإضافية',
     },
     {
         id: 3,
-        title: 'أعضاء الفريق',
+        title: 'معرض الصور',
     },
     {
         id: 4,
-        title: 'أوقات العمل',
+        title: 'الخدمات',
+    },
+    {
+        id: 5,
+        title: 'تعيين الخدمات',
+    },
+    {
+        id: 6,
+        title: 'الملخص',
     },
 ];
 
@@ -58,7 +66,7 @@ export function TimeLineCreateCenter({ step }: TimeLineCreateCenterProps) {
     return (
         <Timeline>
             {
-                Steps.map((item, index) => {
+                Steps.map((item) => {
                     return (
                         <Timeline.Item
                             key={item.id}
