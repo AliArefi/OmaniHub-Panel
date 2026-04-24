@@ -27,12 +27,13 @@ interface HojraExtraInformationsProps {
     changeState: (value: number) => void
 }
 
+/* ✅ FIXED */
 const validationSchema = z.object({
-    logo: z.instanceof(File).optional().nullable(),
-    banner: z.instanceof(File).optional().nullable(),
+    logo: z.union([z.instanceof(File), z.null()]).optional(),
+    banner: z.union([z.instanceof(File), z.null()]).optional(),
     latitude: z.string().optional(),
     longitude: z.string().optional(),
-    city_id: z.number().optional(),
+    city_id: z.number().nullable().optional(),
     phone: z.string().optional(),
     website: z.string().optional(),
     address: z.string().optional(),
@@ -62,28 +63,19 @@ export const HojraExtraInformations = ({
     const bannerInputRef = useRef<HTMLInputElement | null>(null)
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
-        if (typeof err !== 'object' || err === null) return undefined
-        const response = (err as { response?: unknown }).response
-        if (typeof response !== 'object' || response === null) return undefined
-        const data = (response as { data?: unknown }).data
-        if (typeof data !== 'object' || data === null) return undefined
+        const response = (err as any)?.response
+        const data = response?.data
+        const errors = data?.errors
 
-        const errors = (data as { errors?: unknown }).errors
-        if (typeof errors === 'object' && errors !== null) {
-            const first = Object.values(errors as Record<string, unknown>).find(
-                (val) =>
-                    Array.isArray(val) &&
-                    typeof val[0] === 'string' &&
-                    val[0].trim(),
+        if (errors && typeof errors === 'object') {
+            const first = Object.values(errors).find(
+                (v) => Array.isArray(v) && typeof v[0] === 'string',
             ) as string[] | undefined
-
-            if (first?.[0]?.trim()) return first[0].trim()
+            if (first?.[0]) return first[0]
         }
 
-        const message = (data as { message?: unknown }).message
-        if (typeof message === 'string' && message.trim()) return message.trim()
-
-        return undefined
+        if (typeof data?.message === 'string') return data.message
+        return
     }
 
     const form = useForm<FormValues>({
@@ -110,23 +102,17 @@ export const HojraExtraInformations = ({
         handleSubmit,
         control,
         setValue,
-        formState: { errors, isSubmitting },
         watch,
+        formState: { errors, isSubmitting },
     } = form
 
     useEffect(() => {
-        const fetchServices = async () => {
-            setLoadingCities(true)
-
+        const fetchData = async () => {
             try {
-                const agencyResponse = await apiGetMyAgency(
+                const agencyResp = await apiGetMyAgency(
                     newHojraData.slug as string,
                 )
-                const agency = agencyResponse.data
-
-                if (!agency || typeof agency !== 'object') {
-                    throw new Error('Invalid center response.')
-                }
+                const agency = agencyResp.data
 
                 if (agency.logo) setLogoPreview(agency.logo)
                 if (agency.banner) setBannerPreview(agency.banner)
@@ -143,20 +129,21 @@ export const HojraExtraInformations = ({
                 setValue('youtube', agency.youtube || '')
                 setValue('h1', agency.h1 || '')
                 setValue('meta_description', agency.meta_description || '')
-            } catch (err: unknown) {
+            } catch (err) {
                 setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
             }
 
             try {
-                const resp = await apiGetCities()
-                setCities(resp.data)
-            } catch (err: unknown) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+                const citiesResp = await apiGetCities()
+                setCities(citiesResp.data)
+            } catch (err) {
+                setError(getApiErrorMessage(err) || 'خطا در دریافت شهرها')
             } finally {
                 setLoadingCities(false)
             }
         }
-        fetchServices()
+
+        fetchData()
     }, [newHojraData.slug, setValue])
 
     const lat = watch('latitude')
@@ -164,17 +151,14 @@ export const HojraExtraInformations = ({
 
     const onSubmit = async (values: FormValues) => {
         try {
-            if (!newHojraData?.slug) {
-                throw new Error('شناسه حجره موجود نیست')
-            }
             const formData = new FormData()
 
             Object.entries(values).forEach(([key, value]) => {
                 if (value instanceof File) {
                     formData.append(key, value)
                 } else if (
-                    value !== undefined &&
                     value !== null &&
+                    value !== undefined &&
                     value !== ''
                 ) {
                     formData.append(key, String(value))
@@ -187,7 +171,7 @@ export const HojraExtraInformations = ({
             )
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
+                throw new Error(resp?.message || 'خطا در ذخیره اطلاعات')
             }
 
             toast.push(
@@ -195,30 +179,31 @@ export const HojraExtraInformations = ({
                     تم تحديث المعلومات بنجاح
                 </Notification>,
             )
+
             changeState(3)
-        } catch (err: unknown) {
-            const message =
-                getApiErrorMessage(err) ||
-                (err instanceof Error ? err.message : 'خطا در ذخیره')
-            toast.push(<Notification type="danger">{message}</Notification>)
+        } catch (err: any) {
+            toast.push(
+                <Notification type="danger">
+                    {getApiErrorMessage(err) || err.message || 'خطا در ذخیره'}
+                </Notification>,
+            )
         }
     }
 
     const cityOptions = useMemo(
-        () => cities.map((city) => ({ value: city.id, label: city.name })),
+        () => cities.map((c) => ({ value: c.id, label: c.name })),
         [cities],
     )
 
     if (loadingCities)
         return (
-            <div className="w-full text-center flex items-center justify-center flex-col">
+            <div className="flex flex-col items-center">
                 <Spinner />
                 <div>{t('loading')}</div>
             </div>
         )
 
     if (error) return <div className="text-red-500 p-4">{error}</div>
-
     return (
         <div>
             <Card
@@ -577,20 +562,21 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     <FormItem>
-                        <div className="flex items-center justify-between">
+                        <div className="flex justify-between">
                             <Button
+                                type="button"
                                 size="sm"
                                 variant="plain"
                                 onClick={() => changeState(1)}
-                                type="button"
                             >
                                 السابق
                             </Button>
+
                             <Button
                                 loading={isSubmitting}
+                                type="submit"
                                 size="sm"
                                 variant="solid"
-                                type="submit"
                             >
                                 التالي
                             </Button>

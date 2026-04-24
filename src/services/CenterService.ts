@@ -11,6 +11,7 @@ import {
     MemberWorkingHoursResponse,
     MyAgencyDetails,
     MyAgencyService,
+    RequestMyAgencyGallery,
     Services,
     UpdateAgencyRequest,
 } from '@/@types/center'
@@ -54,7 +55,7 @@ export async function getServices(params?: {
 
 export async function apiGetCities() {
     return ApiService.fetchDataWithAxios<{ data: Cities[] }>({
-        url: endpointConfig.getCities
+        url: endpointConfig.getCities,
     })
 }
 
@@ -125,6 +126,20 @@ export async function apiMemberWorkingHours(
     return ApiService.fetchDataWithAxios<MemberWorkingHoursResponse>({
         url: `/my-service-members/${member_id}/working-hours`,
         method: 'put',
+        data,
+    })
+}
+
+export async function apiGetGallery() {
+    return ApiService.fetchDataWithAxios<{ data: any[] }>({
+        url: endpointConfig.getGallery,
+    })
+}
+
+export async function AddGalleryItemMyAgencies(data: RequestMyAgencyGallery | FormData) {
+    return ApiService.fetchDataWithAxios<any>({
+        url: endpointConfig.getGallery,
+        method: 'post',
         data,
     })
 }

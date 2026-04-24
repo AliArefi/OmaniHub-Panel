@@ -150,3 +150,18 @@ export type UpdateAgencyRequest = {
     h1?: string | undefined
     meta_description?: string | undefined
 }
+
+export type RequestMyAgencyGallery = {
+    alt: string
+    agency_id: number
+    image: File
+}
+
+// export type CreateNewAgencyResponse = {
+//     message: string
+//     success: boolean
+//     data: {
+//         id: number
+//         slug: string
+//     }
+// }
