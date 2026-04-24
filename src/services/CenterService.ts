@@ -1,5 +1,6 @@
 import {
     Agency,
+    Cities,
     CreateAgencyServiceRequest,
     CreateAgencyServiceResponse,
     CreateMemberAgencyRequest,
@@ -11,6 +12,7 @@ import {
     MyAgencyDetails,
     MyAgencyService,
     Services,
+    UpdateAgencyRequest,
 } from '@/@types/center'
 import ApiService from './ApiService'
 import endpointConfig from '@/configs/endpoint.config'
@@ -50,6 +52,12 @@ export async function getServices(params?: {
     })
 }
 
+export async function apiGetCities() {
+    return ApiService.fetchDataWithAxios<{ data: Cities[] }>({
+        url: endpointConfig.getCities
+    })
+}
+
 export async function apiCreateNewAgency(data: CreateNewAgencyRequest) {
     return ApiService.fetchDataWithAxios<CreateNewAgencyResponse>({
         url: endpointConfig.createNewAgency,
@@ -62,7 +70,24 @@ export async function apiUpdateMyAgency(
     agencySlug: string,
     data: Partial<CreateNewAgencyRequest>,
 ) {
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
+        url: `${endpointConfig.createNewAgency}/${encodeURIComponent(agencySlug)}`,
+        method: 'put',
+        data,
+    })
+}
+
+export async function apiUpdateInfoMyAgency(
+    agencySlug: string,
+    data: Partial<UpdateAgencyRequest>,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `${endpointConfig.createNewAgency}/${encodeURIComponent(agencySlug)}`,
         method: 'put',
         data,

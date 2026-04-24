@@ -41,6 +41,19 @@ export type MyAgencyDetails = {
         id: number
         name: string
     }
+    city: {
+        id: number
+    }
+    latitude: string
+    longitude: string
+    address: string
+    facebook: string
+    instagram: string
+    phone: string
+    website: string
+    youtube: string
+    h1: string
+    meta_description: string
 }
 
 export type MyAgencyService = {
@@ -111,4 +124,26 @@ export type MemberWorkingHoursResponse = {
             end: string
         }>
     }>
+}
+
+export type Cities = {
+    id: number
+    name: string
+}
+
+export type UpdateAgencyRequest = {
+    logo?: any
+    banner?: any
+    latitude?: string | undefined
+    longitude?: string | undefined
+    city_id?: number | undefined
+    phone?: string | undefined
+    website?: string | undefined
+    address?: string | undefined
+    instagram?: string | undefined
+    youtube?: string | undefined
+    linkedin?: string | undefined
+    facebook?: string | undefined
+    h1?: string | undefined
+    meta_description?: string | undefined
 }

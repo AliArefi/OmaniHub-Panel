@@ -16,17 +16,23 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from '@/store/useTranslation'
 import { useCreateStore } from '@/context/createStoreContext'
 import { MapPicker } from './components/MapPicker'
+import {
+    apiGetCities,
+    apiGetMyAgency,
+    apiUpdateInfoMyAgency,
+} from '@/services/CenterService'
+import { Cities } from '@/@types/center'
 
 interface HojraExtraInformationsProps {
     changeState: (value: number) => void
 }
 
 const validationSchema = z.object({
-    logo: z.any().optional(),
-    banner: z.any().optional(),
+    logo: z.instanceof(File).optional(),
+    banner: z.instanceof(File).optional(),
     latitude: z.string().optional(),
     longitude: z.string().optional(),
-    city_id: z.any().optional(),
+    city_id: z.number().optional(),
     phone: z.string().optional(),
     website: z.string().optional(),
     address: z.string().optional(),
@@ -40,12 +46,6 @@ const validationSchema = z.object({
 
 type FormValues = z.infer<typeof validationSchema>
 
-const fakeCities = [
-    { value: 1, label: 'مسقط' },
-    { value: 2, label: 'صلالة' },
-    { value: 3, label: 'نزوى' },
-]
-
 export const HojraExtraInformations = ({
     changeState,
 }: HojraExtraInformationsProps) => {
@@ -53,26 +53,43 @@ export const HojraExtraInformations = ({
     const { newHojraData } = useCreateStore()
 
     const [loadingCities, setLoadingCities] = useState(true)
+    const [cities, setCities] = useState<Cities[]>([])
 
-    useEffect(() => {
-        const timer = setTimeout(() => setLoadingCities(false), 900)
-        return () => clearTimeout(timer)
-    }, [])
+    const [error, setError] = useState<string | null>(null)
 
-    const {
-        handleSubmit,
-        control,
-        setValue,
-        formState: { errors, isSubmitting },
-        watch,
-    } = useForm<FormValues>({
+    const getApiErrorMessage = (err: unknown): string | undefined => {
+        if (typeof err !== 'object' || err === null) return undefined
+        const response = (err as { response?: unknown }).response
+        if (typeof response !== 'object' || response === null) return undefined
+        const data = (response as { data?: unknown }).data
+        if (typeof data !== 'object' || data === null) return undefined
+
+        const errors = (data as { errors?: unknown }).errors
+        if (typeof errors === 'object' && errors !== null) {
+            const first = Object.values(errors as Record<string, unknown>).find(
+                (val) =>
+                    Array.isArray(val) &&
+                    typeof val[0] === 'string' &&
+                    val[0].trim(),
+            ) as string[] | undefined
+
+            if (first?.[0]?.trim()) return first[0].trim()
+        }
+
+        const message = (data as { message?: unknown }).message
+        if (typeof message === 'string' && message.trim()) return message.trim()
+
+        return undefined
+    }
+
+    const form = useForm<FormValues>({
         resolver: zodResolver(validationSchema),
         defaultValues: {
             logo: undefined,
             banner: undefined,
             latitude: '',
             longitude: '',
-            city_id: null,
+            city_id: 0,
             phone: '',
             website: '',
             address: '',
@@ -85,6 +102,55 @@ export const HojraExtraInformations = ({
         },
     })
 
+    const {
+        handleSubmit,
+        control,
+        setValue,
+        formState: { errors, isSubmitting },
+        watch,
+    } = form
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            setLoadingCities(true)
+
+            try {
+                const agencyResponse = await apiGetMyAgency(
+                    newHojraData.slug as string,
+                )
+                const agency = agencyResponse.data
+
+                if (!agency || typeof agency !== 'object') {
+                    throw new Error('Invalid center response.')
+                }
+                form.setValue('city_id', agency.city.id)
+                form.setValue('latitude', agency.latitude)
+                form.setValue('longitude', agency.latitude)
+                form.setValue('address', agency.address)
+
+                form.setValue('facebook', agency.facebook)
+                form.setValue('instagram', agency.instagram)
+                form.setValue('phone', agency.phone)
+                form.setValue('website', agency.website)
+                form.setValue('youtube', agency.youtube)
+                form.setValue('h1', agency.h1)
+                form.setValue('meta_description', agency.meta_description)
+            } catch (err: unknown) {
+                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+            }
+
+            try {
+                const resp = await apiGetCities()
+                setCities(resp.data)
+            } catch (err: unknown) {
+                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+            } finally {
+                setLoadingCities(false)
+            }
+        }
+        fetchServices()
+    }, [])
+
     const lat = watch('latitude')
     const lng = watch('longitude')
 
@@ -93,14 +159,46 @@ export const HojraExtraInformations = ({
             if (!newHojraData?.slug) {
                 throw new Error('شناسه حجره  نیست')
             }
+            const formData = new FormData()
+
+            Object.entries(values).forEach(([key, value]) => {
+                if (value instanceof File) {
+                    formData.append(key, value)
+                } else if (value !== undefined && value !== null) {
+                    formData.append(key, String(value))
+                }
+            })
+
+            const resp = await apiUpdateInfoMyAgency(
+                newHojraData.slug,
+                formData as any,
+            )
+
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
+            }
             changeState(3)
+            return
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'خطا در ذخیره'
             toast.push(<Notification type="danger">{message}</Notification>)
         }
     }
 
-    const cityOptions = useMemo(() => fakeCities, [])
+    const cityOptions = useMemo(
+        () => cities.map((city) => ({ value: city.id, label: city.name })),
+        [cities],
+    )
+
+    if (loadingCities)
+        return (
+            <div className="w-full text-center flex items-center justify-center flex-col">
+                <Spinner />
+                <div>{t('loading')}</div>
+            </div>
+        )
+
+    if (error) return <div>{error}</div>
 
     return (
         <div>
@@ -262,7 +360,11 @@ export const HojraExtraInformations = ({
                             name="address"
                             control={control}
                             render={({ field }) => (
-                                <Input textArea placeholder="العنوان" {...field} />
+                                <Input
+                                    textArea
+                                    placeholder="العنوان"
+                                    {...field}
+                                />
                             )}
                         />
                     </FormItem>

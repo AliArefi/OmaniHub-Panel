@@ -14,6 +14,7 @@ const endpointConfig = {
     getServices: '/get/services',
     createNewAgency: '/my-agencies',
     getMyBooking: 'url',
+    getCities: '/get/cities',
 }
 
 export default endpointConfig
