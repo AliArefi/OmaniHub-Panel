@@ -12,7 +12,7 @@ import Notification from '@/components/ui/Notification'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from '@/store/useTranslation'
 import { useCreateStore } from '@/context/createStoreContext'
 import { MapPicker } from './components/MapPicker'
@@ -28,8 +28,8 @@ interface HojraExtraInformationsProps {
 }
 
 const validationSchema = z.object({
-    logo: z.instanceof(File).optional(),
-    banner: z.instanceof(File).optional(),
+    logo: z.instanceof(File).optional().nullable(),
+    banner: z.instanceof(File).optional().nullable(),
     latitude: z.string().optional(),
     longitude: z.string().optional(),
     city_id: z.number().optional(),
@@ -54,8 +54,12 @@ export const HojraExtraInformations = ({
 
     const [loadingCities, setLoadingCities] = useState(true)
     const [cities, setCities] = useState<Cities[]>([])
-
     const [error, setError] = useState<string | null>(null)
+    const [logoPreview, setLogoPreview] = useState<string | null>(null)
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+
+    const logoInputRef = useRef<HTMLInputElement | null>(null)
+    const bannerInputRef = useRef<HTMLInputElement | null>(null)
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         if (typeof err !== 'object' || err === null) return undefined
@@ -85,11 +89,11 @@ export const HojraExtraInformations = ({
     const form = useForm<FormValues>({
         resolver: zodResolver(validationSchema),
         defaultValues: {
-            logo: undefined,
-            banner: undefined,
+            logo: null,
+            banner: null,
             latitude: '',
             longitude: '',
-            city_id: 0,
+            city_id: undefined,
             phone: '',
             website: '',
             address: '',
@@ -123,18 +127,22 @@ export const HojraExtraInformations = ({
                 if (!agency || typeof agency !== 'object') {
                     throw new Error('Invalid center response.')
                 }
-                form.setValue('city_id', agency.city.id)
-                form.setValue('latitude', agency.latitude)
-                form.setValue('longitude', agency.latitude)
-                form.setValue('address', agency.address)
 
-                form.setValue('facebook', agency.facebook)
-                form.setValue('instagram', agency.instagram)
-                form.setValue('phone', agency.phone)
-                form.setValue('website', agency.website)
-                form.setValue('youtube', agency.youtube)
-                form.setValue('h1', agency.h1)
-                form.setValue('meta_description', agency.meta_description)
+                if (agency.logo) setLogoPreview(agency.logo)
+                if (agency.banner) setBannerPreview(agency.banner)
+
+                setValue('city_id', agency.city?.id)
+                setValue('latitude', agency.latitude || '')
+                setValue('longitude', agency.longitude || '')
+                setValue('address', agency.address || '')
+                setValue('facebook', agency.facebook || '')
+                setValue('instagram', agency.instagram || '')
+                setValue('linkedin', agency.linkedin || '')
+                setValue('phone', agency.phone || '')
+                setValue('website', agency.website || '')
+                setValue('youtube', agency.youtube || '')
+                setValue('h1', agency.h1 || '')
+                setValue('meta_description', agency.meta_description || '')
             } catch (err: unknown) {
                 setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
             }
@@ -149,7 +157,7 @@ export const HojraExtraInformations = ({
             }
         }
         fetchServices()
-    }, [])
+    }, [newHojraData.slug, setValue])
 
     const lat = watch('latitude')
     const lng = watch('longitude')
@@ -157,14 +165,18 @@ export const HojraExtraInformations = ({
     const onSubmit = async (values: FormValues) => {
         try {
             if (!newHojraData?.slug) {
-                throw new Error('شناسه حجره  نیست')
+                throw new Error('شناسه حجره موجود نیست')
             }
             const formData = new FormData()
 
             Object.entries(values).forEach(([key, value]) => {
                 if (value instanceof File) {
                     formData.append(key, value)
-                } else if (value !== undefined && value !== null) {
+                } else if (
+                    value !== undefined &&
+                    value !== null &&
+                    value !== ''
+                ) {
                     formData.append(key, String(value))
                 }
             })
@@ -177,10 +189,17 @@ export const HojraExtraInformations = ({
             if (!resp?.success) {
                 throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
             }
+
+            toast.push(
+                <Notification type="success">
+                    تم تحديث المعلومات بنجاح
+                </Notification>,
+            )
             changeState(3)
-            return
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'خطا در ذخیره'
+            const message =
+                getApiErrorMessage(err) ||
+                (err instanceof Error ? err.message : 'خطا در ذخیره')
             toast.push(<Notification type="danger">{message}</Notification>)
         }
     }
@@ -198,7 +217,7 @@ export const HojraExtraInformations = ({
             </div>
         )
 
-    if (error) return <div>{error}</div>
+    if (error) return <div className="text-red-500 p-4">{error}</div>
 
     return (
         <div>
@@ -215,41 +234,145 @@ export const HojraExtraInformations = ({
                             name="logo"
                             control={control}
                             render={({ field }) => (
-                                <Input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const target =
-                                            e.target as HTMLInputElement
-                                        field.onChange(
-                                            target.files?.[0] || undefined,
-                                        )
-                                    }}
-                                />
+                                <div className="space-y-3">
+                                    {logoPreview ? (
+                                        <img
+                                            src={logoPreview}
+                                            alt="Logo"
+                                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                                        />
+                                    ) : (
+                                        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
+                                            تصویر لوگو انتخاب نشده
+                                        </div>
+                                    )}
+
+                                    <input
+                                        ref={logoInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (!file) return
+                                            field.onChange(file)
+                                            setLogoPreview(
+                                                URL.createObjectURL(file),
+                                            )
+                                        }}
+                                    />
+
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            type="button"
+                                            onClick={() =>
+                                                logoInputRef.current?.click()
+                                            }
+                                        >
+                                            {logoPreview
+                                                ? 'تغییر الشعار'
+                                                : 'انتخاب الشعار'}
+                                        </Button>
+
+                                        {logoPreview && (
+                                            <Button
+                                                size="sm"
+                                                variant="plain"
+                                                type="button"
+                                                onClick={() => {
+                                                    setLogoPreview(null)
+                                                    field.onChange(null)
+                                                    if (logoInputRef.current) {
+                                                        logoInputRef.current.value =
+                                                            ''
+                                                    }
+                                                }}
+                                            >
+                                                حذف
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         />
                     </FormItem>
 
+                    {/* Banner */}
                     <FormItem label="البانر (Banner)" className="mb-6">
                         <Controller
                             name="banner"
                             control={control}
                             render={({ field }) => (
-                                <Input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const target =
-                                            e.target as HTMLInputElement
-                                        field.onChange(
-                                            target.files?.[0] || undefined,
-                                        )
-                                    }}
-                                />
+                                <div className="space-y-3">
+                                    {bannerPreview ? (
+                                        <img
+                                            src={bannerPreview}
+                                            alt="Banner"
+                                            className="w-full max-w-2xl h-48 object-cover rounded-lg border-2 border-gray-200"
+                                        />
+                                    ) : (
+                                        <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
+                                            تصویر بنر انتخاب نشده
+                                        </div>
+                                    )}
+
+                                    <input
+                                        ref={bannerInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0]
+                                            if (!file) return
+                                            field.onChange(file)
+                                            setBannerPreview(
+                                                URL.createObjectURL(file),
+                                            )
+                                        }}
+                                    />
+
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            type="button"
+                                            onClick={() =>
+                                                bannerInputRef.current?.click()
+                                            }
+                                        >
+                                            {bannerPreview
+                                                ? 'تغییر البانر'
+                                                : 'انتخاب البانر'}
+                                        </Button>
+
+                                        {bannerPreview && (
+                                            <Button
+                                                size="sm"
+                                                variant="plain"
+                                                type="button"
+                                                onClick={() => {
+                                                    setBannerPreview(null)
+                                                    field.onChange(null)
+                                                    if (
+                                                        bannerInputRef.current
+                                                    ) {
+                                                        bannerInputRef.current.value =
+                                                            ''
+                                                    }
+                                                }}
+                                            >
+                                                حذف
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         />
                     </FormItem>
 
+                    {/* Map */}
                     <div className="mb-8">
                         <FormItem label="الموقع على الخريطة">
                             <MapPicker
@@ -302,29 +425,25 @@ export const HojraExtraInformations = ({
                     </div>
 
                     <FormItem label="المدينة" className="mb-6">
-                        {loadingCities ? (
-                            <div className="h-10 w-full rounded bg-gray-100 animate-pulse" />
-                        ) : (
-                            <Controller
-                                name="city_id"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        size="sm"
-                                        placeholder="اختر المدينة"
-                                        options={cityOptions}
-                                        value={
-                                            cityOptions.find(
-                                                (c) => c.value === field.value,
-                                            ) || null
-                                        }
-                                        onChange={(opt) =>
-                                            field.onChange(opt?.value)
-                                        }
-                                    />
-                                )}
-                            />
-                        )}
+                        <Controller
+                            name="city_id"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    size="sm"
+                                    placeholder="اختر المدينة"
+                                    options={cityOptions}
+                                    value={
+                                        cityOptions.find(
+                                            (c) => c.value === field.value,
+                                        ) || null
+                                    }
+                                    onChange={(opt) =>
+                                        field.onChange(opt?.value)
+                                    }
+                                />
+                            )}
+                        />
                     </FormItem>
 
                     <FormItem label="رقم الهاتف" className="mb-6">

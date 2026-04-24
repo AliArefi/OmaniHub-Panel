@@ -36,6 +36,8 @@ export type CreateNewAgencyResponse = {
 export type MyAgencyDetails = {
     id: number
     title: string
+    logo: string
+    banner: string
     about_text: string | null
     service: {
         id: number
@@ -49,6 +51,7 @@ export type MyAgencyDetails = {
     address: string
     facebook: string
     instagram: string
+    linkedin: string
     phone: string
     website: string
     youtube: string
