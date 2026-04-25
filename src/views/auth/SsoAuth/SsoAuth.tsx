@@ -1,6 +1,7 @@
 import { useAuth } from '@/auth'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { useSessionUser } from '@/store/authStore'
 
 const DEFAULT_ALLOWED_ORIGINS = [
     'https://omanihub.com',
@@ -32,6 +33,7 @@ function isAllowedRedirectUri(redirectUri: string): boolean {
 
 export default function SsoAuth() {
     const { authenticated } = useAuth()
+    const accessToken = useSessionUser((s) => s.session.accessToken)
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const [error, setError] = useState<string | null>(null)
@@ -64,13 +66,20 @@ export default function SsoAuth() {
             return
         }
 
+        if (!accessToken) {
+            setError('Missing session token. Please sign in again.')
+            return
+        }
+
         const target = new URL(redirectUri)
         if (returnTo) {
             target.searchParams.set('return_to', returnTo)
         }
+        // Pass token via URL fragment to avoid leaking it in server logs / referrers.
+        target.hash = `token=${encodeURIComponent(accessToken)}`
 
         window.location.assign(target.toString())
-    }, [authenticated, navigate, redirectUri, returnTo])
+    }, [accessToken, authenticated, navigate, redirectUri, returnTo])
 
     if (error) {
         return <div className="p-6 text-red-600 dark:text-red-400">{error}</div>
@@ -78,4 +87,3 @@ export default function SsoAuth() {
 
     return <div className="p-6">Redirecting…</div>
 }
-
