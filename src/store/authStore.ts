@@ -4,6 +4,7 @@ import type { User } from '@/@types/auth'
 
 type Session = {
     signedIn: boolean
+    accessToken: string | null
 }
 
 type AuthState = {
@@ -13,6 +14,7 @@ type AuthState = {
 
 type AuthAction = {
     setSessionSignedIn: (payload: boolean) => void
+    setAccessToken: (token: string | null) => void
     setUser: (payload: User) => void
     reset: () => void
 }
@@ -20,6 +22,7 @@ type AuthAction = {
 const initialState: AuthState = {
     session: {
         signedIn: false,
+        accessToken: null,
     },
     user: {
         id: null,
@@ -42,6 +45,13 @@ export const useSessionUser = create<AuthState & AuthAction>()(
                     session: {
                         ...state.session,
                         signedIn: payload,
+                    },
+                })),
+            setAccessToken: (token) =>
+                set((state) => ({
+                    session: {
+                        ...state.session,
+                        accessToken: token,
                     },
                 })),
             setUser: (payload) =>

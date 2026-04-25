@@ -17,6 +17,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // Avoid CORS in local dev by proxying API calls through Vite.
+      // With `VITE_API_PREFIX=/api/1` (default in dev), requests will hit this proxy.
+      '/api/1': {
+        target: 'https://admin.omanihub.com',
+        changeOrigin: true,
+        secure: true,
+      },
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,

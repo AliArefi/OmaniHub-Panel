@@ -46,6 +46,16 @@ export default function Bookings() {
                         ? message
                         : undefined
                 })()
+                const normalized = (apiMessage || '').toLowerCase()
+                if (
+                    normalized.includes('no query results for model') &&
+                    normalized.includes('app\\models\\agency')
+                ) {
+                    setBookings([])
+                    setError(null)
+                    return
+                }
+
                 setError(apiMessage || 'حدث خطأ أثناء تحميل الحجوزات')
             } finally {
                 setLoading(false)
@@ -212,4 +222,3 @@ export default function Bookings() {
         </>
     )
 }
-

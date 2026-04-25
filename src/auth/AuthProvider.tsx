@@ -43,6 +43,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     const setSessionSignedIn = useSessionUser(
         (state) => state.setSessionSignedIn,
     )
+    const setAccessToken = useSessionUser((state) => state.setAccessToken)
     const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
     const clearPendingChallenge = useAuthChallengeStore((s) => s.clear)
 
@@ -60,8 +61,9 @@ function AuthProvider({ children }: AuthProviderProps) {
         )
     }
 
-    const handleSignIn = (_tokens: Token, user?: User) => {
+    const handleSignIn = (tokens: Token, user?: User) => {
         clearPendingChallenge()
+        setAccessToken(tokens.accessToken)
         setSessionSignedIn(true)
 
         if (user) {
@@ -71,9 +73,10 @@ function AuthProvider({ children }: AuthProviderProps) {
 
     const handleSignOut = useCallback(() => {
         setUser({})
+        setAccessToken(null)
         setSessionSignedIn(false)
         clearPendingChallenge()
-    }, [clearPendingChallenge, setSessionSignedIn, setUser])
+    }, [clearPendingChallenge, setAccessToken, setSessionSignedIn, setUser])
 
     const completeAuth = (resp: AuthChallengeResponse) => {
         if (resp?.success && resp.next_step === 'authenticated' && resp.token) {

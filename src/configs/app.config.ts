@@ -28,7 +28,7 @@ const readBoolEnv = (value: unknown, fallback: boolean) => {
 const appConfig: AppConfig = {
     apiPrefix:
         (import.meta.env.VITE_API_PREFIX as string | undefined) ??
-        'https://admin.omanihub.com/api/1',
+        (import.meta.env.DEV ? '/api/1' : 'https://admin.omanihub.com/api/1'),
     urlImage:
         (import.meta.env.VITE_URL_IMAGE as string | undefined) ??
         '',
