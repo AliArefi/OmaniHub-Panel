@@ -1,26 +1,30 @@
 export interface Booking {
-    id: string
-    customer: {
-        name: string
-        phone: string
-        email: string
-        avatar?: string
-    }
-    service: {
-        id: string
+    id: number
+    agency: {
+        id: number
+        slug: string
         title: string
-        price: number
-    }
-    crew?: {
-        id: string
+    } | null
+    service: {
+        id: number
+        title: string
+    } | null
+    member: {
+        id: number
         name: string
-        avatar?: string
+    } | null
+    customer: {
+        name: string | null
+        mobile: string | null
+        user: {
+            id: number
+            name: string | null
+            email: string | null
+        } | null
     }
     date: string
-    time: string
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
-    totalAmount: number
-    paymentMethod: string
-    notes?: string
-    createdAt: string
+    start_time: string
+    end_time: string
+    status: 'pending' | 'confirmed' | 'cancelled'
+    created_at: string | null
 }

@@ -9,6 +9,7 @@ import type {
     AuthConfigResponse,
     VerifyOtpRequest,
     ResendOtpRequest,
+    AuthUser,
 } from '@/@types/auth'
 
 export async function apiSignIn(data: SignInCredential) {
@@ -31,6 +32,16 @@ export async function apiSignOut() {
     return ApiService.fetchDataWithAxios({
         url: endpointConfig.signOut,
         method: 'post',
+    })
+}
+
+export async function apiAuthMe() {
+    return ApiService.fetchDataWithAxios<{
+        authenticated: boolean
+        user: AuthUser
+    }>({
+        url: '/auth/me',
+        method: 'get',
     })
 }
 

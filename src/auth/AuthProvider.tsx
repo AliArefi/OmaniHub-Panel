@@ -1,8 +1,8 @@
-import { useRef, useImperativeHandle, useState } from 'react'
+import { useRef, useImperativeHandle, useEffect, useCallback } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
-import { useSessionUser, useToken } from '@/store/authStore'
-import { apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
+import { useSessionUser } from '@/store/authStore'
+import { apiAuthMe, apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
@@ -43,12 +43,10 @@ function AuthProvider({ children }: AuthProviderProps) {
     const setSessionSignedIn = useSessionUser(
         (state) => state.setSessionSignedIn,
     )
-    const { token, setToken } = useToken()
-    const [tokenState, setTokenState] = useState(token)
     const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
     const clearPendingChallenge = useAuthChallengeStore((s) => s.clear)
 
-    const authenticated = Boolean(tokenState && signedIn)
+    const authenticated = Boolean(signedIn)
 
     const navigatorRef = useRef<IsolatedNavigatorRef>(null)
 
@@ -62,10 +60,8 @@ function AuthProvider({ children }: AuthProviderProps) {
         )
     }
 
-    const handleSignIn = (tokens: Token, user?: User) => {
+    const handleSignIn = (_tokens: Token, user?: User) => {
         clearPendingChallenge()
-        setToken(tokens.accessToken)
-        setTokenState(tokens.accessToken)
         setSessionSignedIn(true)
 
         if (user) {
@@ -73,12 +69,11 @@ function AuthProvider({ children }: AuthProviderProps) {
         }
     }
 
-    const handleSignOut = () => {
-        setToken('')
+    const handleSignOut = useCallback(() => {
         setUser({})
         setSessionSignedIn(false)
         clearPendingChallenge()
-    }
+    }, [clearPendingChallenge, setSessionSignedIn, setUser])
 
     const completeAuth = (resp: AuthChallengeResponse) => {
         if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
@@ -203,6 +198,37 @@ function AuthProvider({ children }: AuthProviderProps) {
             navigatorRef.current?.navigate('/')
         }
     }
+
+    // Bootstrap auth session from the backend cookie session.
+    // This avoids relying on any token stored in localStorage/sessionStorage.
+    useEffect(() => {
+        let cancelled = false
+
+        ;(async () => {
+            try {
+                const resp = await apiAuthMe()
+                if (cancelled) return
+
+                if (resp?.authenticated) {
+                    setSessionSignedIn(true)
+                    setUser({
+                        ...resp.user,
+                        authority: [],
+                    })
+                } else {
+                    handleSignOut()
+                }
+            } catch {
+                if (!cancelled) {
+                    handleSignOut()
+                }
+            }
+        })()
+
+        return () => {
+            cancelled = true
+        }
+    }, [handleSignOut, setSessionSignedIn, setUser])
     const oAuthSignIn = (
         callback: (payload: OauthSignInCallbackPayload) => void,
     ) => {

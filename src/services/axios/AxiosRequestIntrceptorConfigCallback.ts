@@ -1,33 +1,18 @@
-import appConfig from '@/configs/app.config'
-import {
-    TOKEN_TYPE,
-    REQUEST_HEADER_AUTH_KEY,
-    TOKEN_NAME_IN_STORAGE,
-} from '@/constants/api.constant'
+import Cookies from 'js-cookie'
 import type { InternalAxiosRequestConfig } from 'axios'
 
 const AxiosRequestIntrceptorConfigCallback = (
     config: InternalAxiosRequestConfig,
 ) => {
-    const storage = appConfig.accessTokenPersistStrategy
-    if (storage === 'localStorage' || storage === 'sessionStorage') {
-        let accessToken = ''
+    config.withCredentials = true
 
-        if (storage === 'localStorage') {
-            accessToken = localStorage.getItem(TOKEN_NAME_IN_STORAGE) || ''
-        }
-
-        if (storage === 'sessionStorage') {
-            accessToken = sessionStorage.getItem(TOKEN_NAME_IN_STORAGE) || ''
-        }
-
-        if (accessToken) {
-            config.headers[REQUEST_HEADER_AUTH_KEY] =
-                `${TOKEN_TYPE}${accessToken}`
+    const method = (config.method || 'get').toLowerCase()
+    if (!['get', 'head', 'options'].includes(method)) {
+        const csrf = Cookies.get('oh_csrf')
+        if (csrf) {
+            config.headers['X-CSRF-Token'] = csrf
         }
     }
-
-
 
     return config
 }

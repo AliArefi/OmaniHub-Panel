@@ -108,11 +108,13 @@ export default function Centers() {
                                 <Td>{agency.status}</Td>
                                 <Td>
                                     <div className="flex items-center justify-end gap-2">
-                                        <Link to={`/centers/${agency.slug}/reservations`}>
-                                            <Button size="xs" variant="plain" className='bg-blue-400 text-white'>
-                                                {t('reservations') || 'Reservations'}
-                                            </Button>
-                                        </Link>
+                                        {agency.status === 'published' && (
+                                            <Link to={`/bookings?agencySlug=${encodeURIComponent(agency.slug)}`}>
+                                                <Button size="xs" variant="plain" className="bg-blue-400 text-white">
+                                                    {t('reservations') || 'الحجوزات'}
+                                                </Button>
+                                            </Link>
+                                        )}
                                         <Link to={`/centers/${agency.slug}/edit`}>
                                             <Button size="xs" variant="solid">
                                                 {t('edit') || 'Edit'}

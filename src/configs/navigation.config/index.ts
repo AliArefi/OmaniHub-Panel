@@ -11,7 +11,7 @@ const navigationConfig: NavigationTree[] = [
     {
         key: 'home',
         path: '/home',
-        title: 'لوحة التحكم',
+        title: 'ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ…',
         translateKey: 'nav.home',
         icon: 'home',
         type: NAV_ITEM_TYPE_ITEM,
@@ -21,7 +21,7 @@ const navigationConfig: NavigationTree[] = [
     {
         key: 'centers',
         path: '/centers',
-        title: 'غرفي',
+        title: 'ط؛ط±ظپظٹ',
         translateKey: 'nav.singleMenuItem',
         icon: 'store',
         type: NAV_ITEM_TYPE_ITEM,
@@ -31,7 +31,7 @@ const navigationConfig: NavigationTree[] = [
     {
         key: 'createCenter',
         path: '/create-center',
-        title: 'إنشاء حجرة',
+        title: 'ط¥ظ†ط´ط§ط، ط­ط¬ط±ط©',
         translateKey: 'nav.singleMenuItem',
         icon: 'groupMenu',
         type: NAV_ITEM_TYPE_ITEM,
@@ -41,7 +41,7 @@ const navigationConfig: NavigationTree[] = [
     {
         key: 'members',
         path: '/members',
-        title: 'العملاء',
+        title: 'ط§ظ„ط¹ظ…ظ„ط§ط،',
         translateKey: 'nav.singleMenuItem',
         icon: 'account',
         type: NAV_ITEM_TYPE_ITEM,
@@ -51,7 +51,17 @@ const navigationConfig: NavigationTree[] = [
     {
         key: 'bookings',
         path: '/bookings',
-        title: 'إدارة الحجوزات',
+        title: 'ط¥ط¯ط§ط±ط© ط§ظ„ط­ط¬ظˆط²ط§طھ',
+        translateKey: 'nav.singleMenuItem',
+        icon: 'groupMenu',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [],
+        subMenu: [],
+    },
+    {
+        key: 'chat',
+        path: '/chat',
+        title: 'المحادثات',
         translateKey: 'nav.singleMenuItem',
         icon: 'groupMenu',
         type: NAV_ITEM_TYPE_ITEM,
@@ -62,7 +72,7 @@ const navigationConfig: NavigationTree[] = [
     // {
     //     key: 'singleMenuItem',
     //     path: '/single-menu-view',
-    //     title: 'آیتم منوی تکی',
+    //     title: 'ط¢غŒطھظ… ظ…ظ†ظˆغŒ طھع©غŒ',
     //     translateKey: 'nav.singleMenuItem',
     //     icon: 'singleMenu',
     //     type: NAV_ITEM_TYPE_ITEM,
@@ -72,7 +82,7 @@ const navigationConfig: NavigationTree[] = [
     // {
     //     key: 'collapseMenu',
     //     path: '',
-    //     title: 'منوی بازشونده',
+    //     title: 'ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡',
     //     translateKey: 'nav.collapseMenu.collapseMenu',
     //     icon: 'collapseMenu',
     //     type: NAV_ITEM_TYPE_COLLAPSE,
@@ -81,7 +91,7 @@ const navigationConfig: NavigationTree[] = [
     //         {
     //             key: 'collapseMenu.item1',
     //             path: '/collapse-menu-item-view-1',
-    //             title: 'آیتم اول منوی بازشونده',
+    //             title: 'ط¢غŒطھظ… ط§ظˆظ„ ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡',
     //             translateKey: 'nav.collapseMenu.item1',
     //             icon: '',
     //             type: NAV_ITEM_TYPE_ITEM,
@@ -91,7 +101,7 @@ const navigationConfig: NavigationTree[] = [
     //         {
     //             key: 'collapseMenu.item2',
     //             path: '/collapse-menu-item-view-2',
-    //             title: 'آیتم دوم منوی بازشونده',
+    //             title: 'ط¢غŒطھظ… ط¯ظˆظ… ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡',
     //             translateKey: 'nav.collapseMenu.item2',
     //             icon: '',
     //             type: NAV_ITEM_TYPE_ITEM,
@@ -103,7 +113,7 @@ const navigationConfig: NavigationTree[] = [
     // {
     //     key: 'groupMenu',
     //     path: '',
-    //     title: 'منوی گروهی',
+    //     title: 'ظ…ظ†ظˆغŒ ع¯ط±ظˆظ‡غŒ',
     //     translateKey: 'nav.groupMenu.groupMenu',
     //     icon: 'groupMenu',
     //     type: NAV_ITEM_TYPE_TITLE,
@@ -112,7 +122,7 @@ const navigationConfig: NavigationTree[] = [
     //         {
     //             key: 'groupMenu.single',
     //             path: '/group-single-menu-item-view',
-    //             title: 'آیتم تکی منوی گروهی',
+    //             title: 'ط¢غŒطھظ… طھع©غŒ ظ…ظ†ظˆغŒ ع¯ط±ظˆظ‡غŒ',
     //             translateKey: 'nav.groupMenu.single',
     //             icon: 'groupSingleMenu',
     //             type: NAV_ITEM_TYPE_ITEM,
@@ -122,7 +132,7 @@ const navigationConfig: NavigationTree[] = [
     //         {
     //             key: 'groupMenu.collapse',
     //             path: '',
-    //             title: 'منوی بازشونده گروهی',
+    //             title: 'ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡ ع¯ط±ظˆظ‡غŒ',
     //             translateKey: 'nav.groupMenu.collapse.collapse',
     //             icon: 'groupCollapseMenu',
     //             type: NAV_ITEM_TYPE_COLLAPSE,
@@ -131,7 +141,7 @@ const navigationConfig: NavigationTree[] = [
     //                 {
     //                     key: 'groupMenu.collapse.item1',
     //                     path: '/group-collapse-menu-item-view-1',
-    //                     title: 'آیتم اول منوی بازشونده',
+    //                     title: 'ط¢غŒطھظ… ط§ظˆظ„ ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡',
     //                     translateKey: 'nav.groupMenu.collapse.item1',
     //                     icon: '',
     //                     type: NAV_ITEM_TYPE_ITEM,
@@ -141,7 +151,7 @@ const navigationConfig: NavigationTree[] = [
     //                 {
     //                     key: 'groupMenu.collapse.item2',
     //                     path: '/group-collapse-menu-item-view-2',
-    //                     title: 'آیتم دوم منوی بازشونده',
+    //                     title: 'ط¢غŒطھظ… ط¯ظˆظ… ظ…ظ†ظˆغŒ ط¨ط§ط²ط´ظˆظ†ط¯ظ‡',
     //                     translateKey: 'nav.groupMenu.collapse.item2',
     //                     icon: '',
     //                     type: NAV_ITEM_TYPE_ITEM,
@@ -155,3 +165,4 @@ const navigationConfig: NavigationTree[] = [
 ]
 
 export default navigationConfig
+
