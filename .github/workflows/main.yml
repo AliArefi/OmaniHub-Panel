@@ -24,14 +24,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "20.12.2"
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Show Node/npm versions
+      - name: Pin npm
         shell: bash
         run: |
           set -euo pipefail
+          npm install -g npm@10.8.2
           node -v
           npm -v
 
