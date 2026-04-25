@@ -11,15 +11,11 @@ import Notification from '@/components/ui/Notification'
 import { useEffect, useMemo, useState } from 'react'
 import { useCreateStore } from '@/context/createStoreContext'
 import {
-    AddGalleryItemMyAgencies,
-    apiGetGallery,
+    apiDeleteMyAgencyMedia,
+    apiGetMyAgencyMedia,
+    apiUploadMyAgencyMedia,
 } from '@/services/CenterService'
-
-interface GalleryItem {
-    id: number
-    image: string
-    alt: string
-}
+import type { AgencyMediaItem } from '@/@types/center'
 
 interface HojraGalleryProps {
     changeState: (value: number) => void
@@ -27,7 +23,7 @@ interface HojraGalleryProps {
 
 export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
     const { newHojraData } = useCreateStore()
-    const [items, setItems] = useState<GalleryItem[]>([])
+    const [items, setItems] = useState<AgencyMediaItem[]>([])
     const [alt, setAlt] = useState('')
     const [file, setFile] = useState<File | null>(null)
     const [loading, setLoading] = useState(false)
@@ -36,10 +32,12 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
     const fetchGallery = async () => {
         try {
             setFetchingGallery(true)
-            const galleryResponse = await apiGetGallery()
-            if (galleryResponse.data) {
-                setItems(galleryResponse.data)
-            }
+            const slug =
+                typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
+            if (!slug.trim()) return
+
+            const resp = await apiGetMyAgencyMedia(slug)
+            setItems(resp?.gallery_images || [])
         } catch (err) {
             console.error('خطأ في تحميل المعرض:', err)
         } finally {
@@ -49,7 +47,8 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
 
     useEffect(() => {
         fetchGallery()
-    }, [])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newHojraData?.slug])
 
     const canUpload = useMemo(() => Boolean(file), [file])
 
@@ -65,11 +64,18 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
             setLoading(true)
 
             const formData = new FormData()
-            formData.append('image', file)
-            formData.append('alt', alt)
-            formData.append('agency_id', String(newHojraData.id))
+            formData.append('collection', 'agency_gallery_images')
+            formData.append('file', file)
+            if (alt.trim()) {
+                formData.append('alt', alt.trim())
+            }
 
-            const resp = await AddGalleryItemMyAgencies(formData as any)
+            const slug =
+                typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
+            if (!slug.trim()) {
+                throw new Error('ظ…ط¹ط±ظ‘ظپ ط§ظ„ط­ط¬ط±ط© ط؛ظٹط± ظ…ظˆط¬ظˆط¯')
+            }
+            const resp = await apiUploadMyAgencyMedia(slug, formData)
 
             if (resp.success) {
                 toast.push(
@@ -99,9 +105,34 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
         }
     }
 
-    const onRemove = (id: number) => {
-        // استدعاء API للحذف
-        setItems((prev) => prev.filter((x) => x.id !== id))
+    const onRemove = async (id: number) => {
+        try {
+            const slug =
+                typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
+            if (!slug.trim()) {
+                throw new Error('ظ…ط¹ط±ظ‘ظپ ط§ظ„ط­ط¬ط±ط© ط؛ظٹط± ظ…ظˆط¬ظˆط¯')
+            }
+
+            setLoading(true)
+            const resp = await apiDeleteMyAgencyMedia(slug, id)
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'طھط¹ط°ط± ط­ط°ظپ ط§ظ„طµظˆط±ط©')
+            }
+
+            toast.push(
+                <Notification type="success">
+                    {resp?.message || 'طھظ… ط­ط°ظپ ط§ظ„طµظˆط±ط©'}
+                </Notification>,
+            )
+
+            await fetchGallery()
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error ? err.message : 'ط®ط·ط£ ط£ط«ظ†ط§ط، ط§ظ„ط­ط°ظپ'
+            toast.push(<Notification type="danger">{message}</Notification>)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -176,19 +207,20 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                                 >
                                     <div className="aspect-video bg-gray-100">
                                         <img
-                                            src={item.image}
-                                            alt={item.alt}
+                                            src={item.thumb_url || item.url}
+                                            alt={item.alt || ''}
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
                                     <div className="p-3">
                                         <div className="text-xs text-gray-500 mb-2">
-                                            ALT: {item.alt}
+                                            ALT: {item.alt || '-'}
                                         </div>
                                         <Button
                                             size="sm"
                                             variant="plain"
                                             onClick={() => onRemove(item.id)}
+                                            disabled={loading}
                                         >
                                             حذف
                                         </Button>

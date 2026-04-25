@@ -114,8 +114,8 @@ export const HojraExtraInformations = ({
                 )
                 const agency = agencyResp.data
 
-                if (agency.logo) setLogoPreview(agency.logo)
-                if (agency.banner) setBannerPreview(agency.banner)
+                setLogoPreview(agency.logo || null)
+                setBannerPreview(agency.banner || null)
 
                 setValue('city_id', agency.city?.id)
                 setValue('latitude', agency.latitude || '')

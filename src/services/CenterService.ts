@@ -1,5 +1,6 @@
 import {
     Agency,
+    AgencyMediaItem,
     Cities,
     CreateAgencyServiceRequest,
     CreateAgencyServiceResponse,
@@ -10,6 +11,7 @@ import {
     MemberWorkingHoursRequest,
     MemberWorkingHoursResponse,
     MyAgencyDetails,
+    MyAgencyMediaResponse,
     MyAgencyService,
     RequestMyAgencyGallery,
     Services,
@@ -141,5 +143,66 @@ export async function AddGalleryItemMyAgencies(data: RequestMyAgencyGallery | Fo
         url: endpointConfig.getGallery,
         method: 'post',
         data,
+    })
+}
+
+export async function apiGetMyAgencyMedia(agencySlug: string) {
+    return ApiService.fetchDataWithAxios<MyAgencyMediaResponse>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/media`,
+    })
+}
+
+export async function apiUploadMyAgencyMedia(
+    agencySlug: string,
+    data: FormData,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+        data?: AgencyMediaItem
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/media/upload`,
+        method: 'post',
+        data,
+    })
+}
+
+export async function apiUpdateMyAgencyMedia(
+    agencySlug: string,
+    mediaId: number,
+    data: Record<string, unknown>,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+        data?: AgencyMediaItem
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/media/${mediaId}/update`,
+        method: 'post',
+        data,
+    })
+}
+
+export async function apiDeleteMyAgencyMedia(agencySlug: string, mediaId: number) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/media/${mediaId}/delete`,
+        method: 'post',
+    })
+}
+
+export async function apiSetFeaturedMyAgencyMedia(
+    agencySlug: string,
+    mediaId: number,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+        data?: AgencyMediaItem
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/media/${mediaId}/set-featured`,
+        method: 'post',
     })
 }

@@ -36,8 +36,8 @@ export type CreateNewAgencyResponse = {
 export type MyAgencyDetails = {
     id: number
     title: string
-    logo: string
-    banner: string
+    logo: string | null
+    banner: string | null
     about_text: string | null
     service: {
         id: number
@@ -155,6 +155,37 @@ export type RequestMyAgencyGallery = {
     alt: string
     agency_id: number
     image: File
+}
+
+export type AgencyMediaItem = {
+    id: number
+    uuid: string
+    collection: string
+    type: 'image' | 'video' | 'document' | 'file'
+    name: string | null
+    file_name: string
+    mime_type: string
+    size_bytes: number
+    url: string
+    thumb_url: string | null
+    sort_order: number | null
+    is_featured: boolean
+    alt: string | null
+    title: string | null
+    caption: string | null
+    seo: {
+        title: string | null
+        description: string | null
+        keywords: string | null
+    }
+    created_at: string | null
+}
+
+export type MyAgencyMediaResponse = {
+    featured_media: AgencyMediaItem | null
+    gallery_images: AgencyMediaItem[]
+    gallery_videos: AgencyMediaItem[]
+    documents: AgencyMediaItem[]
 }
 
 // export type CreateNewAgencyResponse = {
