@@ -31,14 +31,15 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 })),
                 team_members: teamMembers.map((m) => ({
                     name: m.name,
-                    role: m.role,
+                    position: m.position,
                     image: m.image,
                 })),
                 assignments: assignments.map((a) => ({
                     service_id: a.serviceId,
                     member_id: a.memberId,
-                    schedules: a.schedules.map((sch) => ({
-                        date: sch.date,
+                    weekly_schedule: (a.weeklySchedule ?? []).map((sch) => ({
+                        day: sch.day,
+                        is_open: sch.isOpen,
                         start_time: sch.startTime,
                         end_time: sch.endTime,
                     })),
@@ -161,7 +162,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                                     {member.name}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
-                                                    {member.role}
+                                                    {member.position}
                                                 </div>
                                             </div>
                                         </div>
@@ -180,12 +181,16 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                                                     assign.serviceLabel
                                                                 }
                                                             </div>
-                                                            {assign.schedules.map(
-                                                                (sch) => (
+                                                            {(assign.weeklySchedule ?? [])
+                                                                .filter(
+                                                                    (sch) =>
+                                                                        Boolean(
+                                                                            sch.isOpen,
+                                                                        ),
+                                                                )
+                                                                .map((sch) => (
                                                                     <div
-                                                                        key={
-                                                                            sch.id
-                                                                        }
+                                                                        key={`${assign.id}-${sch.day}`}
                                                                         className="text-xs text-gray-600 flex items-center gap-1"
                                                                     >
                                                                         <svg
@@ -204,9 +209,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                                                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                                                             />
                                                                         </svg>
-                                                                        {
-                                                                            sch.dateLabel
-                                                                        }{" "}
+                                                                        {sch.dayLabel}{' '}
                                                                         |{" "}
                                                                         {
                                                                             sch.startTime
@@ -236,7 +239,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                         <Button
                             size="sm"
                             variant="default"
-                            onClick={() => changeState(3)}
+                            onClick={() => changeState(5)}
                         >
                             خلف
                         </Button>

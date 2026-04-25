@@ -338,7 +338,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                         <Button
                             size="sm"
                             variant="default"
-                            onClick={() => changeState(1)}
+                            onClick={() => changeState(3)}
                         >
                             خلف
                         </Button>
@@ -346,7 +346,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                             <Button
                                 size="sm"
                                 variant="solid"
-                                onClick={() => changeState(3)}
+                                onClick={() => changeState(5)}
                             >
                                 التالي: تعيين الفريق
                             </Button>

@@ -103,6 +103,13 @@ export type CreateNewMemberAgencyResponse = {
     }
 }
 
+export type TeamMemberApiResponse = {
+    id: number
+    name: string
+    position: string
+    image: string | null
+}
+
 export type MemberWorkingHoursRequest = {
     days: Array<{
         day_of_week: number

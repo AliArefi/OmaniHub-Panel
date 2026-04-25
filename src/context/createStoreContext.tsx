@@ -44,6 +44,29 @@ export interface NewHojraData {
     slug: string
 }
 
+export type ExtraInformationDraftValues = {
+    logo: File | null
+    banner: File | null
+    latitude: string
+    longitude: string
+    city_id?: number | null
+    phone: string
+    website: string
+    address: string
+    instagram: string
+    youtube: string
+    linkedin: string
+    facebook: string
+    h1: string
+    meta_description: string
+}
+
+export interface ExtraInformationDraft {
+    values: Partial<ExtraInformationDraftValues>
+    logoPreview: string | null
+    bannerPreview: string | null
+}
+
 interface CreateStoreContextType {
     hojraInfo: HojraInfo
     setHojraInfo: (info: HojraInfo) => void
@@ -69,6 +92,10 @@ interface CreateStoreContextType {
         assignmentId: number,
         weeklySchedule: DaySchedule[],
     ) => void
+
+    extraInformationDraft: ExtraInformationDraft
+    setExtraInformationDraft: (draft: ExtraInformationDraft) => void
+    updateExtraInformationDraft: (draft: Partial<ExtraInformationDraft>) => void
 }
 
 const CreateStoreContext = createContext<CreateStoreContextType | null>(null)
@@ -85,11 +112,15 @@ export const CreateStoreProvider = ({
     initialHojraInfo,
     initialNewHojraData,
     initialServices,
+    initialTeamMembers,
+    initialAssignments,
 }: {
     children: ReactNode
     initialHojraInfo?: Partial<HojraInfo>
     initialNewHojraData?: Partial<NewHojraData>
     initialServices?: ServiceItem[]
+    initialTeamMembers?: TeamMember[]
+    initialAssignments?: ServiceAssignment[]
 }) => {
     const [hojraInfo, setHojraInfo] = useState<HojraInfo>({
         title: initialHojraInfo?.title ?? '',
@@ -103,8 +134,18 @@ export const CreateStoreProvider = ({
     })
 
     const [services, setServices] = useState<ServiceItem[]>(initialServices ?? [])
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
-    const [assignments, setAssignments] = useState<ServiceAssignment[]>([])
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>(
+        initialTeamMembers ?? [],
+    )
+    const [assignments, setAssignments] = useState<ServiceAssignment[]>(
+        initialAssignments ?? [],
+    )
+    const [extraInformationDraft, setExtraInformationDraft] =
+        useState<ExtraInformationDraft>({
+            values: {},
+            logoPreview: null,
+            bannerPreview: null,
+        })
 
     const addService = (service: ServiceItem) => {
         setServices((prev) => [...prev, service])
@@ -145,6 +186,17 @@ export const CreateStoreProvider = ({
         )
     }
 
+    const updateExtraInformationDraft = (draft: Partial<ExtraInformationDraft>) => {
+        setExtraInformationDraft((prev) => ({
+            ...prev,
+            ...draft,
+            values: {
+                ...(prev.values ?? {}),
+                ...(draft.values ?? {}),
+            },
+        }))
+    }
+
     return (
         <CreateStoreContext.Provider
             value={{
@@ -165,6 +217,9 @@ export const CreateStoreProvider = ({
                 addAssignment,
                 removeAssignment,
                 updateAssignmentSchedule,
+                extraInformationDraft,
+                setExtraInformationDraft,
+                updateExtraInformationDraft,
             }}
         >
             {children}

@@ -13,6 +13,7 @@ import {
     MyAgencyDetails,
     MyAgencyMediaResponse,
     MyAgencyService,
+    TeamMemberApiResponse,
     RequestMyAgencyGallery,
     Services,
     UpdateAgencyRequest,
@@ -78,21 +79,21 @@ export async function apiUpdateMyAgency(
         message?: string
     }>({
         url: `${endpointConfig.createNewAgency}/${encodeURIComponent(agencySlug)}`,
-        method: 'put',
+        method: 'post',
         data,
     })
 }
 
 export async function apiUpdateInfoMyAgency(
     agencySlug: string,
-    data: Partial<UpdateAgencyRequest>,
+    data: Partial<UpdateAgencyRequest> | FormData,
 ) {
     return ApiService.fetchDataWithAxios<{
         success: boolean
         message?: string
     }>({
         url: `${endpointConfig.createNewAgency}/${encodeURIComponent(agencySlug)}`,
-        method: 'put',
+        method: 'post',
         data,
     })
 }
@@ -121,6 +122,44 @@ export async function apiCreateMemberAgency(
     })
 }
 
+export async function apiGetServiceMembers(agencyServiceId: number) {
+    return ApiService.fetchDataWithAxios<{ data: TeamMemberApiResponse[] }>({
+        url: `/my-services/${agencyServiceId}/members`,
+    })
+}
+
+export async function apiUpdateServiceMember(
+    agencyServiceId: number,
+    memberId: number,
+    data: Partial<{
+        name: string
+        position: string
+        image: File
+    }>,
+) {
+    const formData = new FormData()
+    if (typeof data.name === 'string') formData.append('name', data.name)
+    if (typeof data.position === 'string')
+        formData.append('position', data.position)
+    if (data.image instanceof File) formData.append('image', data.image)
+
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `/my-services/${agencyServiceId}/members/${memberId}`,
+        method: 'put',
+        data: formData,
+    })
+}
+
+export async function apiDeleteServiceMember(
+    agencyServiceId: number,
+    memberId: number,
+) {
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `/my-services/${agencyServiceId}/members/${memberId}`,
+        method: 'delete',
+    })
+}
+
 export async function apiMemberWorkingHours(
     data: MemberWorkingHoursRequest,
     member_id: number,
@@ -143,6 +182,12 @@ export async function AddGalleryItemMyAgencies(data: RequestMyAgencyGallery | Fo
         url: endpointConfig.getGallery,
         method: 'post',
         data,
+    })
+}
+
+export async function apiGetMemberWorkingHours(member_id: number) {
+    return ApiService.fetchDataWithAxios<MemberWorkingHoursResponse>({
+        url: `/my-service-members/${member_id}/working-hours`,
     })
 }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useCreateStore, type DaySchedule } from '@/context/CreateStoreContext'
+import { useCreateStore, type DaySchedule } from '@/context/createStoreContext'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -7,9 +7,14 @@ import Select from '@/components/ui/Select'
 import { FormItem } from '@/components/ui/Form'
 import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
-import { HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi'
+import { HiOutlinePlus, HiOutlineTrash, HiOutlinePencil } from 'react-icons/hi'
 import Switcher from '@/components/ui/Switcher'
-import { apiCreateMemberAgency } from '@/services/CenterService'
+import {
+    apiCreateMemberAgency,
+    apiDeleteServiceMember,
+    apiMemberWorkingHours,
+    apiUpdateServiceMember,
+} from '@/services/CenterService'
 
 type SelectOption = { value: number; label: string }
 
@@ -40,12 +45,13 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         services,
         teamMembers,
         assignments,
+        setTeamMembers,
+        setAssignments,
         addTeamMember,
         removeTeamMember,
         addAssignment,
         removeAssignment,
         updateAssignmentSchedule,
-        newHojraData,
     } = useCreateStore()
 
     const [showNewMemberForm, setShowNewMemberForm] = useState(false)
@@ -59,6 +65,125 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
     const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
     const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null)
     const [editingScheduleForAssignment, setEditingScheduleForAssignment] = useState<number | null>(null)
+    const [isSavingSchedules, setIsSavingSchedules] = useState(false)
+    const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(null)
+
+    const [editingMemberId, setEditingMemberId] = useState<number | null>(null)
+    const [editMemberName, setEditMemberName] = useState('')
+    const [editMemberPosition, setEditMemberPosition] = useState('')
+    const [editMemberImageFile, setEditMemberImageFile] = useState<File | null>(null)
+    const [editMemberImagePreview, setEditMemberImagePreview] = useState<string | null>(null)
+    const [isUpdatingMember, setIsUpdatingMember] = useState(false)
+
+    const getMemberAgencyServiceId = (memberId: number): number | null => {
+        const assignment = assignments.find((a) => a.memberId === memberId)
+        return assignment ? assignment.serviceId : null
+    }
+
+    const handleDeleteMember = async (memberId: number) => {
+        const agencyServiceId = getMemberAgencyServiceId(memberId)
+        if (!agencyServiceId) {
+            removeTeamMember(memberId)
+            return
+        }
+
+        setIsDeletingMemberId(memberId)
+        try {
+            await apiDeleteServiceMember(agencyServiceId, memberId)
+            removeTeamMember(memberId)
+            toast.push(
+                <Notification type="success" title="ظ†ط¬ط§ط­">
+                    طھظ… ط­ط°ظپ ط¹ط¶ظˆ ط§ظ„ظپط±ظٹظ‚
+                </Notification>,
+            )
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : null
+            toast.push(
+                <Notification type="danger" title="خطأ">
+                    {message || 'فشل حذف العضو'}
+                </Notification>,
+            )
+        } finally {
+            setIsDeletingMemberId(null)
+        }
+    }
+
+    const beginEditMember = (memberId: number) => {
+        const member = teamMembers.find((m) => m.id === memberId)
+        if (!member) return
+
+        setEditingMemberId(memberId)
+        setEditMemberName(member.name ?? '')
+        setEditMemberPosition(member.position ?? '')
+        setEditMemberImageFile(null)
+        setEditMemberImagePreview(member.image ?? null)
+    }
+
+    const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setEditMemberImageFile(file)
+        const reader = new FileReader()
+        reader.onloadend = () => setEditMemberImagePreview(reader.result as string)
+        reader.readAsDataURL(file)
+    }
+
+    const saveMemberEdits = async () => {
+        if (!editingMemberId) return
+        const agencyServiceId = getMemberAgencyServiceId(editingMemberId)
+        if (!agencyServiceId) return
+
+        const payload: { name?: string; position?: string; image?: File } = {}
+        if (editMemberName.trim()) payload.name = editMemberName.trim()
+        payload.position = editMemberPosition
+        if (editMemberImageFile) payload.image = editMemberImageFile
+
+        setIsUpdatingMember(true)
+        try {
+            await apiUpdateServiceMember(agencyServiceId, editingMemberId, payload)
+
+            setTeamMembers((prev) =>
+                prev.map((m) =>
+                    m.id === editingMemberId
+                        ? {
+                              ...m,
+                              name: payload.name ?? m.name,
+                              position:
+                                  typeof payload.position === 'string'
+                                      ? payload.position
+                                      : m.position,
+                              image: editMemberImagePreview ?? m.image,
+                          }
+                        : m,
+                ),
+            )
+
+            setAssignments((prev) =>
+                prev.map((a) =>
+                    a.memberId === editingMemberId
+                        ? { ...a, memberName: payload.name ?? a.memberName }
+                        : a,
+                ),
+            )
+
+            toast.push(
+                <Notification type="success" title="نجاح">
+                    تم تحديث العضو بنجاح
+                </Notification>,
+            )
+            setEditingMemberId(null)
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : null
+            toast.push(
+                <Notification type="danger" title="خطأ">
+                    {message || 'فشل تحديث العضو'}
+                </Notification>,
+            )
+        } finally {
+            setIsUpdatingMember(false)
+        }
+    }
 
     const timeOptions = generateTimeOptions()
 
@@ -229,17 +354,180 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         updateAssignmentSchedule(assignmentId, updatedSchedule)
     }
 
+    const dayOfWeekFromKey = (day: DaySchedule['day']): number => {
+        switch (day) {
+            case 'saturday':
+                return 0
+            case 'sunday':
+                return 1
+            case 'monday':
+                return 2
+            case 'tuesday':
+                return 3
+            case 'wednesday':
+                return 4
+            case 'thursday':
+                return 5
+            case 'friday':
+                return 6
+        }
+    }
+
+    const mergeMemberSchedules = (): Map<number, DaySchedule[]> => {
+        const byMember = new Map<number, DaySchedule[]>()
+
+        for (const assignment of assignments) {
+            const current = byMember.get(assignment.memberId) ?? [...WEEK_DAYS]
+            const next = current.map((d) => ({ ...d }))
+            const incoming = assignment.weeklySchedule ?? []
+
+            for (const inc of incoming) {
+                const idx = next.findIndex((d) => d.day === inc.day)
+                if (idx === -1) continue
+                if (!inc.isOpen) continue
+
+                const existing = next[idx]
+                next[idx] = {
+                    ...existing,
+                    isOpen: true,
+                    startTime: existing.isOpen
+                        ? inc.startTime < existing.startTime
+                            ? inc.startTime
+                            : existing.startTime
+                        : inc.startTime,
+                    endTime: existing.isOpen
+                        ? inc.endTime > existing.endTime
+                            ? inc.endTime
+                            : existing.endTime
+                        : inc.endTime,
+                }
+            }
+
+            byMember.set(assignment.memberId, next)
+        }
+
+        return byMember
+    }
+
+    const persistSchedules = async () => {
+        const schedulesByMember = mergeMemberSchedules()
+
+        const requests = Array.from(schedulesByMember.entries()).map(
+            async ([memberId, weeklySchedule]) => {
+                const days = weeklySchedule.map((d) => {
+                    if (!d.isOpen) {
+                        return {
+                            day_of_week: dayOfWeekFromKey(d.day),
+                            is_closed: true,
+                            slots: [],
+                        }
+                    }
+
+                    return {
+                        day_of_week: dayOfWeekFromKey(d.day),
+                        is_closed: false,
+                        slots: [
+                            {
+                                start: d.startTime,
+                                end: d.endTime,
+                                is_active: true,
+                            },
+                        ],
+                    }
+                })
+
+                await apiMemberWorkingHours({ days }, memberId)
+            },
+        )
+
+        await Promise.all(requests)
+    }
+
     const hasAnySchedule = assignments.some((a) => a.weeklySchedule.some((day) => day.isOpen))
 
-    const handleNext = () => {
-        if (hasAnySchedule) {
-            changeState(4)
+    const handleNext = async () => {
+        if (!hasAnySchedule) {
+            changeState(6)
         } else {
             toast.push(
                 <Notification type="warning" title="تحذير">
                     الرجاء تحديد جدول زمني واحد على الأقل
                 </Notification>,
             )
+        }
+    }
+
+    const handleNextFixed = async () => {
+        if (!hasAnySchedule) {
+            toast.push(
+                <Notification type="warning" title="طھط­ط°ظٹط±">
+                    ط§ظ„ط±ط¬ط§ط، طھط­ط¯ظٹط¯ ط¬ط¯ظˆظ„ ط²ظ…ظ†ظٹ ظˆط§ط­ط¯ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„
+                </Notification>,
+            )
+            return
+        }
+
+        setIsSavingSchedules(true)
+        try {
+            await persistSchedules()
+            toast.push(
+                <Notification type="success" title="ظ†ط¬ط§ط­">
+                    طھظ… ط­ظپط¸ ط¬ط¯ظˆظ„ ط§ظ„ط¹ظ…ظ„ ط¨ظ†ط¬ط§ط­
+                </Notification>,
+            )
+            changeState(6)
+        } catch (err: unknown) {
+            const message = (() => {
+                if (err instanceof Error && err.message.trim()) return err.message
+                if (typeof err !== 'object' || err === null) return null
+                const response = (err as { response?: unknown }).response
+                if (typeof response !== 'object' || response === null) return null
+                const data = (response as { data?: unknown }).data
+                if (typeof data !== 'object' || data === null) return null
+                const apiMessage = (data as { message?: unknown }).message
+                return typeof apiMessage === 'string' && apiMessage.trim()
+                    ? apiMessage
+                    : null
+            })()
+
+            toast.push(
+                <Notification type="danger" title="خطأ">
+                    {message || 'فشل حفظ جدول العمل'}
+                </Notification>,
+            )
+        } finally {
+            setIsSavingSchedules(false)
+        }
+    }
+
+    const handleNextSafe = async () => {
+        if (!hasAnySchedule) {
+            toast.push(
+                <Notification type="warning" title="تحذير">
+                    الرجاء تحديد جدول زمني واحد على الأقل
+                </Notification>,
+            )
+            return
+        }
+
+        setIsSavingSchedules(true)
+        try {
+            await persistSchedules()
+            toast.push(
+                <Notification type="success" title="نجاح">
+                    تم حفظ جدول العمل بنجاح
+                </Notification>,
+            )
+            changeState(6)
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : null
+            toast.push(
+                <Notification type="danger" title="خطأ">
+                    {message || 'فشل حفظ جدول العمل'}
+                </Notification>,
+            )
+        } finally {
+            setIsSavingSchedules(false)
         }
     }
 
@@ -342,14 +630,71 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                                         <div className="text-sm text-gray-500">{member.position}</div>
                                     </div>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    variant="plain"
-                                    icon={<HiOutlineTrash />}
-                                    onClick={() => removeTeamMember(member.id)}
-                                />
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="plain"
+                                        icon={<HiOutlinePencil />}
+                                        onClick={() => beginEditMember(member.id)}
+                                        disabled={isDeletingMemberId === member.id}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        variant="plain"
+                                        icon={<HiOutlineTrash />}
+                                        loading={isDeletingMemberId === member.id}
+                                        onClick={() => handleDeleteMember(member.id)}
+                                        disabled={isUpdatingMember && editingMemberId === member.id}
+                                    />
+                                </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {editingMemberId && (
+                    <div className="mt-6 p-4 border rounded-lg space-y-4">
+                        <h4 className="font-medium">تعديل العضو</h4>
+                        <FormItem label="اسم العضو">
+                            <Input
+                                value={editMemberName}
+                                onChange={(e) => setEditMemberName(e.target.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="المنصب">
+                            <Input
+                                value={editMemberPosition}
+                                onChange={(e) => setEditMemberPosition(e.target.value)}
+                            />
+                        </FormItem>
+                        <FormItem label="الصورة">
+                            <Input type="file" accept="image/*" onChange={handleEditImageUpload} />
+                            {editMemberImagePreview && (
+                                <img
+                                    src={editMemberImagePreview}
+                                    alt="معاينة"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
+                            )}
+                        </FormItem>
+                        <div className="flex gap-2">
+                            <Button variant="solid" onClick={saveMemberEdits} loading={isUpdatingMember}>
+                                حفظ التعديلات
+                            </Button>
+                            <Button
+                                variant="plain"
+                                onClick={() => {
+                                    setEditingMemberId(null)
+                                    setEditMemberName('')
+                                    setEditMemberPosition('')
+                                    setEditMemberImageFile(null)
+                                    setEditMemberImagePreview(null)
+                                }}
+                                disabled={isUpdatingMember}
+                            >
+                                إلغاء
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Card>
@@ -422,7 +767,7 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                                                 size="sm"
                                                 variant="plain"
                                                 icon={<HiOutlineTrash />}
-                                                onClick={() => removeAssignment(assignment.id)}
+                                                onClick={() => handleDeleteMember(assignment.memberId)}
                                             />
                                         </div>
                                     </div>
@@ -502,10 +847,10 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
             )}
 
             <div className="flex justify-between">
-                <Button variant="plain" onClick={() => changeState(2)}>
+                <Button variant="plain" onClick={() => changeState(4)}>
                     رجوع
                 </Button>
-                <Button variant="solid" onClick={handleNext}>
+                <Button variant="solid" onClick={handleNextSafe} loading={isSavingSchedules}>
                     المرحلة التالية
                 </Button>
             </div>

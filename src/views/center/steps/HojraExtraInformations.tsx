@@ -22,6 +22,7 @@ import {
     apiUpdateInfoMyAgency,
 } from '@/services/CenterService'
 import { Cities } from '@/@types/center'
+import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
 
 interface HojraExtraInformationsProps {
     changeState: (value: number) => void
@@ -51,7 +52,12 @@ export const HojraExtraInformations = ({
     changeState,
 }: HojraExtraInformationsProps) => {
     const { t } = useTranslation()
-    const { newHojraData } = useCreateStore()
+    const {
+        newHojraData,
+        extraInformationDraft,
+        updateExtraInformationDraft,
+        setExtraInformationDraft,
+    } = useCreateStore()
 
     const [loadingCities, setLoadingCities] = useState(true)
     const [cities, setCities] = useState<Cities[]>([])
@@ -61,6 +67,16 @@ export const HojraExtraInformations = ({
 
     const logoInputRef = useRef<HTMLInputElement | null>(null)
     const bannerInputRef = useRef<HTMLInputElement | null>(null)
+
+    const revokeIfBlobUrl = (url: string | null) => {
+        if (!url) return
+        if (!url.startsWith('blob:')) return
+        try {
+            URL.revokeObjectURL(url)
+        } catch {
+            // no-op
+        }
+    }
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         const response = (err as any)?.response
@@ -108,27 +124,82 @@ export const HojraExtraInformations = ({
 
     useEffect(() => {
         const fetchData = async () => {
+            const slug =
+                typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
+
+            if (!slug.trim()) {
+                setError('المركز غير متاح حالياً.')
+                setLoadingCities(false)
+                return
+            }
+
             try {
-                const agencyResp = await apiGetMyAgency(
-                    newHojraData.slug as string,
-                )
-                const agency = agencyResp.data
+                const hasDraft =
+                    Boolean(extraInformationDraft?.logoPreview) ||
+                    Boolean(extraInformationDraft?.bannerPreview) ||
+                    Boolean(
+                        extraInformationDraft?.values &&
+                            Object.keys(extraInformationDraft.values).length > 0,
+                    )
 
-                setLogoPreview(agency.logo || null)
-                setBannerPreview(agency.banner || null)
+                if (hasDraft) {
+                    const draftValues = extraInformationDraft?.values ?? {}
+                    Object.entries(draftValues).forEach(([key, value]) => {
+                        setValue(key as any, value as any, {
+                            shouldDirty: false,
+                            shouldTouch: false,
+                            shouldValidate: false,
+                        })
+                    })
 
-                setValue('city_id', agency.city?.id)
-                setValue('latitude', agency.latitude || '')
-                setValue('longitude', agency.longitude || '')
-                setValue('address', agency.address || '')
-                setValue('facebook', agency.facebook || '')
-                setValue('instagram', agency.instagram || '')
-                setValue('linkedin', agency.linkedin || '')
-                setValue('phone', agency.phone || '')
-                setValue('website', agency.website || '')
-                setValue('youtube', agency.youtube || '')
-                setValue('h1', agency.h1 || '')
-                setValue('meta_description', agency.meta_description || '')
+                    setLogoPreview(extraInformationDraft.logoPreview ?? null)
+                    setBannerPreview(extraInformationDraft.bannerPreview ?? null)
+                }
+
+                if (!hasDraft) {
+                    const agencyResp = await apiGetMyAgency(slug)
+                    const agency = agencyResp.data
+
+                    setLogoPreview(agency.logo || null)
+                    setBannerPreview(agency.banner || null)
+
+                    setValue('city_id', agency.city?.id)
+                    setValue('latitude', agency.latitude || '')
+                    setValue('longitude', agency.longitude || '')
+                    setValue('address', htmlToPlainText(agency.address || ''))
+                    setValue('facebook', agency.facebook || '')
+                    setValue('instagram', agency.instagram || '')
+                    setValue('linkedin', agency.linkedin || '')
+                    setValue('phone', agency.phone || '')
+                    setValue('website', agency.website || '')
+                    setValue('youtube', agency.youtube || '')
+                    setValue('h1', htmlToPlainText(agency.h1 || ''))
+                    setValue(
+                        'meta_description',
+                        htmlToPlainText(agency.meta_description || ''),
+                    )
+
+                    updateExtraInformationDraft({
+                        logoPreview: agency.logo || null,
+                        bannerPreview: agency.banner || null,
+                        values: {
+                            city_id: agency.city?.id,
+                            latitude: agency.latitude || '',
+                            longitude: agency.longitude || '',
+                            address: htmlToPlainText(agency.address || ''),
+                            facebook: agency.facebook || '',
+                            instagram: agency.instagram || '',
+                            linkedin: agency.linkedin || '',
+                            phone: agency.phone || '',
+                            website: agency.website || '',
+                            youtube: agency.youtube || '',
+                            h1: htmlToPlainText(agency.h1 || ''),
+                            meta_description: htmlToPlainText(
+                                agency.meta_description || '',
+                            ),
+                        },
+                    })
+                }
             } catch (err) {
                 setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
             }
@@ -144,13 +215,33 @@ export const HojraExtraInformations = ({
         }
 
         fetchData()
-    }, [newHojraData.slug, setValue])
+        // Intentionally exclude `extraInformationDraft` to avoid overwriting
+        // in-progress form edits on every draft update.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newHojraData.slug, setValue, updateExtraInformationDraft])
+
+    useEffect(() => {
+        const subscription = watch((values) => {
+            updateExtraInformationDraft({
+                values: values as any,
+            })
+        })
+
+        return () => subscription.unsubscribe()
+    }, [updateExtraInformationDraft, watch])
 
     const lat = watch('latitude')
     const lng = watch('longitude')
 
     const onSubmit = async (values: FormValues) => {
         try {
+            const slug =
+                typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
+
+            if (!slug.trim()) {
+                throw new Error('المركز غير متاح حالياً.')
+            }
+
             const formData = new FormData()
 
             Object.entries(values).forEach(([key, value]) => {
@@ -166,8 +257,8 @@ export const HojraExtraInformations = ({
             })
 
             const resp = await apiUpdateInfoMyAgency(
-                newHojraData.slug,
-                formData as any,
+                slug,
+                formData,
             )
 
             if (!resp?.success) {
@@ -179,6 +270,40 @@ export const HojraExtraInformations = ({
                     تم تحديث المعلومات بنجاح
                 </Notification>,
             )
+
+            updateExtraInformationDraft({
+                values: {
+                    ...(values as any),
+                },
+            })
+
+            const agencyResp = await apiGetMyAgency(slug)
+            const agency = agencyResp.data
+
+            revokeIfBlobUrl(logoPreview)
+            revokeIfBlobUrl(bannerPreview)
+
+            const nextLogoPreview = agency.logo || null
+            const nextBannerPreview = agency.banner || null
+
+            setLogoPreview(nextLogoPreview)
+            setBannerPreview(nextBannerPreview)
+
+            setValue('logo', null, { shouldDirty: false })
+            setValue('banner', null, { shouldDirty: false })
+
+            if (logoInputRef.current) logoInputRef.current.value = ''
+            if (bannerInputRef.current) bannerInputRef.current.value = ''
+
+            setExtraInformationDraft({
+                values: {
+                    ...(values as any),
+                    logo: null,
+                    banner: null,
+                },
+                logoPreview: nextLogoPreview,
+                bannerPreview: nextBannerPreview,
+            })
 
             changeState(3)
         } catch (err: any) {
@@ -241,9 +366,13 @@ export const HojraExtraInformations = ({
                                             const file = e.target.files?.[0]
                                             if (!file) return
                                             field.onChange(file)
-                                            setLogoPreview(
-                                                URL.createObjectURL(file),
-                                            )
+                                            const nextPreview =
+                                                URL.createObjectURL(file)
+                                            revokeIfBlobUrl(logoPreview)
+                                            setLogoPreview(nextPreview)
+                                            updateExtraInformationDraft({
+                                                logoPreview: nextPreview,
+                                            })
                                         }}
                                     />
 
@@ -267,8 +396,12 @@ export const HojraExtraInformations = ({
                                                 variant="plain"
                                                 type="button"
                                                 onClick={() => {
+                                                    revokeIfBlobUrl(logoPreview)
                                                     setLogoPreview(null)
                                                     field.onChange(null)
+                                                    updateExtraInformationDraft({
+                                                        logoPreview: null,
+                                                    })
                                                     if (logoInputRef.current) {
                                                         logoInputRef.current.value =
                                                             ''
@@ -312,9 +445,13 @@ export const HojraExtraInformations = ({
                                             const file = e.target.files?.[0]
                                             if (!file) return
                                             field.onChange(file)
-                                            setBannerPreview(
-                                                URL.createObjectURL(file),
-                                            )
+                                            const nextPreview =
+                                                URL.createObjectURL(file)
+                                            revokeIfBlobUrl(bannerPreview)
+                                            setBannerPreview(nextPreview)
+                                            updateExtraInformationDraft({
+                                                bannerPreview: nextPreview,
+                                            })
                                         }}
                                     />
 
@@ -338,8 +475,12 @@ export const HojraExtraInformations = ({
                                                 variant="plain"
                                                 type="button"
                                                 onClick={() => {
+                                                    revokeIfBlobUrl(bannerPreview)
                                                     setBannerPreview(null)
                                                     field.onChange(null)
+                                                    updateExtraInformationDraft({
+                                                        bannerPreview: null,
+                                                    })
                                                     if (
                                                         bannerInputRef.current
                                                     ) {
