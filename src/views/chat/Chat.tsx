@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMessage, ChatThread, ChatThreadScope } from '@/@types/chat'
 import {
     apiGetThreadMessages,
+    apiGetOrCreateThread,
     apiListChatThreads,
     apiMarkThreadRead,
     apiSendThreadMessage,
 } from '@/services/ChatService'
+import { useSearchParams } from 'react-router'
 
 const { TabList, TabNav, TabContent } = Tabs
 
@@ -32,8 +34,10 @@ export default function Chat() {
 
     const [scope, setScope] = useState<ChatThreadScope>('upcoming')
     const [threads, setThreads] = useState<ChatThread[]>([])
+    const [pinnedThread, setPinnedThread] = useState<ChatThread | null>(null)
     const [threadsLoading, setThreadsLoading] = useState(false)
     const [threadsError, setThreadsError] = useState<string | null>(null)
+    const [searchParams] = useSearchParams()
 
     const [selectedThreadId, setSelectedThreadId] = useState<number | null>(null)
     const selectedThread = useMemo(() => {
@@ -53,10 +57,17 @@ export default function Chat() {
         setThreadsError(null)
         try {
             const resp = await apiListChatThreads({ scope: nextScope })
-            setThreads(resp?.data ?? [])
-            const first = resp?.data?.[0]
+            const fromApi = resp?.data ?? []
+            const merged = pinnedThread
+                ? [
+                      pinnedThread,
+                      ...fromApi.filter((t) => t.id !== pinnedThread.id),
+                  ]
+                : fromApi
+            setThreads(merged)
+            const first = merged[0]
             setSelectedThreadId((prev) => {
-                if (prev && resp?.data?.some((t) => t.id === prev)) return prev
+                if (prev && merged.some((t) => t.id === prev)) return prev
                 return first?.id ?? null
             })
         } catch {
@@ -134,6 +145,31 @@ export default function Chat() {
         void fetchThreads(scope)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scope])
+
+    useEffect(() => {
+        const raw = searchParams.get('reservation_id')?.trim() ?? ''
+        const reservationId = raw && /^\d+$/.test(raw) ? Number(raw) : null
+        if (!reservationId) return
+
+        setScope('all')
+        ;(async () => {
+            try {
+                const resp = await apiGetOrCreateThread(reservationId)
+                const thread = resp?.data
+                if (!thread) return
+
+                setPinnedThread(thread)
+                setThreads((prev) => [
+                    thread,
+                    ...prev.filter((t) => t.id !== thread.id),
+                ])
+                setSelectedThreadId(thread.id)
+            } catch {
+                // ignore deep-link failures
+            }
+        })()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams])
 
     useEffect(() => {
         if (pollTimerRef.current) {
@@ -431,4 +467,3 @@ export default function Chat() {
         </Card>
     )
 }
-

@@ -13,7 +13,7 @@ const endpointConfig = {
     getMyAgencies: '/my-agencies',
     getServices: '/get/services',
     createNewAgency: '/my-agencies',
-    getMyBooking: '/my-reservations',
+    getMyAgencyBookings: '/my-agencies/reservations',
     getCities: '/get/cities',
     getGallery: '/my-agency-gallery',
 }

@@ -28,6 +28,14 @@ export async function apiListChatThreads(params: {
     })
 }
 
+export async function apiGetOrCreateThread(reservationId: number) {
+    return ApiService.fetchDataWithAxios<{ data: ChatThread }>({
+        url: `/chat/threads`,
+        method: 'post',
+        data: { reservation_id: reservationId },
+    })
+}
+
 export async function apiGetThreadMessages(params: {
     threadId: number
     limit?: number
@@ -61,4 +69,3 @@ export async function apiMarkThreadRead(threadId: number, messageId: number) {
         data: { message_id: messageId },
     })
 }
-

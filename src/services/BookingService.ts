@@ -6,7 +6,14 @@ export async function getAgencyBookings(agencySlug?: string) {
     return ApiService.fetchDataWithAxios<{ data: Booking[] }>({
         url: agencySlug
             ? `/my-agencies/${encodeURIComponent(agencySlug)}/reservations`
-            : endpointConfig.getMyBooking,
+            : endpointConfig.getMyAgencyBookings,
+        method: 'get',
+    })
+}
+
+export async function getMyBookings() {
+    return ApiService.fetchDataWithAxios<{ data: Booking[] }>({
+        url: '/my-reservations/list',
         method: 'get',
     })
 }

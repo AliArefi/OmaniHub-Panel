@@ -1,6 +1,7 @@
-import { Dialog } from '@/components/ui'
 import type { Booking } from '@/@types/booking'
-import { HiX, HiUser, HiCalendar, HiOfficeBuilding } from 'react-icons/hi'
+import { Button, Dialog } from '@/components/ui'
+import { HiCalendar, HiOfficeBuilding, HiUser, HiX } from 'react-icons/hi'
+import { useNavigate } from 'react-router'
 
 interface BookingDetailsModalProps {
     isOpen: boolean
@@ -13,9 +14,12 @@ export default function BookingDetailsModal({
     onClose,
     booking,
 }: BookingDetailsModalProps) {
+    const navigate = useNavigate()
+    const chatAvailable = Boolean(booking.customer.user?.id)
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
-        return new Intl.DateTimeFormat('ar-SA', {
+        return new Intl.DateTimeFormat('ar-OM', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -29,7 +33,10 @@ export default function BookingDetailsModal({
                 onClick={onClose}
             />
 
-            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-[10000] max-w-2xl w-full mx-4">
+            <div
+                className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-[10000] max-w-2xl w-full mx-4"
+                dir="rtl"
+            >
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                         تفاصيل الحجز
@@ -37,6 +44,7 @@ export default function BookingDetailsModal({
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                        aria-label="إغلاق"
                     >
                         <HiX className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                     </button>
@@ -47,7 +55,7 @@ export default function BookingDetailsModal({
                         <div className="flex items-center gap-2 mb-3">
                             <HiUser className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                معلومات العميل
+                                بيانات العميل
                             </h4>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-2">
@@ -61,16 +69,19 @@ export default function BookingDetailsModal({
                             </div>
                             <div className="flex justify-between gap-6">
                                 <span className="text-gray-600 dark:text-gray-400">
-                                    الهاتف:
+                                    رقم الهاتف:
                                 </span>
-                                <span className="font-medium text-gray-900 dark:text-white" dir="ltr">
+                                <span
+                                    className="font-medium text-gray-900 dark:text-white"
+                                    dir="ltr"
+                                >
                                     {booking.customer.mobile || '-'}
                                 </span>
                             </div>
                             {booking.customer.user?.email ? (
                                 <div className="flex justify-between gap-6">
                                     <span className="text-gray-600 dark:text-gray-400">
-                                        البريد:
+                                        البريد الإلكتروني:
                                     </span>
                                     <span className="font-medium text-gray-900 dark:text-white">
                                         {booking.customer.user.email}
@@ -149,8 +160,27 @@ export default function BookingDetailsModal({
                             </div>
                         </div>
                     </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                        <Button
+                            variant="solid"
+                            disabled={!chatAvailable}
+                            onClick={() => {
+                                navigate(`/chat?reservation_id=${booking.id}`)
+                                onClose()
+                            }}
+                        >
+                            المحادثة
+                        </Button>
+                        {!chatAvailable ? (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                الدردشة غير متاحة للحجوزات بدون حساب.
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </Dialog>
     )
 }
+
