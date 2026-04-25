@@ -24,16 +24,28 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "22.12.0"
+          node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Show Node/npm versions
+        shell: bash
         run: |
-          time npm ci --no-audit --no-fund --prefer-offline --loglevel=notice
+          set -euo pipefail
+          node -v
+          npm -v
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --loglevel=notice
 
       - name: Build
-        run: npm run build
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build
 
       - name: Detect build output directory
         id: out
