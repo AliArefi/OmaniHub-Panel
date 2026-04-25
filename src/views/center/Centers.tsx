@@ -108,6 +108,11 @@ export default function Centers() {
                                 <Td>{agency.status}</Td>
                                 <Td>
                                     <div className="flex items-center justify-end gap-2">
+                                        <Link to={`/centers/${agency.slug}/reservations`}>
+                                            <Button size="xs" variant="plain" className='bg-blue-400 text-white'>
+                                                {t('reservations') || 'Reservations'}
+                                            </Button>
+                                        </Link>
                                         <Link to={`/centers/${agency.slug}/edit`}>
                                             <Button size="xs" variant="solid">
                                                 {t('edit') || 'Edit'}
@@ -125,9 +130,11 @@ export default function Centers() {
                                                 </Button>
                                             </a>
                                         )}
+                                        
                                         <Button
                                             size="xs"
                                             variant="default"
+                                            className='text-red-500'
                                             loading={deletingSlug === agency.slug}
                                             onClick={() => setConfirmDeleteSlug(agency.slug)}
                                         >
