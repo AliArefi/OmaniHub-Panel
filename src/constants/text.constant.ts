@@ -1,7 +1,7 @@
 export const TEXT_CONSTANT = {
     loading: {
         EN: 'Loading',
-        AR: 'جاري تحميل المعلومات',
+        AR: 'جارٍ تحميل المعلومات',
     },
     businessAnalyticsTitle: {
         EN: 'Business Analytics',
@@ -113,11 +113,11 @@ export const TEXT_CONSTANT = {
     },
     myAgenciesHojra: {
         EN: 'Center',
-        AR: 'اسم الغرفة',
+        AR: 'المركز',
     },
     status: {
         EN: 'Status',
-        AR: 'حالة',
+        AR: 'الحالة',
     },
     operation: {
         EN: 'Operation',
@@ -134,3 +134,4 @@ export const TEXT_CONSTANT = {
 } as const
 
 export type Language = keyof typeof TEXT_CONSTANT.loading
+

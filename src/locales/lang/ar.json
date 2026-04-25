@@ -1,0 +1,72 @@
+{
+  "center": {
+    "wizard": {
+      "back": "رجوع",
+      "next": "التالي",
+      "finish": "إنهاء"
+    },
+    "members": {
+      "title": "أعضاء الفريق",
+      "add": "إضافة عضو",
+      "save": "حفظ العضو",
+      "cancel": "إلغاء",
+      "name": "اسم العضو",
+      "position": "المنصب",
+      "image": "الصورة",
+      "service": "الخدمة",
+      "editTitle": "تعديل العضو",
+      "saveChanges": "حفظ التعديلات"
+    },
+    "assignments": {
+      "title": "تخصيص الخدمات للأعضاء",
+      "assign": "تخصيص",
+      "member": "العضو",
+      "service": "الخدمة",
+      "listTitle": "التخصيصات",
+      "editSchedule": "ضبط الجدول",
+      "closeSchedule": "إغلاق الجدول",
+      "weeklySchedule": "الجدول الأسبوعي",
+      "to": "إلى"
+    },
+    "gallery": {
+      "title": "المعرض",
+      "alt": "النص البديل (ALT)",
+      "altPlaceholder": "مثال: الاستقبال",
+      "image": "الصورة",
+      "uploading": "جارٍ الرفع...",
+      "addToGallery": "إضافة للمعرض",
+      "loading": "جارٍ التحميل...",
+      "noImages": "لا توجد صور بعد",
+      "delete": "حذف",
+      "imageUploaded": "تم رفع الصورة",
+      "imageDeleted": "تم حذف الصورة"
+    },
+    "validation": {
+      "enterMemberName": "يرجى إدخال اسم العضو",
+      "selectService": "يرجى اختيار الخدمة",
+      "selectImage": "يرجى اختيار صورة",
+      "selectMemberAndService": "يرجى اختيار العضو والخدمة",
+      "alreadyAssigned": "هذا العضو مخصص لهذه الخدمة مسبقًا",
+      "memberNameRequired": "اسم العضو مطلوب",
+      "enableWorkingDay": "يرجى تفعيل يوم عمل واحد على الأقل"
+    },
+    "errors": {
+      "centerSlugMissing": "معرّف المركز (slug) غير موجود",
+      "centerIdMissing": "معرّف المركز غير موجود",
+      "uploadFailed": "فشل الرفع",
+      "deleteFailed": "فشل الحذف",
+      "createMemberFailed": "فشل إنشاء العضو",
+      "updateMemberFailed": "فشل تحديث العضو",
+      "deleteMemberFailed": "فشل حذف العضو",
+      "saveSchedulesFailed": "فشل حفظ الجدول"
+    },
+    "success": {
+      "memberCreated": "تم إنشاء العضو",
+      "memberUpdated": "تم تحديث العضو",
+      "memberDeleted": "تم حذف العضو",
+      "serviceAssigned": "تم تخصيص الخدمة",
+      "schedulesSaved": "تم حفظ الجدول"
+    }
+  }
+}
+

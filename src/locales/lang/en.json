@@ -16,5 +16,74 @@
                 "item2": "Group collapse menu item 2"
             }
         }
+    },
+    "center": {
+        "wizard": {
+            "back": "Back",
+            "next": "Next",
+            "finish": "Finish"
+        },
+        "members": {
+            "title": "Team members",
+            "add": "Add member",
+            "save": "Save member",
+            "cancel": "Cancel",
+            "name": "Member name",
+            "position": "Position",
+            "image": "Image",
+            "service": "Service",
+            "editTitle": "Edit member",
+            "saveChanges": "Save changes"
+        },
+        "assignments": {
+            "title": "Assign services to members",
+            "assign": "Assign",
+            "member": "Member",
+            "service": "Service",
+            "listTitle": "Assignments",
+            "editSchedule": "Edit schedule",
+            "closeSchedule": "Close schedule",
+            "weeklySchedule": "Weekly schedule",
+            "to": "to"
+        },
+        "gallery": {
+            "title": "Gallery",
+            "alt": "Alt text (ALT)",
+            "altPlaceholder": "Example: Front desk",
+            "image": "Image",
+            "uploading": "Uploading...",
+            "addToGallery": "Add to gallery",
+            "loading": "Loading...",
+            "noImages": "No images yet.",
+            "delete": "Delete",
+            "imageUploaded": "Image uploaded.",
+            "imageDeleted": "Image deleted."
+        },
+        "validation": {
+            "enterMemberName": "Please enter a member name.",
+            "selectService": "Please select a service.",
+            "selectImage": "Please select an image.",
+            "selectMemberAndService": "Select a member and a service.",
+            "alreadyAssigned": "This member is already assigned to this service.",
+            "memberNameRequired": "Member name is required.",
+            "enableWorkingDay": "Please enable at least one working day."
+        },
+        "errors": {
+            "centerSlugMissing": "Center slug is missing.",
+            "centerIdMissing": "Center id is missing.",
+            "uploadFailed": "Upload failed.",
+            "deleteFailed": "Delete failed.",
+            "createMemberFailed": "Failed to create member.",
+            "updateMemberFailed": "Failed to update member.",
+            "deleteMemberFailed": "Failed to delete member.",
+            "saveSchedulesFailed": "Failed to save schedules."
+        },
+        "success": {
+            "memberCreated": "Member created.",
+            "memberUpdated": "Member updated.",
+            "memberDeleted": "Member deleted.",
+            "serviceAssigned": "Service assigned.",
+            "schedulesSaved": "Schedules saved."
+        }
     }
 }

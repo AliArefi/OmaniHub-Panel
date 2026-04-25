@@ -28,7 +28,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Pin npm
+      - name: Pin npm (stability fix)
         shell: bash
         run: |
           set -euo pipefail
@@ -36,14 +36,26 @@ jobs:
           node -v
           npm -v
 
-      - name: Install dependencies
+      - name: Install dependencies (force dev deps)
+        shell: bash
+        env:
+          NODE_ENV: development
+          NPM_CONFIG_PRODUCTION: "false"
+          NPM_CONFIG_OMIT: ""
+        run: |
+          set -euo pipefail
+          npm ci --include=dev --no-audit --no-fund --loglevel=notice
+
+      - name: Verify vite exists (fail early if broken)
         shell: bash
         run: |
           set -euo pipefail
-          npm ci --no-audit --no-fund --loglevel=notice
+          npx vite --version
 
       - name: Build
         shell: bash
+        env:
+          NODE_ENV: production
         run: |
           set -euo pipefail
           npm run build
@@ -76,7 +88,6 @@ jobs:
     needs: build
     environment: VPS_HOST
     runs-on: ubuntu-latest
-    permissions: {}
 
     steps:
       - name: Sanity check required secrets

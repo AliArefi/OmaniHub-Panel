@@ -5,7 +5,10 @@ import Td from '@/components/ui/Table/Td'
 import Th from '@/components/ui/Table/Th'
 import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
-import { getMyAgencies } from '@/services/CenterService'
+import Notification from '@/components/ui/Notification'
+import toast from '@/components/ui/toast'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import { apiDeleteMyAgency, getMyAgencies } from '@/services/CenterService'
 import { useTranslation } from '@/store/useTranslation'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
@@ -15,6 +18,8 @@ export default function Centers() {
     const [agencies, setAgencies] = useState<Agency[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [deletingSlug, setDeletingSlug] = useState<string | null>(null)
+    const [confirmDeleteSlug, setConfirmDeleteSlug] = useState<string | null>(null)
     const { t } = useTranslation()
 
     useEffect(() => {
@@ -44,6 +49,28 @@ export default function Centers() {
 
         fetchAgencies()
     }, [])
+
+    const handleDelete = async (slug: string) => {
+        setDeletingSlug(slug)
+        try {
+            const resp = await apiDeleteMyAgency(slug)
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'فشل حذف المركز')
+            }
+
+            setAgencies((prev) => prev.filter((a) => a.slug !== slug))
+            toast.push(
+                <Notification type="success">
+                    {resp?.message || 'تم حذف المركز بنجاح'}
+                </Notification>,
+            )
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'فشل حذف المركز'
+            toast.push(<Notification type="danger">{message}</Notification>)
+        } finally {
+            setDeletingSlug(null)
+        }
+    }
 
     if (loading)
         return (
@@ -86,16 +113,26 @@ export default function Centers() {
                                                 {t('edit') || 'Edit'}
                                             </Button>
                                         </Link>
-                                        <a
-                                            href={agency.url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="inline-flex"
+                                        {agency.status === 'published' && (
+                                            <a
+                                                href={`https://omanihub.com/${agency.slug}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex"
+                                            >
+                                                <Button size="xs" variant="default">
+                                                    {t('view') || 'View'}
+                                                </Button>
+                                            </a>
+                                        )}
+                                        <Button
+                                            size="xs"
+                                            variant="default"
+                                            loading={deletingSlug === agency.slug}
+                                            onClick={() => setConfirmDeleteSlug(agency.slug)}
                                         >
-                                            <Button size="xs" variant="default">
-                                                {t('view') || 'View'}
-                                            </Button>
-                                        </a>
+                                            حذف
+                                        </Button>
                                     </div>
                                 </Td>
                             </Tr>
@@ -104,6 +141,25 @@ export default function Centers() {
                 </Table>
 
             </Card>
+
+            <ConfirmDialog
+                type="danger"
+                isOpen={Boolean(confirmDeleteSlug)}
+                onClose={() => setConfirmDeleteSlug(null)}
+                title="تأكيد الحذف"
+                confirmText="حذف"
+                cancelText="إلغاء"
+                confirmButtonProps={{ loading: deletingSlug === confirmDeleteSlug }}
+                onCancel={() => setConfirmDeleteSlug(null)}
+                onConfirm={() => {
+                    if (!confirmDeleteSlug) return
+                    const slug = confirmDeleteSlug
+                    setConfirmDeleteSlug(null)
+                    handleDelete(slug)
+                }}
+            >
+                هل أنت متأكد من حذف هذا المركز؟ لا يمكن التراجع عن هذا الإجراء.
+            </ConfirmDialog>
         </>
     )
 }

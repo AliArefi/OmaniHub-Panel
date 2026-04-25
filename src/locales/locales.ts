@@ -1,11 +1,15 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import en from './lang/en.json'
+import ar from './lang/ar.json'
 import appConfig from '@/configs/app.config'
 
 const resources = {
     en: {
         translation: en,
+    },
+    ar: {
+        translation: ar,
     },
 }
 
@@ -22,6 +26,7 @@ export const dateLocales: {
     [key: string]: () => Promise<ILocale>
 } = {
     en: () => import('dayjs/locale/en'),
+    ar: () => import('dayjs/locale/ar'),
 }
 
 export default i18n

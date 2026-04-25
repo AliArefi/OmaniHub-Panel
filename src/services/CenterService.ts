@@ -33,6 +33,13 @@ export async function apiGetMyAgency(agencySlug: string) {
     })
 }
 
+export async function apiDeleteMyAgency(agencySlug: string) {
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `${endpointConfig.getMyAgencies}/${encodeURIComponent(agencySlug)}`,
+        method: 'delete',
+    })
+}
+
 export async function apiGetMyServices(params?: {
     agency_id?: number
     per_page?: number

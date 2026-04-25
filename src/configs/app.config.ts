@@ -34,7 +34,7 @@ const appConfig: AppConfig = {
         '',
     authenticatedEntryPath: '/home',
     unAuthenticatedEntryPath: '/sign-in',
-    locale: 'en',
+    locale: 'ar',
     accessTokenPersistStrategy: 'localStorage',
     enableMock: readBoolEnv(import.meta.env.VITE_ENABLE_MOCK, false),
     activeNavTranslation: false,
