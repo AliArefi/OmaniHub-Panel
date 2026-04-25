@@ -19,6 +19,33 @@ type AuthAction = {
     reset: () => void
 }
 
+const normalizeFlag = (value: unknown): boolean | undefined => {
+    if (typeof value === 'boolean') return value
+    if (typeof value === 'number') return value === 1
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase()
+        if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) return true
+        if (['0', 'false', 'no', 'n', 'off', ''].includes(normalized))
+            return false
+    }
+    return undefined
+}
+
+const normalizeUser = (payload: User): User => {
+    const hasActiveAgency = normalizeFlag(payload.has_active_agency)
+    const hasActiveStore = normalizeFlag(payload.has_active_store)
+
+    return {
+        ...payload,
+        ...(hasActiveAgency === undefined
+            ? null
+            : { has_active_agency: hasActiveAgency }),
+        ...(hasActiveStore === undefined
+            ? null
+            : { has_active_store: hasActiveStore }),
+    }
+}
+
 const initialState: AuthState = {
     session: {
         signedIn: false,
@@ -58,7 +85,7 @@ export const useSessionUser = create<AuthState & AuthAction>()(
                 set((state) => ({
                     user: {
                         ...state.user,
-                        ...payload,
+                        ...normalizeUser(payload),
                     },
                 })),
             reset: () => set(() => ({ ...initialState })),

@@ -10,6 +10,7 @@ import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { apiDeleteMyAgency, getMyAgencies } from '@/services/CenterService'
 import { useTranslation } from '@/store/useTranslation'
+import { resolveImageUrl } from '@/utils/imageUrl'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -101,7 +102,7 @@ export default function Centers() {
                             <Tr key={agency.id}>
                                 <Td>
                                     <div className="flex items-center justify-start gap-2">
-                                        <Avatar src={agency.logo} />
+                                        <Avatar src={resolveImageUrl(agency.logo)} />
                                         <div className="font-bold">{agency.title}</div>
                                     </div>
                                 </Td>

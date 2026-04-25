@@ -18,6 +18,7 @@ import { HiOutlineUser } from 'react-icons/hi'
 import { TbPlus } from 'react-icons/tb'
 import type { GetSettingsProfileResponse } from '../types'
 import { useSessionUser } from '@/store/authStore'
+import { resolveImageUrl } from '@/utils/imageUrl'
 
 type ProfileSchema = {
     name: string
@@ -150,7 +151,7 @@ const SettingsProfile = () => {
                                     size={90}
                                     className="border-4 border-white bg-gray-100 text-gray-300 shadow-lg"
                                     icon={<HiOutlineUser />}
-                                    src={field.value}
+                                    src={resolveImageUrl(field.value)}
                                 />
                                 <div className="flex items-center gap-2">
                                     <Upload

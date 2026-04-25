@@ -6,7 +6,7 @@ import { Link } from 'react-router'
 import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
-import appConfig from '@/configs/app.config'
+import { resolveImageUrl } from '@/utils/imageUrl'
 
 type DropdownList = {
     label: string
@@ -32,7 +32,7 @@ const _UserDropdown = () => {
     }
 
     const avatarProps = {
-        ...(avatar ? { src: appConfig.urlImage + avatar } : { icon: <PiUserDuotone /> }),
+        ...(avatar ? { src: resolveImageUrl(avatar) } : { icon: <PiUserDuotone /> }),
     }
 
     return (
