@@ -211,10 +211,19 @@ export default function Bookings() {
                                                 <Td>
                                                     <div className="flex items-center justify-start gap-3">
                                                         <Avatar
-                                                            src={'/img/avatars/thumb-1.jpg'}
+                                                            src={
+                                                                booking.agency?.logo?.thumb ||
+                                                                booking.agency?.logo?.original ||
+                                                                undefined
+                                                            }
                                                             alt={booking.agency?.title || 'agency'}
                                                             className="w-10 h-10"
-                                                        />
+                                                        >
+                                                            {(booking.agency?.title || 'A')
+                                                                .trim()
+                                                                .charAt(0)
+                                                                .toUpperCase()}
+                                                        </Avatar>
                                                         <div>
                                                             <div className="font-semibold text-gray-900 dark:text-gray-100">
                                                                 {booking.agency?.title || '-'}
@@ -296,19 +305,28 @@ export default function Bookings() {
                                                     <Td>
                                                         <div className="flex items-center justify-start gap-3">
                                                             <Avatar
-                                                                src={'/img/avatars/thumb-1.jpg'}
-                                                                alt={booking.customer.name || 'customer'}
+                                                                src={
+                                                                    booking.agency?.logo?.thumb ||
+                                                                    booking.agency?.logo?.original ||
+                                                                    undefined
+                                                                }
+                                                                alt={booking.agency?.title || 'agency'}
                                                                 className="w-10 h-10"
-                                                            />
+                                                            >
+                                                                {(booking.agency?.title || 'A')
+                                                                    .trim()
+                                                                    .charAt(0)
+                                                                    .toUpperCase()}
+                                                            </Avatar>
                                                             <div>
                                                                 <div className="font-semibold text-gray-900 dark:text-gray-100">
-                                                                    {booking.customer.name || '-'}
+                                                                    {booking.agency?.title || '-'}
                                                                 </div>
                                                                 <div
                                                                     className="text-xs text-gray-500 dark:text-gray-400"
                                                                     dir="ltr"
                                                                 >
-                                                                    {booking.customer.mobile || '-'}
+                                                                    {booking.agency?.slug || '-'}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -368,4 +386,3 @@ export default function Bookings() {
         </>
     )
 }
-

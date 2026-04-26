@@ -4,6 +4,10 @@ export interface Booking {
         id: number
         slug: string
         title: string
+        logo?: {
+            thumb?: string | null
+            original?: string | null
+        } | null
     } | null
     service: {
         id: number
@@ -20,6 +24,7 @@ export interface Booking {
             id: number
             name: string | null
             email: string | null
+            avatar?: string | null
         } | null
     }
     date: string
