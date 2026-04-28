@@ -40,6 +40,14 @@ const validationSchema = z.object({
         .refine((val) => stripHtml(val).length >= 8, {
             message: 'ط§ظ„ظ†طµ ظ‚طµظٹط±',
         }),
+    about_us: z
+        .string()
+        .refine((val) => stripHtml(val).length > 0, {
+            message: 'About us is required',
+        })
+        .refine((val) => stripHtml(val).length >= 8, {
+            message: 'Text is too short',
+        }),
 })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
@@ -99,6 +107,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             title: hojraInfo.title || '',
             service_id: hojraInfo.service_id || null,
             about_text: hojraInfo.about_text || '',
+            about_us: hojraInfo.about_us || '',
         },
         resolver: zodResolver(validationSchema),
     })
@@ -229,6 +238,27 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                     <RichTextEditor
                                         content={field.value || ''}
                                         invalid={Boolean(errors.about_text)}
+                                        onChange={(content) =>
+                                            field.onChange(content.html)
+                                        }
+                                    />
+                                )}
+                            />
+                        </FormItem>
+
+                        <FormItem
+                            label="معلومات عنّا"
+                            invalid={Boolean(errors.about_us)}
+                            errorMessage={errors.about_us?.message}
+                            className="mb-8"
+                        >
+                            <Controller
+                                name="about_us"
+                                control={control}
+                                render={({ field }) => (
+                                    <RichTextEditor
+                                        content={field.value || ''}
+                                        invalid={Boolean(errors.about_us)}
                                         onChange={(content) =>
                                             field.onChange(content.html)
                                         }
