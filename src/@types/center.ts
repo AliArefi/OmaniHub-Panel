@@ -22,6 +22,7 @@ export type CreateNewAgencyRequest = {
     title: string
     service_id: number | null
     about_text: string
+    about_us: string
 }
 
 export type CreateNewAgencyResponse = {
@@ -39,6 +40,7 @@ export type MyAgencyDetails = {
     logo: string | null
     banner: string | null
     about_text: string | null
+    about_us: string | null
     service: {
         id: number
         name: string
