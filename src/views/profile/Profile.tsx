@@ -19,7 +19,7 @@ const Profile = () => {
         <AdaptiveCard className="h-full">
             <div className="flex flex-auto h-full">
                 {larger.lg && (
-                    <div className="'w-[200px] xl:w-[280px]">
+                    <div className="w-[200px] xl:w-[280px]">
                         <SettingsMenu />
                     </div>
                 )}

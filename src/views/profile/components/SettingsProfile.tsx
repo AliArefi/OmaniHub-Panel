@@ -1,108 +1,82 @@
-import { useMemo, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import Upload from '@/components/ui/Upload'
 import Input from '@/components/ui/Input'
-import Select, { Option as DefaultOption } from '@/components/ui/Select'
 import Avatar from '@/components/ui/Avatar'
 import { Form, FormItem } from '@/components/ui/Form'
-import NumericInput from '@/components/shared/NumericInput'
-import { countryList } from '@/constants/countries.constant'
-import { components } from 'react-select'
-import type { ControlProps, OptionProps } from 'react-select'
-import sleep from '@/utils/sleep'
-import useSWR from 'swr'
+import Notification from '@/components/ui/Notification'
+import toast from '@/components/ui/toast'
+import axios from 'axios'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
 import { HiOutlineUser } from 'react-icons/hi'
 import { TbPlus } from 'react-icons/tb'
-import type { GetSettingsProfileResponse } from '../types'
 import { useSessionUser } from '@/store/authStore'
 import { resolveImageUrl } from '@/utils/imageUrl'
+import { apiAuthMe } from '@/services/AuthService'
+import {
+    apiUpdateProfile,
+    toUpdateProfileFormData,
+} from '@/services/ProfileService'
 
 type ProfileSchema = {
     name: string
-    email: string
-    avatar: string
+    email?: string
 }
-
-type CountryOption = {
-    label: string
-    dialCode: string
-    value: string
-}
-
-const { Control } = components
 
 const validationSchema = z.object({
-    name: z.string().min(1, { message: 'الاسم مطلوب' }),
-    email: z
-        .string()
-        .min(1, { message: 'البريد الإلكتروني مطلوب' })
-        .email({ message: 'البريد الإلكتروني غير صالح' }),
-    avatar: z.string(),
+    name: z.string().trim().min(1, { message: 'نام الزامی است' }),
+    email: z.string().trim().email({ message: 'ایمیل معتبر نیست' }).optional(),
 })
 
-const CustomSelectOption = (
-    props: OptionProps<CountryOption> & { variant: 'country' | 'phone' },
-) => {
-    return (
-        <DefaultOption<CountryOption>
-            {...props}
-            customLabel={(data, label) => (
-                <span className="flex items-center gap-2">
-                    <Avatar
-                        shape="circle"
-                        size={20}
-                        src={`/img/countries/${data.value}.png`}
-                    />
-                    {props.variant === 'country' && <span>{label}</span>}
-                    {props.variant === 'phone' && <span>{data.dialCode}</span>}
-                </span>
-            )}
-        />
-    )
-}
+const extractApiErrorMessage = (error: unknown) => {
+    if (!axios.isAxiosError(error)) {
+        return error instanceof Error ? error.message : 'خطا در ذخیره اطلاعات'
+    }
 
-const CustomControl = ({ children, ...props }: ControlProps<CountryOption>) => {
-    const selected = props.getValue()[0]
-    return (
-        <Control {...props}>
-            {selected && (
-                <Avatar
-                    className="ltr:ml-4 rtl:mr-4"
-                    shape="circle"
-                    size={20}
-                    src={`/img/countries/${selected.value}.png`}
-                />
-            )}
-            {children}
-        </Control>
-    )
+    const data = error.response?.data as unknown
+    if (data && typeof data === 'object') {
+        const maybeMessage = (data as { message?: unknown }).message
+        if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+            return maybeMessage.trim()
+        }
+
+        const maybeErrors = (data as { errors?: unknown }).errors
+        if (maybeErrors && typeof maybeErrors === 'object') {
+            const firstKey = Object.keys(maybeErrors as Record<string, unknown>)[0]
+            const value = (maybeErrors as Record<string, unknown>)[firstKey]
+            if (Array.isArray(value) && typeof value[0] === 'string') {
+                return value[0]
+            }
+        }
+    }
+
+    return 'خطا در ذخیره اطلاعات'
 }
 
 const SettingsProfile = () => {
-    const data = useSessionUser((state) => state.user)
+    const user = useSessionUser((state) => state.user)
+    const setUser = useSessionUser((state) => state.setUser)
 
-    const dialCodeList = useMemo(() => {
-        const newCountryList: Array<CountryOption> = JSON.parse(
-            JSON.stringify(countryList),
-        )
-
-        return newCountryList.map((country) => {
-            country.label = country.dialCode
-            return country
-        })
-    }, [])
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string>('')
 
     const beforeUpload = (files: FileList | null) => {
         let valid: string | boolean = true
 
-        const allowedFileType = ['image/jpeg', 'image/png']
+        const allowedFileType = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ]
         if (files) {
             for (const file of files) {
                 if (!allowedFileType.includes(file.type)) {
-                    valid = 'يرجى رفع ملف بصيغة .jpeg أو .png!'
+                    valid =
+                        'لطفاً یک تصویر با فرمت jpeg / png / webp / gif انتخاب کنید'
                 }
             }
         }
@@ -117,83 +91,128 @@ const SettingsProfile = () => {
         control,
     } = useForm<ProfileSchema>({
         resolver: zodResolver(validationSchema),
+        defaultValues: { name: '', email: '' },
     })
 
     useEffect(() => {
-        if (data) {
-            reset({
-                name: data.name ?? '',
-                email: data.email ?? '',
-                avatar: data.avatar ?? '',
+        setAvatarFile(null)
+        setAvatarPreviewUrl(resolveImageUrl(user?.avatar ?? ''))
+        reset({
+            name: user?.name ?? '',
+            email: user?.email ?? '',
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
+
+    useEffect(() => {
+        return () => {
+            setAvatarPreviewUrl((prev) => {
+                if (prev && prev.startsWith('blob:')) {
+                    URL.revokeObjectURL(prev)
+                }
+                return prev
             })
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data])
+    }, [])
 
     const onSubmit = async (values: ProfileSchema) => {
-        await sleep(500)
-        if (data) {
-            //mutate({ ...data, ...values }, false)
+        try {
+            const resp = await apiUpdateProfile(
+                toUpdateProfileFormData({
+                    name: values.name,
+                    avatar: avatarFile,
+                }),
+            )
+
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'خطا در ذخیره اطلاعات')
+            }
+
+            const me = await apiAuthMe()
+            if (me?.authenticated && me?.user) {
+                setUser(me.user)
+            }
+
+            toast.push(
+                <Notification type="success">
+                    {resp?.message || 'پروفایل با موفقیت ذخیره شد'}
+                </Notification>,
+            )
+        } catch (err: unknown) {
+            toast.push(
+                <Notification type="danger">
+                    {extractApiErrorMessage(err)}
+                </Notification>,
+            )
         }
     }
 
     return (
         <>
-            <h4 className="mb-8">المعلومات الشخصية</h4>
+            <h4 className="mb-8">اطلاعات شخصی</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-8">
-                    <Controller
-                        name="avatar"
-                        control={control}
-                        render={({ field }) => (
-                            <div className="flex items-center gap-4">
-                                <Avatar
-                                    size={90}
-                                    className="border-4 border-white bg-gray-100 text-gray-300 shadow-lg"
-                                    icon={<HiOutlineUser />}
-                                    src={resolveImageUrl(field.value)}
-                                />
-                                <div className="flex items-center gap-2">
-                                    <Upload
-                                        showList={false}
-                                        uploadLimit={1}
-                                        beforeUpload={beforeUpload}
-                                        onChange={(files) => {
-                                            if (files.length > 0) {
-                                                field.onChange(
-                                                    URL.createObjectURL(
-                                                        files[0],
-                                                    ),
-                                                )
-                                            }
-                                        }}
-                                    >
-                                        <Button
-                                            variant="solid"
-                                            size="sm"
-                                            type="button"
-                                            icon={<TbPlus />}
-                                        >
-                                            رفع صورة
-                                        </Button>
-                                    </Upload>
-                                    <Button
-                                        size="sm"
-                                        type="button"
-                                        onClick={() => {
-                                            field.onChange('')
-                                        }}
-                                    >
-                                        حذف
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    />
+                    <div className="flex items-center gap-4">
+                        <Avatar
+                            size={90}
+                            className="border-4 border-white bg-gray-100 text-gray-300 shadow-lg"
+                            icon={<HiOutlineUser />}
+                            src={avatarPreviewUrl}
+                        />
+                        <div className="flex items-center gap-2">
+                            <Upload
+                                showList={false}
+                                uploadLimit={1}
+                                beforeUpload={beforeUpload}
+                                accept="image/*"
+                                onChange={(files) => {
+                                    const file = files[0]
+                                    if (!file) return
+
+                                    setAvatarFile(file)
+                                    const nextPreview = URL.createObjectURL(
+                                        file,
+                                    )
+                                    setAvatarPreviewUrl((prev) => {
+                                        if (
+                                            prev &&
+                                            prev.startsWith('blob:') &&
+                                            prev !== nextPreview
+                                        ) {
+                                            URL.revokeObjectURL(prev)
+                                        }
+                                        return nextPreview
+                                    })
+                                }}
+                            >
+                                <Button
+                                    variant="solid"
+                                    size="sm"
+                                    type="button"
+                                    icon={<TbPlus />}
+                                >
+                                    انتخاب تصویر
+                                </Button>
+                            </Upload>
+                            <Button
+                                size="sm"
+                                type="button"
+                                onClick={() => {
+                                    setAvatarFile(null)
+                                    setAvatarPreviewUrl(
+                                        resolveImageUrl(user?.avatar ?? ''),
+                                    )
+                                }}
+                            >
+                                حذف
+                            </Button>
+                        </div>
+                    </div>
                 </div>
+
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormItem
-                        label="الاسم"
+                        label="نام"
                         invalid={Boolean(errors.name)}
                         errorMessage={errors.name?.message}
                     >
@@ -204,14 +223,15 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="الاسم"
+                                    placeholder="نام"
                                     {...field}
                                 />
                             )}
                         />
                     </FormItem>
+
                     <FormItem
-                        label="البريد الإلكتروني"
+                        label="ایمیل"
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -220,9 +240,10 @@ const SettingsProfile = () => {
                             control={control}
                             render={({ field }) => (
                                 <Input
+                                    disabled
                                     type="email"
                                     autoComplete="off"
-                                    placeholder="البريد الإلكتروني"
+                                    placeholder="ایمیل"
                                     {...field}
                                 />
                             )}
@@ -236,7 +257,7 @@ const SettingsProfile = () => {
                         type="submit"
                         loading={isSubmitting}
                     >
-                        حفظ
+                        ذخیره
                     </Button>
                 </div>
             </Form>
