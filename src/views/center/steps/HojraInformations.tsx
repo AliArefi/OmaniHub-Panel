@@ -18,10 +18,14 @@ import { useTranslation } from '@/store/useTranslation'
 import { apiCreateNewAgency, apiUpdateMyAgency, getServices } from '@/services/CenterService'
 import { Services } from '@/@types/center'
 import { HojraInfo, useCreateStore } from '@/context/createStoreContext'
+import { RichTextEditor } from '@/components/shared'
 
 interface HojraInformationProps {
     changeState: (value: number) => void
 }
+
+const stripHtml = (value: string): string =>
+    value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
 const validationSchema = z.object({
     title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
@@ -30,8 +34,12 @@ const validationSchema = z.object({
     }),
     about_text: z
         .string()
-        .min(1, { message: 'الوصف إلزامي' })
-        .min(8, { message: 'النص قصير' }),
+        .refine((val) => stripHtml(val).length > 0, {
+            message: 'ط§ظ„ظˆطµظپ ط¥ظ„ط²ط§ظ…ظٹ',
+        })
+        .refine((val) => stripHtml(val).length >= 8, {
+            message: 'ط§ظ„ظ†طµ ظ‚طµظٹط±',
+        }),
 })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
@@ -218,10 +226,12 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                 name="about_text"
                                 control={control}
                                 render={({ field }) => (
-                                    <Input
-                                        placeholder="الوصف"
-                                        textArea
-                                        {...field}
+                                    <RichTextEditor
+                                        content={field.value || ''}
+                                        invalid={Boolean(errors.about_text)}
+                                        onChange={(content) =>
+                                            field.onChange(content.html)
+                                        }
                                     />
                                 )}
                             />
