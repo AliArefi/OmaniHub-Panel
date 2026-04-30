@@ -1,72 +1,33 @@
-import { Card, Spinner, Table, Badge } from '@/components/ui'
+import { Avatar, Badge, Button, Card, Spinner, Table } from '@/components/ui'
 import TBody from '@/components/ui/Table/TBody'
 import Td from '@/components/ui/Table/Td'
 import Th from '@/components/ui/Table/Th'
 import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
-import { CalendarView } from '@/components/shared'
+import Notification from '@/components/ui/Notification'
+import { useTranslation } from '@/store/useTranslation'
+import { useEffect, useState } from 'react'
+import { HiOutlineChatAlt2, HiOutlineEye } from 'react-icons/hi'
 import type { Booking } from '@/@types/booking'
-import type { ReservationDailyCount } from '@/@types/reservations'
-import { getAgencyReservationsV2 } from '@/services/BookingService'
-import { useEffect, useMemo, useState } from 'react'
+import { getSingleAgencyBookings } from '@/services/BookingService'
+import BookingDetailsModal from './components/BookingDetailsModal'
 import { useParams } from 'react-router'
-import dayjs from 'dayjs'
 
-const formatDateAr = (dateString: string) =>
-    new Intl.DateTimeFormat('ar-SA', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    }).format(new Date(dateString))
-
-const formatTimeAr = (time: string) =>
-    time?.toString().slice(0, 5) // HH:mm from HH:mm:ss
-
-export default function ReservationsCalendar() {
-    const { agencySlug } = useParams()
+export default function Reservations() {
+    const [bookings, setBookings] = useState<Booking[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
-    const [dailyCounts, setDailyCounts] = useState<ReservationDailyCount[]>([])
-    const [selectedDate, setSelectedDate] = useState<string>(
-        dayjs().format('YYYY-MM-DD'),
-    )
-    const [dayReservations, setDayReservations] = useState<Booking[]>([])
-
-    const fetchMonth = async (month: string) => {
-        if (!agencySlug) return
-        const resp = await getAgencyReservationsV2({
-            agencySlug: String(agencySlug),
-            view: 'month',
-            month,
-            include_daily_counts: true,
-            include_reservations: false,
-        })
-        setDailyCounts(resp.daily_counts || [])
-    }
-
-    const fetchDay = async (date: string) => {
-        if (!agencySlug) return
-        const resp = await getAgencyReservationsV2({
-            agencySlug: String(agencySlug),
-            view: 'day',
-            date,
-            include_daily_counts: false,
-            include_reservations: true,
-            per_page: 100,
-        })
-        setDayReservations(resp.reservations?.data || [])
-    }
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+    const [showDetailsModal, setShowDetailsModal] = useState(false)
+    const { t } = useTranslation()
+    const { agencySlug } = useParams()
 
     useEffect(() => {
-        const run = async () => {
+        const fetchBookings = async () => {
             setLoading(true)
-            setError(null)
             try {
-                await Promise.all([
-                    fetchMonth(dayjs().format('YYYY-MM')),
-                    fetchDay(selectedDate),
-                ])
+                const resp = await getSingleAgencyBookings(agencySlug as string)
+                setBookings(resp.data)
             } catch (err: unknown) {
                 const apiMessage = (() => {
                     if (typeof err !== 'object' || err === null) return undefined
@@ -77,7 +38,7 @@ export default function ReservationsCalendar() {
                     if (typeof data !== 'object' || data === null) return undefined
                     const message = (data as { message?: unknown }).message
                     return typeof message === 'string' && message.trim()
-                        ? message.trim()
+                        ? message
                         : undefined
                 })()
                 setError(apiMessage || 'حدث خطأ أثناء تحميل الحجوزات')
@@ -85,19 +46,15 @@ export default function ReservationsCalendar() {
                 setLoading(false)
             }
         }
-        run()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [agencySlug])
 
-    const monthEvents = useMemo(() => {
-        return (dailyCounts || []).map((d) => ({
-            id: d.date,
-            title: `${d.count} حجز`,
-            start: d.date,
-            allDay: true,
-            extendedProps: { eventColor: 'blue' },
-        }))
-    }, [dailyCounts])
+        fetchBookings()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const handleViewDetails = (booking: Booking) => {
+        setSelectedBooking(booking)
+        setShowDetailsModal(true)
+    }
 
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<string, { label: string; className: string }> =
@@ -133,142 +90,136 @@ export default function ReservationsCalendar() {
         )
     }
 
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString)
+        return new Intl.DateTimeFormat('ar-SA', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        }).format(date)
+    }
+
     if (loading)
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>جاري التحميل...</div>
+                <div>{t('loading')}</div>
             </div>
         )
-
     if (error) return <div className="text-red-600 dark:text-red-400">{error}</div>
 
     return (
-        <div className="space-y-6">
+        <>
             <Card>
-                <div className="mb-6">
-                    <h2 className="mb-2">الحجوزات</h2>
+                <div className="mb-10">
+                    <h2 className="mb-2">إدارة الحجوزات</h2>
                     <p className="text-gray-500 dark:text-gray-400">
-                        عرض الحجوزات حسب الشهر أو اليوم
+                        عرض وإدارة جميع حجوزات المركز
                     </p>
                 </div>
 
-                <CalendarView
-                    initialView="dayGridMonth"
-                    headerToolbar={{
-                        left: 'title',
-                        center: '',
-                        right: 'dayGridMonth,timeGridDay prev,next',
-                    }}
-                    selectable={false}
-                    events={monthEvents}
-                    datesSet={async (arg) => {
-                        // Month view: fetch counts for the displayed month.
-                        if (arg.view.type === 'dayGridMonth') {
-                            const m = dayjs(arg.view.currentStart).format('YYYY-MM')
-                            try {
-                                await fetchMonth(m)
-                            } catch {
-                                // ignore; error is handled by initial load path
-                            }
-                        }
-
-                        // Day view: fetch reservations for the selected day.
-                        if (arg.view.type === 'timeGridDay') {
-                            const date = dayjs(arg.start).format('YYYY-MM-DD')
-                            setSelectedDate(date)
-                            try {
-                                await fetchDay(date)
-                            } catch {
-                                // ignore
-                            }
-                        }
-                    }}
-                    dateClick={async (arg) => {
-                        const date = dayjs(arg.date).format('YYYY-MM-DD')
-                        setSelectedDate(date)
-                        setLoading(true)
-                        try {
-                            await fetchDay(date)
-                        } catch (err: unknown) {
-                            const apiMessage = (() => {
-                                if (typeof err !== 'object' || err === null)
-                                    return undefined
-                                const response = (err as { response?: unknown })
-                                    .response
-                                if (typeof response !== 'object' || response === null)
-                                    return undefined
-                                const data = (response as { data?: unknown }).data
-                                if (typeof data !== 'object' || data === null)
-                                    return undefined
-                                const message = (data as { message?: unknown }).message
-                                return typeof message === 'string' && message.trim()
-                                    ? message.trim()
-                                    : undefined
-                            })()
-                            setError(apiMessage || 'تعذر تحميل حجوزات اليوم')
-                        } finally {
-                            setLoading(false)
-                        }
-                    }}
-                />
-            </Card>
-
-            <Card>
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">حجوزات يوم</h3>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDateAr(selectedDate)}
-                    </div>
-                </div>
-
-                {dayReservations.length === 0 ? (
-                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                        لا توجد حجوزات في هذا اليوم
-                    </div>
+                {bookings.length === 0 ? (
+                    <Notification type="info">
+                        لا توجد حجوزات حتى الآن
+                    </Notification>
                 ) : (
                     <Table>
                         <THead>
                             <Tr>
                                 <Th>العميل</Th>
                                 <Th>الخدمة</Th>
-                                <Th>الوقت</Th>
+                                <Th>التاريخ/الوقت</Th>
                                 <Th>الحالة</Th>
+                                <Th>الإجراءات</Th>
                             </Tr>
                         </THead>
                         <TBody>
-                            {dayReservations.map((r) => (
-                                <Tr key={r.id}>
+                            {bookings.map((booking) => (
+                                <Tr key={booking.id}>
                                     <Td>
-                                        <div className="font-medium">
-                                            {r.customer?.name || 'غير محدد'}
-                                        </div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                            {r.customer?.mobile || ''}
+                                        <div className="flex items-center justify-start gap-3">
+                                            <Avatar
+                                                src={
+                                                    booking.customer?.user
+                                                        ?.avatar || undefined
+                                                }
+                                                alt={booking.customer?.name || ''}
+                                                className="w-10 h-10"
+                                            />
+                                            <div>
+                                                <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                                    {booking.customer?.name ||
+                                                        'غير محدد'}
+                                                </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {booking.customer?.mobile ||
+                                                        ''}
+                                                </div>
+                                            </div>
                                         </div>
                                     </Td>
                                     <Td>
-                                        <div className="font-medium">
-                                            {r.service?.title || 'غير محدد'}
+                                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                                            {booking.service?.title ||
+                                                'غير محدد'}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                                            {r.member?.name || 'غير محدد'}
+                                            {booking.member?.name ||
+                                                'غير محدد'}
                                         </div>
                                     </Td>
                                     <Td>
                                         <div className="text-sm">
-                                            {formatTimeAr(r.start_time)} -{' '}
-                                            {formatTimeAr(r.end_time)}
+                                            {formatDate(booking.date)}
+                                        </div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                            {booking.start_time?.slice(0, 5)} -{' '}
+                                            {booking.end_time?.slice(0, 5)}
                                         </div>
                                     </Td>
-                                    <Td>{getStatusBadge(r.status)}</Td>
+                                    <Td>{getStatusBadge(booking.status)}</Td>
+                                    <Td>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                                size="xs"
+                                                variant="solid"
+                                                icon={<HiOutlineEye />}
+                                                onClick={() =>
+                                                    handleViewDetails(booking)
+                                                }
+                                                className="cursor-pointer"
+                                            >
+                                                عرض
+                                            </Button>
+                                            <Button
+                                                size="xs"
+                                                variant="default"
+                                                icon={<HiOutlineChatAlt2 />}
+                                                className="cursor-pointer"
+                                                disabled
+                                            >
+                                                محادثة
+                                            </Button>
+                                        </div>
+                                    </Td>
                                 </Tr>
                             ))}
                         </TBody>
                     </Table>
                 )}
             </Card>
-        </div>
+
+            {selectedBooking && (
+                <BookingDetailsModal
+                    isOpen={showDetailsModal}
+                    onClose={() => {
+                        setShowDetailsModal(false)
+                        setSelectedBooking(null)
+                    }}
+                    booking={selectedBooking}
+                />
+            )}
+        </>
     )
 }
 

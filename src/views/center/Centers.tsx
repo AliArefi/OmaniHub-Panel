@@ -116,6 +116,17 @@ export default function Centers() {
                                                 </Button>
                                             </Link>
                                         )}
+                                        {agency.status === 'published' && (
+                                            <Link
+                                                to={`/centers/${encodeURIComponent(
+                                                    agency.slug,
+                                                )}/stats`}
+                                            >
+                                                <Button size="xs" variant="solid">
+                                                    إحصائيات
+                                                </Button>
+                                            </Link>
+                                        )}
                                         <Link to={`/centers/${agency.slug}/edit`}>
                                             <Button size="xs" variant="solid">
                                                 {t('edit') || 'Edit'}
