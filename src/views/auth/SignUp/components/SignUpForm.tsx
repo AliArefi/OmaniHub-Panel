@@ -13,6 +13,7 @@ import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { useNavigate } from 'react-router'
 import PasswordInput from '@/components/shared/PasswordInput'
 import PhoneNumberInput from '@/components/shared/PhoneNumberInput'
+import { extractDigits } from '@/utils/normalizeDigits'
 
 interface SignUpFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -116,8 +117,8 @@ const SignUpForm = (props: SignUpFormProps) => {
         setSubmitting(true)
         try {
             if (isGoogleSignup && googleIdToken) {
-                const cc = String(values.mobile_country_code || '').replace(/\D+/g, '')
-                const local = String(values.mobile_local_number || '').replace(/\D+/g, '')
+                const cc = extractDigits(String(values.mobile_country_code || ''))
+                const local = extractDigits(String(values.mobile_local_number || ''))
                 const mobile = cc && local ? `+${cc}${local}` : String(values.mobile_local_number || '')
 
                 try {
@@ -187,8 +188,8 @@ const SignUpForm = (props: SignUpFormProps) => {
                 }
             }
 
-            const cc = String(values.mobile_country_code || '').replace(/\D+/g, '')
-            const local = String(values.mobile_local_number || '').replace(/\D+/g, '')
+            const cc = extractDigits(String(values.mobile_country_code || ''))
+            const local = extractDigits(String(values.mobile_local_number || ''))
             const mobile = cc && local ? `+${cc}${local}` : String(values.mobile_local_number || '')
 
             const result = await signUp({
@@ -237,18 +238,18 @@ const SignUpForm = (props: SignUpFormProps) => {
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <FormItem label="الاسم">
                         <Input
+                            disabled
                             type="text"
                             value={prefill?.name ?? ''}
-                            disabled
                             autoComplete="off"
                         />
                     </FormItem>
 
                     <FormItem label="البريد الإلكتروني">
                         <Input
+                            disabled
                             type="email"
                             value={prefill?.email ?? ''}
-                            disabled
                             autoComplete="off"
                         />
                     </FormItem>

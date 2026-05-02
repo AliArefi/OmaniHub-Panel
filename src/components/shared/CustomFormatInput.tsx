@@ -1,5 +1,6 @@
 import { NumberFormatBase, NumberFormatBaseProps } from 'react-number-format'
 import Input from '@/components/ui/Input'
+import { normalizeDigits } from '@/utils/normalizeDigits'
 import type { ReactNode, ComponentType } from 'react'
 import type { InputProps } from '@/components/ui'
 
@@ -46,7 +47,7 @@ function caretUnknownFormatBoundary(formattedValue: string) {
 }
 
 function defaultRemoveFormatting(value: string) {
-    return value.replace(/[^0-9]/g, '')
+    return normalizeDigits(value).replace(/[^0-9]/g, '')
 }
 
 const NumberInput = ({

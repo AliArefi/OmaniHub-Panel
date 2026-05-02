@@ -6,6 +6,7 @@ import OTPInput from '@/components/shared/OtpInput'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { apiAuthConfig, apiVerifyOtp } from '@/services/AuthService'
 import { useAuth } from '@/auth'
+import { extractDigits } from '@/utils/normalizeDigits'
 
 interface OtpVerificationFormProps {
     setOtpVerified?: (message: string) => void
@@ -59,7 +60,7 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
             return
         }
 
-        const otp = String(values.otp || '').trim()
+        const otp = extractDigits(String(values.otp || '').trim())
         if (otp.length !== otpLength) {
             setError('otp', { type: 'manual', message: 'Please enter a valid OTP.' })
             return
@@ -82,9 +83,15 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
             }
 
             setMessage?.(resp?.message || 'Unable to verify OTP.')
-        } catch (err: any) {
-            const status = err?.response?.status
-            const serverMessage = err?.response?.data?.message
+        } catch (err: unknown) {
+            const response = (err as {
+                response?: {
+                    status?: number
+                    data?: { message?: string }
+                }
+            } | null)?.response
+            const status = response?.status
+            const serverMessage = response?.data?.message
 
             if (status === 410) {
                 clearPending()

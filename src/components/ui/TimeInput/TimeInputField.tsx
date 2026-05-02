@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import useMergedRef from '../hooks/useMergeRef'
 import { padTime, createTimeHandler } from './utils'
 import { clamp } from '../utils/clamp'
+import { extractDigits } from '@/utils/normalizeDigits'
 import type { CommonProps } from '../@types/common'
 import type {
     FocusEvent,
@@ -101,7 +102,8 @@ const TimeInputField = (props: TimeInputFieldProps) => {
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
         setDigitsEntered(digitsEntered + 1)
 
-        const _val = parseInt(event.currentTarget.value, 10).toString()
+        const digits = extractDigits(event.currentTarget.value)
+        const _val = digits ? parseInt(digits, 10).toString() : ''
 
         if (_val === '0' && digitsEntered === 0) {
             setValue('00')

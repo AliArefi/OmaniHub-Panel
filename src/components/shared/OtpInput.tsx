@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import Input from '@/components/ui/Input'
 import classNames from '@/utils/classNames'
+import { containsOnlySingleDigit, normalizeDigits } from '@/utils/normalizeDigits'
 import type { ChangeEvent, KeyboardEvent, ClipboardEvent } from 'react'
 
 interface OTPInputProps {
@@ -37,8 +38,9 @@ const OTPInput = ({
     }, [length])
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-        const newValue = e.target.value
+        const newValue = normalizeDigits(e.target.value)
         if (newValue.length > 1) return
+        if (newValue && !containsOnlySingleDigit(newValue)) return
 
         const newOTPValue =
             value.slice(0, index) + newValue + value.slice(index + 1)
@@ -78,8 +80,9 @@ const OTPInput = ({
 
     const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault()
-        const pastedData = e.clipboardData
-            .getData('text/plain')
+        const pastedData = normalizeDigits(
+            e.clipboardData.getData('text/plain'),
+        )
             .slice(0, length)
         if (pastedData.match(/^[0-9]+$/)) {
             onChange?.(pastedData.padEnd(length, ''))

@@ -4,6 +4,7 @@ import Notification from '@/components/ui/Notification'
 import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
 import { useEffect, useMemo, useState } from 'react'
 import { apiCreateAgencyService, getServices } from '@/services/CenterService'
+import { extractDigits } from '@/utils/normalizeDigits'
 
 interface HojraServicesProps {
     changeState: (value: number) => void
@@ -244,21 +245,27 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 <div className="grid grid-cols-2 gap-3">
                     <FormItem label="المدة (دقيقة)">
                         <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={duration}
-                            onChange={(e) => setDuration(e.target.value)}
                             placeholder="المدة"
                             min="1"
+                            onChange={(e) =>
+                                setDuration(extractDigits(e.target.value))
+                            }
                         />
                     </FormItem>
 
                     <FormItem label="السعر (ريال)">
                         <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={price}
-                            onChange={(e) => setPrice(e.target.value)}
                             placeholder="السعر"
                             min="1"
+                            onChange={(e) =>
+                                setPrice(extractDigits(e.target.value))
+                            }
                         />
                     </FormItem>
                 </div>
@@ -266,8 +273,8 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 <FormItem label="وصف موجز للخدمة">
                     <Input
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
                         placeholder="وصف موجز للخدمة"
+                        onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormItem>
 
@@ -279,9 +286,9 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
 
                 <FormItem>
                     <Button
+                        block
                         variant="default"
                         type="button"
-                        block
                         loading={isSaving}
                         disabled={isSaving || !isFormComplete()}
                         onClick={handleAddService}

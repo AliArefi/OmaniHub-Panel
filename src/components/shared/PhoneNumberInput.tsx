@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import InputGroup from '@/components/ui/InputGroup'
+import { extractDigits, normalizePhoneNumberInput } from '@/utils/normalizeDigits'
 import type { GroupBase } from 'react-select'
 import { countryList } from '@/constants/countries.constant'
 
@@ -24,7 +25,7 @@ type PhoneNumberInputProps = {
 }
 
 const normalizeDialCode = (dialCode: string) => {
-    const digits = dialCode.replace(/\D+/g, '')
+    const digits = extractDigits(dialCode)
     return digits ? `+${digits}` : '+'
 }
 
@@ -55,12 +56,12 @@ const PhoneNumberInput = ({
                         isSearchable
                         value={selected}
                         options={options}
+                        getOptionValue={(opt) => `${opt.value}-${opt.dialCode}`}
+                        invalid={invalid}
                         onChange={(opt) => {
                             const dialCode = opt ? normalizeDialCode(opt.dialCode) : value.countryCode
                             onChange({ countryCode: dialCode, localNumber: value.localNumber })
                         }}
-                        getOptionValue={(opt) => `${opt.value}-${opt.dialCode}`}
-                        invalid={invalid}
                     />
                 </div>
                 <Input
@@ -70,7 +71,7 @@ const PhoneNumberInput = ({
                     autoComplete="tel"
                     value={value.localNumber}
                     onChange={(e) => {
-                        const nextLocal = e.target.value
+                        const nextLocal = normalizePhoneNumberInput(e.target.value)
                         onChange({ countryCode: value.countryCode, localNumber: nextLocal })
                     }}
                 />
@@ -80,4 +81,3 @@ const PhoneNumberInput = ({
 }
 
 export default PhoneNumberInput
-
