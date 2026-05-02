@@ -139,7 +139,8 @@ export const HojraExtraInformations = ({
                     Boolean(extraInformationDraft?.bannerPreview) ||
                     Boolean(
                         extraInformationDraft?.values &&
-                            Object.keys(extraInformationDraft.values).length > 0,
+                            Object.keys(extraInformationDraft.values).length >
+                                0,
                     )
 
                 if (hasDraft) {
@@ -153,7 +154,9 @@ export const HojraExtraInformations = ({
                     })
 
                     setLogoPreview(extraInformationDraft.logoPreview ?? null)
-                    setBannerPreview(extraInformationDraft.bannerPreview ?? null)
+                    setBannerPreview(
+                        extraInformationDraft.bannerPreview ?? null,
+                    )
                 }
 
                 if (!hasDraft) {
@@ -256,10 +259,7 @@ export const HojraExtraInformations = ({
                 }
             })
 
-            const resp = await apiUpdateInfoMyAgency(
-                slug,
-                formData,
-            )
+            const resp = await apiUpdateInfoMyAgency(slug, formData)
 
             if (!resp?.success) {
                 throw new Error(resp?.message || 'خطا در ذخیره اطلاعات')
@@ -399,9 +399,11 @@ export const HojraExtraInformations = ({
                                                     revokeIfBlobUrl(logoPreview)
                                                     setLogoPreview(null)
                                                     field.onChange(null)
-                                                    updateExtraInformationDraft({
-                                                        logoPreview: null,
-                                                    })
+                                                    updateExtraInformationDraft(
+                                                        {
+                                                            logoPreview: null,
+                                                        },
+                                                    )
                                                     if (logoInputRef.current) {
                                                         logoInputRef.current.value =
                                                             ''
@@ -475,12 +477,16 @@ export const HojraExtraInformations = ({
                                                 variant="plain"
                                                 type="button"
                                                 onClick={() => {
-                                                    revokeIfBlobUrl(bannerPreview)
+                                                    revokeIfBlobUrl(
+                                                        bannerPreview,
+                                                    )
                                                     setBannerPreview(null)
                                                     field.onChange(null)
-                                                    updateExtraInformationDraft({
-                                                        bannerPreview: null,
-                                                    })
+                                                    updateExtraInformationDraft(
+                                                        {
+                                                            bannerPreview: null,
+                                                        },
+                                                    )
                                                     if (
                                                         bannerInputRef.current
                                                     ) {
@@ -669,7 +675,7 @@ export const HojraExtraInformations = ({
                     </div>
 
                     <FormItem
-                        label="H1"
+                        label="العنوان الرئيسي (H1)"
                         invalid={Boolean(errors.h1)}
                         errorMessage={errors.h1?.message}
                         className="mb-6"
@@ -684,7 +690,7 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     <FormItem
-                        label="Meta Description"
+                        label="الوصف الرئيسي (Meta Description)"
                         invalid={Boolean(errors.meta_description)}
                         errorMessage={errors.meta_description?.message}
                         className="mb-6"
