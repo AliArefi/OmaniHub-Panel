@@ -7,6 +7,10 @@ import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
 import { getAgencyBookings, getMyBookings } from '@/services/BookingService'
 import { useSessionUser } from '@/store/authStore'
+import {
+    getReservationPricingLabel,
+    getReservationPricingStatusLabel,
+} from '@/utils/pricing'
 import { useEffect, useMemo, useState } from 'react'
 import { HiOutlineEye } from 'react-icons/hi'
 import { useNavigate, useSearchParams } from 'react-router'
@@ -201,6 +205,7 @@ export default function Bookings() {
                                             <Th>المركز</Th>
                                             <Th>الخدمة</Th>
                                             <Th>الموعد</Th>
+                                            <Th>التسعير</Th>
                                             <Th>الحالة</Th>
                                             <Th className="text-left">الإجراءات</Th>
                                         </Tr>
@@ -246,6 +251,14 @@ export default function Bookings() {
                                                     <div className="text-sm">{formatDate(booking.date)}</div>
                                                     <div className="text-xs text-gray-500 dark:text-gray-400">
                                                         {booking.start_time} - {booking.end_time}
+                                                    </div>
+                                                </Td>
+                                                <Td>
+                                                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                                                        {getReservationPricingLabel(booking)}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {getReservationPricingStatusLabel(booking.pricing_status)}
                                                     </div>
                                                 </Td>
                                                 <Td>{getStatusBadge(booking.status)}</Td>
@@ -295,6 +308,7 @@ export default function Bookings() {
                                                 <Th>العميل</Th>
                                                 <Th>الخدمة</Th>
                                                 <Th>الموعد</Th>
+                                                <Th>التسعير</Th>
                                                 <Th>الحالة</Th>
                                                 <Th className="text-left">الإجراءات</Th>
                                             </Tr>
@@ -345,6 +359,14 @@ export default function Bookings() {
                                                             {booking.start_time} - {booking.end_time}
                                                         </div>
                                                     </Td>
+                                                    <Td>
+                                                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                                                            {getReservationPricingLabel(booking)}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {getReservationPricingStatusLabel(booking.pricing_status)}
+                                                        </div>
+                                                    </Td>
                                                     <Td>{getStatusBadge(booking.status)}</Td>
                                                     <Td>
                                                         <div className="flex items-center justify-end gap-2">
@@ -381,6 +403,17 @@ export default function Bookings() {
                         setSelectedBooking(null)
                     }}
                     booking={selectedBooking}
+                    canQuote={tab === 'agency'}
+                    onBookingUpdated={(updatedBooking) => {
+                        setBookings((current) =>
+                            current.map((item) =>
+                                item.id === updatedBooking.id
+                                    ? updatedBooking
+                                    : item,
+                            ),
+                        )
+                        setSelectedBooking(updatedBooking)
+                    }}
                 />
             ) : null}
         </>

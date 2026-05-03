@@ -44,3 +44,29 @@ export async function getAgencyReservationsV2(params: {
         params: query,
     })
 }
+
+export async function quoteAgencyReservationPrice(
+    reservationId: number,
+    data: {
+        price: number
+        currency?: string
+        status?: 'pending' | 'confirmed' | 'cancelled'
+    },
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message: string
+        data: {
+            id: number
+            pricing_status: 'needs_quote' | 'priced'
+            quoted_price: number | null
+            final_price: number | null
+            currency: string | null
+            status: 'pending' | 'confirmed' | 'cancelled'
+        }
+    }>({
+        url: `/my-agencies/reservations/${reservationId}/quote-price`,
+        method: 'post',
+        data,
+    })
+}

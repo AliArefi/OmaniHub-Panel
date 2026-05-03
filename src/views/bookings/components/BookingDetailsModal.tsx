@@ -1,21 +1,43 @@
 import type { Booking } from '@/@types/booking'
-import { Button, Dialog } from '@/components/ui'
+import { Button, Dialog, Input } from '@/components/ui'
+import Notification from '@/components/ui/Notification'
+import { quoteAgencyReservationPrice } from '@/services/BookingService'
+import {
+    getReservationPricingLabel,
+    getReservationPricingStatusLabel,
+} from '@/utils/pricing'
 import { HiCalendar, HiOfficeBuilding, HiUser, HiX } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
+import { useState } from 'react'
 
 interface BookingDetailsModalProps {
     isOpen: boolean
     onClose: () => void
     booking: Booking
+    canQuote?: boolean
+    onBookingUpdated?: (booking: Booking) => void
 }
 
 export default function BookingDetailsModal({
     isOpen,
     onClose,
     booking,
+    canQuote = false,
+    onBookingUpdated,
 }: BookingDetailsModalProps) {
     const navigate = useNavigate()
     const chatAvailable = Boolean(booking.customer.user?.id)
+    const [quotePrice, setQuotePrice] = useState(
+        booking.final_price?.toString() ||
+            booking.quoted_price?.toString() ||
+            '',
+    )
+    const [quoteStatus, setQuoteStatus] = useState<Booking['status']>(
+        booking.status,
+    )
+    const [quoteError, setQuoteError] = useState<string | null>(null)
+    const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
+    const [isSubmittingQuote, setIsSubmittingQuote] = useState(false)
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
@@ -24,6 +46,52 @@ export default function BookingDetailsModal({
             month: 'long',
             day: 'numeric',
         }).format(date)
+    }
+
+    const handleQuoteSave = async () => {
+        const parsed = Number(quotePrice)
+        if (!Number.isFinite(parsed) || parsed < 0) {
+            setQuoteError('أدخل سعراً صحيحاً قبل الحفظ.')
+            setQuoteSuccess(null)
+            return
+        }
+
+        setIsSubmittingQuote(true)
+        setQuoteError(null)
+        setQuoteSuccess(null)
+
+        try {
+            const response = await quoteAgencyReservationPrice(booking.id, {
+                price: parsed,
+                status: quoteStatus,
+            })
+
+            const updatedBooking: Booking = {
+                ...booking,
+                pricing_status: response.data.pricing_status,
+                quoted_price: response.data.quoted_price,
+                final_price: response.data.final_price,
+                currency: response.data.currency,
+                status: response.data.status,
+            }
+
+            onBookingUpdated?.(updatedBooking)
+            setQuoteSuccess(response.message || 'تم حفظ التسعير بنجاح.')
+        } catch (error: unknown) {
+            const message =
+                typeof error === 'object' &&
+                error !== null &&
+                'response' in error &&
+                typeof (error as { response?: { data?: { message?: string } } })
+                    .response?.data?.message === 'string'
+                    ? (error as { response?: { data?: { message?: string } } })
+                          .response?.data?.message
+                    : 'تعذر حفظ التسعير.'
+
+            setQuoteError(message || 'تعذر حفظ التسعير.')
+        } finally {
+            setIsSubmittingQuote(false)
+        }
     }
 
     return (
@@ -158,8 +226,90 @@ export default function BookingDetailsModal({
                                     {booking.status}
                                 </span>
                             </div>
+                            <div className="flex justify-between gap-6">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                    التسعير:
+                                </span>
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                    {getReservationPricingStatusLabel(booking.pricing_status)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between gap-6">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                    السعر:
+                                </span>
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                    {getReservationPricingLabel(booking)}
+                                </span>
+                            </div>
                         </div>
                     </div>
+
+                    {canQuote ? (
+                        <div>
+                            <div className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+                                تحديث التسعير
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-3">
+                                {quoteError ? (
+                                    <Notification type="danger">
+                                        {quoteError}
+                                    </Notification>
+                                ) : null}
+                                {quoteSuccess ? (
+                                    <Notification type="success">
+                                        {quoteSuccess}
+                                    </Notification>
+                                ) : null}
+                                <div>
+                                    <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+                                        السعر النهائي
+                                    </div>
+                                    <Input
+                                        value={quotePrice}
+                                        onChange={(event) =>
+                                            setQuotePrice(
+                                                event.target.value.replace(
+                                                    /[^\d.]/g,
+                                                    '',
+                                                ),
+                                            )
+                                        }
+                                        placeholder="17.50"
+                                        inputMode="decimal"
+                                    />
+                                </div>
+                                <div>
+                                    <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+                                        حالة الحجز بعد التسعير
+                                    </div>
+                                    <select
+                                        value={quoteStatus}
+                                        onChange={(event) =>
+                                            setQuoteStatus(
+                                                event.target
+                                                    .value as Booking['status'],
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    >
+                                        <option value="pending">قيد الانتظار</option>
+                                        <option value="confirmed">مؤكد</option>
+                                        <option value="cancelled">ملغي</option>
+                                    </select>
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        variant="solid"
+                                        loading={isSubmittingQuote}
+                                        onClick={handleQuoteSave}
+                                    >
+                                        حفظ التسعير
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
 
                     <div className="flex items-center justify-end gap-3 pt-2">
                         <Button
@@ -183,4 +333,3 @@ export default function BookingDetailsModal({
         </Dialog>
     )
 }
-

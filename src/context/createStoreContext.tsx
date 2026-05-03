@@ -5,7 +5,11 @@ export interface ServiceItem {
     serviceId: number
     serviceLabel: string
     duration: number
-    price: number
+    pricingType: 'fixed' | 'coordination' | 'member_based'
+    needsCoordination?: boolean
+    price: number | null
+    priceMin?: number | null
+    priceMax?: number | null
     description: string
 }
 

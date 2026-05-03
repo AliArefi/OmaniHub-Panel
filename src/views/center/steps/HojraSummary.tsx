@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import Notification from "@/components/ui/Notification";
 import { useCreateStore } from "@/context/createStoreContext";
+import { getPricingTypeLabel, getServicePricingLabel } from '@/utils/pricing'
 
 interface HojraSummaryProps {
     changeState: (value: number) => void;
@@ -26,6 +27,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 services: services.map((s) => ({
                     service_id: s.serviceId,
                     duration: s.duration,
+                    pricing_type: s.pricingType,
                     price: s.price,
                     description: s.description,
                 })),
@@ -121,7 +123,10 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                             المدة: {service.duration} دقيقة
                                         </span>
                                         <span>
-                                            السعر: {service.price} ريال
+                                            نوع التسعير: {getPricingTypeLabel(service.pricingType)}
+                                        </span>
+                                        <span>
+                                            السعر: {getServicePricingLabel(service)}
                                         </span>
                                     </div>
                                     <div className="text-gray-700">

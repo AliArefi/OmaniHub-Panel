@@ -6,11 +6,15 @@ import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
 import Notification from '@/components/ui/Notification'
 import { useTranslation } from '@/store/useTranslation'
+import {
+    getReservationPricingLabel,
+    getReservationPricingStatusLabel,
+} from '@/utils/pricing'
 import { useEffect, useState } from 'react'
 import { HiOutlineChatAlt2, HiOutlineEye } from 'react-icons/hi'
 import type { Booking } from '@/@types/booking'
 import { getSingleAgencyBookings } from '@/services/BookingService'
-import BookingDetailsModal from './components/BookingDetailsModal'
+import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
 import { useParams } from 'react-router'
 
 export default function Reservations() {
@@ -129,6 +133,7 @@ export default function Reservations() {
                                 <Th>العميل</Th>
                                 <Th>الخدمة</Th>
                                 <Th>التاريخ/الوقت</Th>
+                                <Th>التسعير</Th>
                                 <Th>الحالة</Th>
                                 <Th>الإجراءات</Th>
                             </Tr>
@@ -177,6 +182,14 @@ export default function Reservations() {
                                             {booking.end_time?.slice(0, 5)}
                                         </div>
                                     </Td>
+                                    <Td>
+                                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                                            {getReservationPricingLabel(booking)}
+                                        </div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                            {getReservationPricingStatusLabel(booking.pricing_status)}
+                                        </div>
+                                    </Td>
                                     <Td>{getStatusBadge(booking.status)}</Td>
                                     <Td>
                                         <div className="flex items-center justify-end gap-2">
@@ -217,9 +230,19 @@ export default function Reservations() {
                         setSelectedBooking(null)
                     }}
                     booking={selectedBooking}
+                    canQuote
+                    onBookingUpdated={(updatedBooking) => {
+                        setBookings((current) =>
+                            current.map((item) =>
+                                item.id === updatedBooking.id
+                                    ? updatedBooking
+                                    : item,
+                            ),
+                        )
+                        setSelectedBooking(updatedBooking)
+                    }}
                 />
             )}
         </>
     )
 }
-

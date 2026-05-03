@@ -31,5 +31,10 @@ export interface Booking {
     start_time: string
     end_time: string
     status: 'pending' | 'confirmed' | 'cancelled'
+    pricing_type: 'fixed' | 'coordination' | 'member_based'
+    pricing_status: 'needs_quote' | 'priced'
+    quoted_price: number | null
+    final_price: number | null
+    currency: string | null
     created_at: string | null
 }

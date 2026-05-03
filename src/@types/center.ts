@@ -65,7 +65,11 @@ export type MyAgencyService = {
     id: number
     title: string
     slug: string
-    price: number
+    pricing_type: 'fixed' | 'coordination' | 'member_based'
+    needs_coordination: boolean
+    price: number | null
+    price_min?: number | null
+    price_max?: number | null
     estimate_time: number
     body: string | null
     service: { id: number; name: string } | null
@@ -78,7 +82,8 @@ export type CreateAgencyServiceRequest = {
     title?: string
     sub_title: string
     estimate_time: number
-    price: number
+    pricing_type: 'fixed' | 'coordination' | 'member_based'
+    price?: number | null
     body?: string
 }
 

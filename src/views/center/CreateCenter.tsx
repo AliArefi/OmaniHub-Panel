@@ -100,7 +100,18 @@ export default function CreateStoreWizard() {
                                 s.slug ||
                                 String(s.id),
                             duration: Number(s.estimate_time ?? 0),
-                            price: Number(s.price ?? 0),
+                            pricingType: s.pricing_type ?? 'fixed',
+                            needsCoordination: Boolean(s.needs_coordination),
+                            price:
+                                typeof s.price === 'number' ? s.price : null,
+                            priceMin:
+                                typeof s.price_min === 'number'
+                                    ? s.price_min
+                                    : null,
+                            priceMax:
+                                typeof s.price_max === 'number'
+                                    ? s.price_max
+                                    : null,
                             description: s.body ?? '',
                         }
                     })

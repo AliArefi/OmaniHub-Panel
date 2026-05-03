@@ -5,6 +5,7 @@ import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
 import { useEffect, useMemo, useState } from 'react'
 import { apiCreateAgencyService, getServices } from '@/services/CenterService'
 import { extractDigits } from '@/utils/normalizeDigits'
+import { getPricingTypeLabel, getServicePricingLabel } from '@/utils/pricing'
 
 interface HojraServicesProps {
     changeState: (value: number) => void
@@ -28,6 +29,9 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
     const [isLoadingTree, setIsLoadingTree] = useState(false)
 
     const [duration, setDuration] = useState<string>('')
+    const [pricingType, setPricingType] = useState<
+        'fixed' | 'coordination' | 'member_based'
+    >('fixed')
     const [price, setPrice] = useState<string>('')
     const [description, setDescription] = useState<string>('')
     const [isSaving, setIsSaving] = useState(false)
@@ -101,8 +105,8 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
             selectedServiceId !== null &&
             duration.trim() !== '' &&
             Number(duration) > 0 &&
-            price.trim() !== '' &&
-            Number(price) > 0 &&
+            (pricingType !== 'fixed' ||
+                (price.trim() !== '' && Number(price) > 0)) &&
             description.trim() !== '' &&
             !isDuplicate(selectedServiceId)
         )
@@ -136,7 +140,8 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 title: serviceLabel || undefined,
                 sub_title: description.trim().slice(0, 191),
                 estimate_time: Number(duration),
-                price: Number(price),
+                pricing_type: pricingType,
+                price: pricingType === 'fixed' ? Number(price) : null,
                 body: description.trim(),
             })
 
@@ -149,7 +154,11 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 serviceId: selectedServiceId,
                 serviceLabel,
                 duration: Number(duration),
-                price: Number(price),
+                pricingType,
+                needsCoordination: pricingType !== 'fixed',
+                price: pricingType === 'fixed' ? Number(price) : null,
+                priceMin: null,
+                priceMax: null,
                 description: description.trim(),
             }
 
@@ -182,6 +191,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
 
         setServicePath([])
         setDuration('')
+        setPricingType('fixed')
         setPrice('')
         setDescription('')
     }
@@ -242,7 +252,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <FormItem label="المدة (دقيقة)">
                         <Input
                             type="text"
@@ -256,6 +266,41 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                         />
                     </FormItem>
 
+                    <FormItem label="نوع التسعير">
+                        <Select<SelectOption>
+                            placeholder="اختر نوع التسعير"
+                            options={[
+                                { value: 1, label: 'سعر ثابت' },
+                                { value: 2, label: 'بحسب التنسيق' },
+                                { value: 3, label: 'بحسب العضو' },
+                            ]}
+                            value={
+                                pricingType === 'fixed'
+                                    ? { value: 1, label: 'سعر ثابت' }
+                                    : pricingType === 'coordination'
+                                      ? { value: 2, label: 'بحسب التنسيق' }
+                                      : { value: 3, label: 'بحسب العضو' }
+                            }
+                            onChange={(option) => {
+                                if (option?.value === 2) {
+                                    setPricingType('coordination')
+                                    setPrice('')
+                                    return
+                                }
+
+                                if (option?.value === 3) {
+                                    setPricingType('member_based')
+                                    setPrice('')
+                                    return
+                                }
+
+                                setPricingType('fixed')
+                            }}
+                        />
+                    </FormItem>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <FormItem label="السعر (ريال)">
                         <Input
                             type="text"
@@ -263,12 +308,21 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                             value={price}
                             placeholder="السعر"
                             min="1"
+                            disabled={pricingType !== 'fixed'}
                             onChange={(e) =>
                                 setPrice(extractDigits(e.target.value))
                             }
                         />
                     </FormItem>
                 </div>
+
+                {pricingType !== 'fixed' && (
+                    <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm text-gray-700">
+                        {pricingType === 'coordination'
+                            ? 'لن يظهر سعر للعميل أثناء الحجز، وسيتم تحديده لاحقاً من قسم الحجوزات.'
+                            : 'سيعتمد السعر على تسعير العضو/الموظف. إذا لم يكن هناك سعر محدد للعضو فسيظهر للعميل أن الخدمة بحاجة إلى تنسيق.'}
+                    </div>
+                )}
 
                 <FormItem label="وصف موجز للخدمة">
                     <Input
@@ -314,7 +368,10 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                                 المدة: {service.duration} دقيقة
                                             </span>
                                             <span>
-                                                السعر: {service.price} ريال
+                                                التسعير: {getPricingTypeLabel(service.pricingType)}
+                                            </span>
+                                            <span>
+                                                السعر: {getServicePricingLabel(service)}
                                             </span>
                                         </div>
                                         <div className="text-sm text-gray-700">
