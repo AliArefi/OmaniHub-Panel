@@ -22,14 +22,9 @@ type SignInFormSchema = {
     password: string
 }
 
-
 const validationSchema = z.object({
-    email: z
-        .string()
-        .min(1, { message: 'الرجاء إدخال بريدك الإلكتروني' }),
-    password: z
-        .string()
-        .min(1, { message: 'الرجاء إدخال كلمة المرور' }),
+    email: z.string().min(1, { message: 'الرجاء إدخال بريدك الإلكتروني' }),
+    password: z.string().min(1, { message: 'الرجاء إدخال كلمة المرور' }),
 })
 
 const SignInForm = (props: SignInFormProps) => {
@@ -59,15 +54,23 @@ const SignInForm = (props: SignInFormProps) => {
 
         if (!disableSubmit) {
             setSubmitting(true)
-            
+
             const result = await signIn({ email, password })
 
             if (result?.status === 'failed') {
                 setMessage?.(result.message)
                 if (result.fieldErrors) {
                     const fe = result.fieldErrors as Record<string, string[]>
-                    if (fe.email?.[0]) setError('email', { type: 'server', message: fe.email[0] })
-                    if (fe.password?.[0]) setError('password', { type: 'server', message: fe.password[0] })
+                    if (fe.email?.[0])
+                        setError('email', {
+                            type: 'server',
+                            message: fe.email[0],
+                        })
+                    if (fe.password?.[0])
+                        setError('password', {
+                            type: 'server',
+                            message: fe.password[0],
+                        })
                 }
             }
         }
@@ -76,7 +79,7 @@ const SignInForm = (props: SignInFormProps) => {
     }
 
     return (
-        <div className={className} >
+        <div className={className}>
             <Form onSubmit={handleSubmit(onSignIn)}>
                 <FormItem
                     label="ایمیل"
@@ -91,6 +94,9 @@ const SignInForm = (props: SignInFormProps) => {
                                 type="email"
                                 placeholder="ایمیل"
                                 autoComplete="off"
+                                dir='ltr'
+                                className="text-left placeholder:text-right placeholder:rtl"
+                                style={{ fontFamily: 'sans-serif' }}
                                 {...field}
                             />
                         )}
@@ -126,7 +132,9 @@ const SignInForm = (props: SignInFormProps) => {
                     variant="solid"
                     type="submit"
                 >
-                    {isSubmitting ? 'جاري تسجيل الدخول...' : 'جاري تسجيل الدخول'}
+                    {isSubmitting
+                        ? 'جاري تسجيل الدخول...'
+                        : 'جاري تسجيل الدخول'}
                 </Button>
             </Form>
         </div>

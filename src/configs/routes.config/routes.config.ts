@@ -32,6 +32,32 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
+        key: 'newCenter',
+        path: '/new-center',
+        component: lazy(() => import('@/views/center/NewCenter')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+            header: {
+                title: 'انشاء حجرة جدیدة',
+                contained: true,
+            },
+        },
+    },
+    {
+        key: 'viewCenter',
+        path: '/centers/:agencySlug/view',
+        component: lazy(() => import('@/views/center/ViewCenter')),
+        authority: [],
+        meta: {
+            pageContainerType: 'contained',
+            header: {
+                title: 'مشاهدة الحُجرة',
+                contained: true,
+            },
+        },
+    },
+    {
         key: 'editCenter',
         path: '/centers/:agencySlug/edit',
         component: lazy(() => import('@/views/center/CreateCenter')),

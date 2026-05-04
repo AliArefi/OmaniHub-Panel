@@ -6,6 +6,8 @@ import {
     PiBagSimpleDuotone,
     PiUserCircleDuotone,
     PiCurrencyCircleDollarDuotone,
+    PiListStarDuotone,
+    PiFolderOpenDuotone,
 } from 'react-icons/pi'
 
 import type { JSX } from 'react'
@@ -22,7 +24,9 @@ const navigationIcon: NavigationIcons = {
     groupMenu: <PiBagSimpleDuotone />,
     store: <StoreIcon />,    
     account: <PiUserCircleDuotone />,    
-    accountPricing: <PiCurrencyCircleDollarDuotone />
+    accountPricing: <PiCurrencyCircleDollarDuotone />,
+    newCenter: <PiListStarDuotone />,
+    fileManager: <PiFolderOpenDuotone />
 }
 
 export default navigationIcon

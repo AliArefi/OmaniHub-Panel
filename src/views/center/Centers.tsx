@@ -1,5 +1,5 @@
 import type { Agency } from '@/@types/center'
-import { Avatar, Button, Card, Spinner, Table } from '@/components/ui'
+import { Avatar, Button, Card, Spinner, Table, Tooltip } from '@/components/ui'
 import TBody from '@/components/ui/Table/TBody'
 import Td from '@/components/ui/Table/Td'
 import Th from '@/components/ui/Table/Th'
@@ -12,16 +12,21 @@ import { apiDeleteMyAgency, getMyAgencies } from '@/services/CenterService'
 import { useTranslation } from '@/store/useTranslation'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { ActionLink } from '@/components/shared'
+import { TbCalendar, TbChartBar, TbEdit, TbEye, TbTrash } from 'react-icons/tb'
 
 export default function Centers() {
-
     const [agencies, setAgencies] = useState<Agency[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [deletingSlug, setDeletingSlug] = useState<string | null>(null)
-    const [confirmDeleteSlug, setConfirmDeleteSlug] = useState<string | null>(null)
+    const [confirmDeleteSlug, setConfirmDeleteSlug] = useState<string | null>(
+        null,
+    )
     const { t } = useTranslation()
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchAgencies = async () => {
@@ -31,12 +36,14 @@ export default function Centers() {
                 setAgencies(resp.data)
             } catch (err: unknown) {
                 const apiMessage = (() => {
-                    if (typeof err !== 'object' || err === null) return undefined
+                    if (typeof err !== 'object' || err === null)
+                        return undefined
                     const response = (err as { response?: unknown }).response
                     if (typeof response !== 'object' || response === null)
                         return undefined
                     const data = (response as { data?: unknown }).data
-                    if (typeof data !== 'object' || data === null) return undefined
+                    if (typeof data !== 'object' || data === null)
+                        return undefined
                     const message = (data as { message?: unknown }).message
                     return typeof message === 'string' && message.trim()
                         ? message
@@ -66,11 +73,16 @@ export default function Centers() {
                 </Notification>,
             )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'فشل حذف المركز'
+            const message =
+                err instanceof Error ? err.message : 'فشل حذف المركز'
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setDeletingSlug(null)
         }
+    }
+
+    const onView = (slug: string) => {
+        navigate(`/centers/${slug}/view`)
     }
 
     if (loading)
@@ -101,37 +113,68 @@ export default function Centers() {
                         {agencies.map((agency) => (
                             <Tr key={agency.id}>
                                 <Td>
-                                    <div className="flex items-center justify-start gap-2">
-                                        <Avatar src={resolveImageUrl(agency.logo)} />
-                                        <div className="font-bold">{agency.title}</div>
-                                    </div>
+                                    <ActionLink
+                                        to={`/centers/${agency.slug}/view`}
+                                        className="no-underline hover:no-underline group"
+                                    >
+                                        <div className="flex items-center justify-start gap-2 no-underline">
+                                            <Avatar
+                                                src={resolveImageUrl(
+                                                    agency.logo,
+                                                )}
+                                            />
+                                            <Tooltip title="عرض وتعديل الحُجرة">
+                                                <div className="font-bold heading-text no-underline  hover:text-primary group-hover:text-primary">
+                                                    {agency.title}
+                                                </div>
+                                            </Tooltip>
+                                        </div>
+                                    </ActionLink>
                                 </Td>
                                 <Td>{agency.status}</Td>
                                 <Td>
                                     <div className="flex items-center justify-end gap-2">
                                         {agency.status === 'published' && (
-                                            <Link to={`/bookings?agencySlug=${encodeURIComponent(agency.slug)}`}>
-                                                <Button size="xs" variant="plain" className="bg-blue-400 text-white">
-                                                    {t('reservations') || 'الحجوزات'}
+                                            <Link
+                                                to={`/bookings?agencySlug=${encodeURIComponent(agency.slug)}`}
+                                            >
+                                                <Button
+                                                    size="xs"
+                                                    variant="plain"
+                                                    className="bg-blue-400 text-white flex items-center gap-1"
+                                                >
+                                                    <TbCalendar />{' '}
+                                                    {t('reservations') ||
+                                                        'الحجوزات'}
                                                 </Button>
                                             </Link>
                                         )}
                                         {agency.status === 'published' && (
                                             <Link
-                                                to={`/centers/${encodeURIComponent(
-                                                    agency.slug,
-                                                )}/stats`}
+                                                to={`/centers/${encodeURIComponent(agency.slug)}/stats`}
                                             >
-                                                <Button size="xs" variant="solid">
-                                                    إحصائيات
+                                                <Button
+                                                    size="xs"
+                                                    variant="solid"
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    <TbChartBar /> إحصائيات
                                                 </Button>
                                             </Link>
                                         )}
-                                        <Link to={`/centers/${agency.slug}/edit`}>
-                                            <Button size="xs" variant="solid">
-                                                {t('edit') || 'Edit'}
+
+                                        <Link
+                                            to={`/centers/${agency.slug}/edit`}
+                                        >
+                                            <Button
+                                                size="xs"
+                                                variant="solid"
+                                                className="flex items-center gap-1"
+                                            >
+                                                <TbEdit /> {t('edit') || 'Edit'}
                                             </Button>
                                         </Link>
+
                                         {agency.status === 'published' && (
                                             <a
                                                 href={`https://omanihub.com/${agency.slug}`}
@@ -139,28 +182,54 @@ export default function Centers() {
                                                 rel="noreferrer"
                                                 className="inline-flex"
                                             >
-                                                <Button size="xs" variant="default">
+                                                <Button
+                                                    size="xs"
+                                                    variant="default"
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    <TbEye />{' '}
                                                     {t('view') || 'View'}
                                                 </Button>
                                             </a>
                                         )}
-                                        
-                                        <Button
-                                            size="xs"
-                                            variant="default"
-                                            className='text-red-500'
-                                            loading={deletingSlug === agency.slug}
-                                            onClick={() => setConfirmDeleteSlug(agency.slug)}
-                                        >
-                                            حذف
-                                        </Button>
+
+                                        <div className="flex justify-end text-lg gap-1">
+                                            <Tooltip
+                                                wrapperClass="flex"
+                                                title="مشاهدة"
+                                            >
+                                                <span
+                                                    className="cursor-pointer"
+                                                    onClick={() =>
+                                                        onView(agency.slug)
+                                                    }
+                                                >
+                                                    <TbEye />
+                                                </span>
+                                            </Tooltip>
+
+                                            <Button
+                                                size="xs"
+                                                variant="plain"
+                                                className="hover:text-red-500"
+                                                loading={
+                                                    deletingSlug === agency.slug
+                                                }
+                                                onClick={() =>
+                                                    setConfirmDeleteSlug(
+                                                        agency.slug,
+                                                    )
+                                                }
+                                            >
+                                                <TbTrash />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </Td>
                             </Tr>
                         ))}
                     </TBody>
                 </Table>
-
             </Card>
 
             <ConfirmDialog
@@ -170,7 +239,9 @@ export default function Centers() {
                 title="تأكيد الحذف"
                 confirmText="حذف"
                 cancelText="إلغاء"
-                confirmButtonProps={{ loading: deletingSlug === confirmDeleteSlug }}
+                confirmButtonProps={{
+                    loading: deletingSlug === confirmDeleteSlug,
+                }}
                 onCancel={() => setConfirmDeleteSlug(null)}
                 onConfirm={() => {
                     if (!confirmDeleteSlug) return
