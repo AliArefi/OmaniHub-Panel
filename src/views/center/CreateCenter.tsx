@@ -23,15 +23,18 @@ import { useParams } from 'react-router'
 import { HojraExtraInformations } from './steps/HojraExtraInformations'
 import { HojraGallery } from './steps/HojraGallery'
 import { CENTER_WIZARD_STEP } from './centerWizardSteps'
-import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
 import type {
     DaySchedule,
     ServiceAssignment,
     TeamMember,
 } from '@/context/createStoreContext'
+import {
+    createDefaultWeekSchedule,
+    normalizeDaySchedule,
+} from './utils/schedule'
 
 export default function CreateStoreWizard() {
-    const [step, setStep] = useState<number>(CENTER_WIZARD_STEP.INFORMATION);
+    const [step, setStep] = useState<number>(CENTER_WIZARD_STEP.INFORMATION)
     const { agencySlug } = useParams()
 
     const [isBootstrapping, setIsBootstrapping] = useState(false)
@@ -75,7 +78,8 @@ export default function CreateStoreWizard() {
                 const hojraInfo: Partial<HojraInfo> = {
                     title: agency.title,
                     service_id: agency.service?.id ?? null,
-                    about_text: htmlToPlainText(agency.about_text ?? ''),
+                    about_text: agency.about_text ?? '',
+                    about_us: agency.about_us ?? '',
                 }
 
                 const newHojra: Partial<NewHojraData> = {
@@ -89,93 +93,47 @@ export default function CreateStoreWizard() {
                 })
 
                 const mappedServices: ServiceItem[] = (servicesResp.data ?? [])
-                    .map((s) => {
-                        const serviceId = s.service?.id ?? 0
+                    .map((service) => {
+                        const serviceId = service.service?.id ?? 0
                         return {
-                            id: s.id,
+                            id: service.id,
                             serviceId,
                             serviceLabel:
-                                s.title ||
-                                s.service?.name ||
-                                s.slug ||
-                                String(s.id),
-                            duration: Number(s.estimate_time ?? 0),
-                            pricingType: s.pricing_type ?? 'fixed',
-                            needsCoordination: Boolean(s.needs_coordination),
+                                service.title ||
+                                service.service?.name ||
+                                service.slug ||
+                                String(service.id),
+                            duration: Number(service.estimate_time ?? 0),
+                            pricingType: service.pricing_type ?? 'fixed',
+                            needsCoordination: Boolean(
+                                service.needs_coordination,
+                            ),
                             price:
-                                typeof s.price === 'number' ? s.price : null,
+                                typeof service.price === 'number'
+                                    ? service.price
+                                    : null,
                             priceMin:
-                                typeof s.price_min === 'number'
-                                    ? s.price_min
+                                typeof service.price_min === 'number'
+                                    ? service.price_min
                                     : null,
                             priceMax:
-                                typeof s.price_max === 'number'
-                                    ? s.price_max
+                                typeof service.price_max === 'number'
+                                    ? service.price_max
                                     : null,
-                            description: s.body ?? '',
+                            description: service.body ?? '',
                         }
                     })
-                    .filter((s) => s.serviceId > 0)
+                    .filter((service) => service.serviceId > 0)
 
-                const baseWeekDays: DaySchedule[] = [
-                    {
-                        day: 'saturday',
-                        dayLabel: 'السبت',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'sunday',
-                        dayLabel: 'الأحد',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'monday',
-                        dayLabel: 'الاثنين',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'tuesday',
-                        dayLabel: 'الثلاثاء',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'wednesday',
-                        dayLabel: 'الأربعاء',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'thursday',
-                        dayLabel: 'الخميس',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                    {
-                        day: 'friday',
-                        dayLabel: 'الجمعة',
-                        isOpen: false,
-                        startTime: '09:00',
-                        endTime: '17:00',
-                    },
-                ]
+                const baseWeekDays: DaySchedule[] = createDefaultWeekSchedule()
 
                 const serviceMembersResponses = await Promise.all(
-                    mappedServices.map(async (svc) => {
+                    mappedServices.map(async (service) => {
                         try {
-                            const resp = await apiGetServiceMembers(svc.id)
-                            return { service: svc, members: resp.data ?? [] }
+                            const response = await apiGetServiceMembers(service.id)
+                            return { service, members: response.data ?? [] }
                         } catch {
-                            return { service: svc, members: [] }
+                            return { service, members: [] }
                         }
                     }),
                 )
@@ -183,8 +141,8 @@ export default function CreateStoreWizard() {
                 const membersById = new Map<number, TeamMember>()
                 const assignmentsBoot: ServiceAssignment[] = []
 
-                for (const svcResp of serviceMembersResponses) {
-                    for (const member of svcResp.members) {
+                for (const serviceResponse of serviceMembersResponses) {
+                    for (const member of serviceResponse.members) {
                         if (!membersById.has(member.id)) {
                             membersById.set(member.id, {
                                 id: member.id,
@@ -195,58 +153,69 @@ export default function CreateStoreWizard() {
                         }
 
                         let weeklySchedule: DaySchedule[] = baseWeekDays.map(
-                            (d) => ({ ...d }),
+                            normalizeDaySchedule,
                         )
 
                         try {
-                            const wh = await apiGetMemberWorkingHours(member.id)
-                            const byDay = new Map<number, { start: string; end: string }[]>()
+                            const workingHours = await apiGetMemberWorkingHours(
+                                member.id,
+                            )
+                            const slotsByDay = new Map<
+                                number,
+                                Array<{ start: string; end: string }>
+                            >()
 
-                            for (const day of wh.days ?? []) {
-                                const slots = (day.slots ?? []).map((s) => ({
-                                    start: s.start,
-                                    end: s.end,
+                            for (const day of workingHours.days ?? []) {
+                                const slots = (day.slots ?? []).map((slot) => ({
+                                    start: slot.start,
+                                    end: slot.end,
                                 }))
-                                byDay.set(day.day_of_week, slots)
+                                slotsByDay.set(day.day_of_week, slots)
                             }
 
-                            weeklySchedule = weeklySchedule.map((d) => {
+                            weeklySchedule = weeklySchedule.map((daySchedule) => {
                                 const dayIndex =
-                                    d.day === 'saturday'
+                                    daySchedule.day === 'saturday'
                                         ? 0
-                                        : d.day === 'sunday'
-                                            ? 1
-                                            : d.day === 'monday'
-                                                ? 2
-                                                : d.day === 'tuesday'
-                                                    ? 3
-                                                    : d.day === 'wednesday'
-                                                        ? 4
-                                                        : d.day === 'thursday'
-                                                            ? 5
-                                                            : 6
+                                        : daySchedule.day === 'sunday'
+                                          ? 1
+                                          : daySchedule.day === 'monday'
+                                            ? 2
+                                            : daySchedule.day === 'tuesday'
+                                              ? 3
+                                              : daySchedule.day === 'wednesday'
+                                                ? 4
+                                                : daySchedule.day === 'thursday'
+                                                  ? 5
+                                                  : 6
 
-                                const slots = byDay.get(dayIndex) ?? []
+                                const slots = slotsByDay.get(dayIndex) ?? []
                                 if (slots.length === 0) {
-                                    return { ...d, isOpen: false }
+                                    return normalizeDaySchedule({
+                                        ...daySchedule,
+                                        isOpen: false,
+                                    })
                                 }
 
-                                const first = slots[0]
-                                return {
-                                    ...d,
+                                return normalizeDaySchedule({
+                                    ...daySchedule,
                                     isOpen: true,
-                                    startTime: first.start,
-                                    endTime: first.end,
-                                }
+                                    slots: slots.map((slot) => ({
+                                        startTime: slot.start,
+                                        endTime: slot.end,
+                                    })),
+                                })
                             })
                         } catch {
                             // keep defaults
                         }
 
                         assignmentsBoot.push({
-                            id: Number(`${svcResp.service.id}${member.id}`),
-                            serviceId: svcResp.service.id,
-                            serviceLabel: svcResp.service.serviceLabel,
+                            id: Number(
+                                `${serviceResponse.service.id}${member.id}`,
+                            ),
+                            serviceId: serviceResponse.service.id,
+                            serviceLabel: serviceResponse.service.serviceLabel,
                             memberId: member.id,
                             memberName: member.name ?? '',
                             weeklySchedule,
@@ -313,7 +282,9 @@ export default function CreateStoreWizard() {
                         <HojraInformation changeState={(state) => setStep(state)} />
                     )}
                     {step === CENTER_WIZARD_STEP.EXTRA_INFORMATION && (
-                        <HojraExtraInformations changeState={(state) => setStep(state)} />
+                        <HojraExtraInformations
+                            changeState={(state) => setStep(state)}
+                        />
                     )}
                     {step === CENTER_WIZARD_STEP.GALLERY && (
                         <HojraGallery changeState={(state) => setStep(state)} />
@@ -322,16 +293,18 @@ export default function CreateStoreWizard() {
                         <HojraServices changeState={(state) => setStep(state)} />
                     )}
                     {step === CENTER_WIZARD_STEP.ASSIGN_SERVICES && (
-                        <HojraAssignServices changeState={(state) => setStep(state)} />
+                        <HojraAssignServices
+                            changeState={(state) => setStep(state)}
+                        />
                     )}
                     {step === CENTER_WIZARD_STEP.SUMMARY && (
                         <HojraSummary changeState={(state) => setStep(state)} />
                     )}
                 </div>
-                <div className="w-full">
+                <div>
                     <ProgressCreatingCenter step={step} />
                 </div>
             </div>
         </CreateStoreProvider>
-    );
+    )
 }

@@ -42,8 +42,10 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                     weekly_schedule: (a.weeklySchedule ?? []).map((sch) => ({
                         day: sch.day,
                         is_open: sch.isOpen,
-                        start_time: sch.startTime,
-                        end_time: sch.endTime,
+                        slots: (sch.slots ?? []).map((slot) => ({
+                            start_time: slot.startTime,
+                            end_time: slot.endTime,
+                        })),
                     })),
                 })),
             };
@@ -193,39 +195,36 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                                                             sch.isOpen,
                                                                         ),
                                                                 )
-                                                                .map((sch) => (
-                                                                    <div
-                                                                        key={`${assign.id}-${sch.day}`}
-                                                                        className="text-xs text-gray-600 flex items-center gap-1"
-                                                                    >
-                                                                        <svg
-                                                                            xmlns="http://www.w3.org/2000/svg"
-                                                                            className="w-3 h-3"
-                                                                            fill="none"
-                                                                            viewBox="0 0 24 24"
-                                                                            stroke="currentColor"
+                                                                .map((sch) =>
+                                                                    (sch.slots ?? []).map((slot, slotIndex) => (
+                                                                        <div
+                                                                            key={`${assign.id}-${sch.day}-${slotIndex}`}
+                                                                            className="text-xs text-gray-600 flex items-center gap-1"
                                                                         >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={
-                                                                                    2
-                                                                                }
-                                                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                                            />
-                                                                        </svg>
-                                                                        {sch.dayLabel}{' '}
-                                                                        |{" "}
-                                                                        {
-                                                                            sch.startTime
-                                                                        }{" "}
-                                                                        -{" "}
-                                                                        {
-                                                                            sch.endTime
-                                                                        }
-                                                                    </div>
-                                                                )
-                                                            )}
+                                                                            <svg
+                                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                                className="w-3 h-3"
+                                                                                fill="none"
+                                                                                viewBox="0 0 24 24"
+                                                                                stroke="currentColor"
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    strokeWidth={
+                                                                                        2
+                                                                                    }
+                                                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                                                />
+                                                                            </svg>
+                                                                            {sch.dayLabel}{' '}
+                                                                            |{' '}
+                                                                            {slot.startTime}{' '}
+                                                                            -{' '}
+                                                                            {slot.endTime}
+                                                                        </div>
+                                                                    )),
+                                                                )}
                                                         </div>
                                                     )
                                                 )}

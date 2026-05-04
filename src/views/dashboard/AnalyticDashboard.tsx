@@ -8,6 +8,7 @@ import { Button, Input, Select } from '@/components/ui'
 import { apiGetMyAnalyticsOverview, type MyAnalyticsOverviewResponse } from '@/services/AnalyticsService'
 import { COLORS } from '@/constants/chart.constant'
 import { useTranslation } from '@/store/useTranslation'
+import { useSessionUser } from '@/store/authStore'
 
 type Preset = '7d' | '30d' | '90d'
 
@@ -30,6 +31,7 @@ function guessTz(): string {
 
 const AnalyticDashboard = () => {
     const { t } = useTranslation()
+    const currentUserId = useSessionUser((state) => state.user.id)
     const [preset, setPreset] = useState<Preset>('30d')
     const [tz, setTz] = useState<string>(guessTz())
     const [{ from, to }, setRange] = useState(() => defaultRange('30d'))
@@ -41,7 +43,7 @@ const AnalyticDashboard = () => {
 
     const { data, isLoading, isValidating, mutate } =
         useSWR<MyAnalyticsOverviewResponse>(
-        ['my-analytics-overview', params],
+        ['my-analytics-overview', currentUserId, params],
         () => apiGetMyAnalyticsOverview(params),
         {
             revalidateOnFocus: false,

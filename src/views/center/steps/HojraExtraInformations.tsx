@@ -1,4 +1,4 @@
-import {
+﻿import {
     Button,
     Card,
     Form,
@@ -16,6 +16,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from '@/store/useTranslation'
 import { useCreateStore } from '@/context/createStoreContext'
 import { MapPicker } from './components/MapPicker'
+import PhoneNumberInput, {
+    type PhoneNumberValue,
+} from '@/components/shared/PhoneNumberInput'
 import {
     apiGetCities,
     apiGetMyAgency,
@@ -23,6 +26,7 @@ import {
 } from '@/services/CenterService'
 import { Cities } from '@/@types/center'
 import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
+import { prepareValidatedFile } from '../utils/fileUpload'
 
 interface HojraExtraInformationsProps {
     changeState: (value: number) => void
@@ -48,6 +52,37 @@ const validationSchema = z.object({
 
 type FormValues = z.infer<typeof validationSchema>
 
+const DEFAULT_COUNTRY_CODE = '+968'
+
+const parsePhoneValue = (phone: string | null | undefined): PhoneNumberValue => {
+    const normalized = (phone || '').trim()
+    if (!normalized) {
+        return { countryCode: DEFAULT_COUNTRY_CODE, localNumber: '' }
+    }
+
+    if (normalized.startsWith(DEFAULT_COUNTRY_CODE)) {
+        return {
+            countryCode: DEFAULT_COUNTRY_CODE,
+            localNumber: normalized.slice(DEFAULT_COUNTRY_CODE.length),
+        }
+    }
+
+    if (normalized.startsWith('968')) {
+        return {
+            countryCode: DEFAULT_COUNTRY_CODE,
+            localNumber: normalized.slice(3),
+        }
+    }
+
+    return {
+        countryCode: DEFAULT_COUNTRY_CODE,
+        localNumber: normalized.replace(/^\+/, ''),
+    }
+}
+
+const stringifyPhoneValue = (value: PhoneNumberValue) =>
+    `${value.countryCode}${value.localNumber}`.trim()
+
 export const HojraExtraInformations = ({
     changeState,
 }: HojraExtraInformationsProps) => {
@@ -64,6 +99,10 @@ export const HojraExtraInformations = ({
     const [error, setError] = useState<string | null>(null)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+    const [phoneValue, setPhoneValue] = useState<PhoneNumberValue>({
+        countryCode: DEFAULT_COUNTRY_CODE,
+        localNumber: '',
+    })
 
     const logoInputRef = useRef<HTMLInputElement | null>(null)
     const bannerInputRef = useRef<HTMLInputElement | null>(null)
@@ -128,7 +167,7 @@ export const HojraExtraInformations = ({
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
 
             if (!slug.trim()) {
-                setError('المركز غير متاح حالياً.')
+                setError('ط§ظ„ظ…ط±ظƒط² ط؛ظٹط± ظ…طھط§ط­ ط­ط§ظ„ظٹط§ظ‹.')
                 setLoadingCities(false)
                 return
             }
@@ -157,6 +196,7 @@ export const HojraExtraInformations = ({
                     setBannerPreview(
                         extraInformationDraft.bannerPreview ?? null,
                     )
+                    setPhoneValue(parsePhoneValue(draftValues.phone as string))
                 }
 
                 if (!hasDraft) {
@@ -174,6 +214,7 @@ export const HojraExtraInformations = ({
                     setValue('instagram', agency.instagram || '')
                     setValue('linkedin', agency.linkedin || '')
                     setValue('phone', agency.phone || '')
+                    setPhoneValue(parsePhoneValue(agency.phone || ''))
                     setValue('website', agency.website || '')
                     setValue('youtube', agency.youtube || '')
                     setValue('h1', htmlToPlainText(agency.h1 || ''))
@@ -204,14 +245,14 @@ export const HojraExtraInformations = ({
                     })
                 }
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+                setError(getApiErrorMessage(err) || 'ط®ط·ط§ ط¯ط± ط¯ط±غŒط§ظپطھ ط§ط·ظ„ط§ط¹ط§طھ')
             }
 
             try {
                 const citiesResp = await apiGetCities()
                 setCities(citiesResp.data)
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت شهرها')
+                setError(getApiErrorMessage(err) || 'ط®ط·ط§ ط¯ط± ط¯ط±غŒط§ظپطھ ط´ظ‡ط±ظ‡ط§')
             } finally {
                 setLoadingCities(false)
             }
@@ -242,7 +283,7 @@ export const HojraExtraInformations = ({
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
 
             if (!slug.trim()) {
-                throw new Error('المركز غير متاح حالياً.')
+                throw new Error('ط§ظ„ظ…ط±ظƒط² ط؛ظٹط± ظ…طھط§ط­ ط­ط§ظ„ظٹط§ظ‹.')
             }
 
             const formData = new FormData()
@@ -262,7 +303,7 @@ export const HojraExtraInformations = ({
             const resp = await apiUpdateInfoMyAgency(slug, formData)
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'خطا در ذخیره اطلاعات')
+                throw new Error(resp?.message || 'ط®ط·ط§ ط¯ط± ط°ط®غŒط±ظ‡ ط§ط·ظ„ط§ط¹ط§طھ')
             }
 
             toast.push(
@@ -309,7 +350,7 @@ export const HojraExtraInformations = ({
         } catch (err: any) {
             toast.push(
                 <Notification type="danger">
-                    {getApiErrorMessage(err) || err.message || 'خطا در ذخیره'}
+                    {getApiErrorMessage(err) || err.message || 'ط®ط·ط§ ط¯ط± ط°ط®غŒط±ظ‡'}
                 </Notification>,
             )
         }
@@ -333,13 +374,13 @@ export const HojraExtraInformations = ({
         <div>
             <Card
                 header={{
-                    content: 'المعلومات الإضافية',
+                    content: 'ط§ظ„ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ط¥ط¶ط§ظپظٹط©',
                     bordered: false,
                 }}
             >
                 <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                     {/* Logo */}
-                    <FormItem label="الشعار (Logo)" className="mb-6">
+                    <FormItem label="ط§ظ„ط´ط¹ط§ط± (Logo)" className="mb-6">
                         <Controller
                             name="logo"
                             control={control}
@@ -353,7 +394,7 @@ export const HojraExtraInformations = ({
                                         />
                                     ) : (
                                         <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                                            تصویر لوگو انتخاب نشده
+                                            طھطµظˆغŒط± ظ„ظˆع¯ظˆ ط§ظ†طھط®ط§ط¨ ظ†ط´ط¯ظ‡
                                         </div>
                                     )}
 
@@ -363,8 +404,22 @@ export const HojraExtraInformations = ({
                                         accept="image/*"
                                         className="hidden"
                                         onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (!file) return
+                                            const inputFile =
+                                                e.target.files?.[0]
+                                            if (!inputFile) return
+                                            const { file, error: fileError } =
+                                                prepareValidatedFile(inputFile, {
+                                                    category: 'image',
+                                                })
+                                            if (fileError || !file) {
+                                                toast.push(
+                                                    <Notification type="danger">
+                                                        {fileError}
+                                                    </Notification>,
+                                                )
+                                                e.target.value = ''
+                                                return
+                                            }
                                             field.onChange(file)
                                             const nextPreview =
                                                 URL.createObjectURL(file)
@@ -386,8 +441,8 @@ export const HojraExtraInformations = ({
                                             }
                                         >
                                             {logoPreview
-                                                ? 'تغییر الشعار'
-                                                : 'انتخاب الشعار'}
+                                                ? 'طھط؛غŒغŒط± ط§ظ„ط´ط¹ط§ط±'
+                                                : 'ط§ظ†طھط®ط§ط¨ ط§ظ„ط´ط¹ط§ط±'}
                                         </Button>
 
                                         {logoPreview && (
@@ -410,7 +465,7 @@ export const HojraExtraInformations = ({
                                                     }
                                                 }}
                                             >
-                                                حذف
+                                                ط­ط°ظپ
                                             </Button>
                                         )}
                                     </div>
@@ -420,7 +475,7 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     {/* Banner */}
-                    <FormItem label="البانر (Banner)" className="mb-6">
+                    <FormItem label="ط§ظ„ط¨ط§ظ†ط± (Banner)" className="mb-6">
                         <Controller
                             name="banner"
                             control={control}
@@ -434,7 +489,7 @@ export const HojraExtraInformations = ({
                                         />
                                     ) : (
                                         <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
-                                            تصویر بنر انتخاب نشده
+                                            طھطµظˆغŒط± ط¨ظ†ط± ط§ظ†طھط®ط§ط¨ ظ†ط´ط¯ظ‡
                                         </div>
                                     )}
 
@@ -444,8 +499,22 @@ export const HojraExtraInformations = ({
                                         accept="image/*"
                                         className="hidden"
                                         onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (!file) return
+                                            const inputFile =
+                                                e.target.files?.[0]
+                                            if (!inputFile) return
+                                            const { file, error: fileError } =
+                                                prepareValidatedFile(inputFile, {
+                                                    category: 'image',
+                                                })
+                                            if (fileError || !file) {
+                                                toast.push(
+                                                    <Notification type="danger">
+                                                        {fileError}
+                                                    </Notification>,
+                                                )
+                                                e.target.value = ''
+                                                return
+                                            }
                                             field.onChange(file)
                                             const nextPreview =
                                                 URL.createObjectURL(file)
@@ -467,8 +536,8 @@ export const HojraExtraInformations = ({
                                             }
                                         >
                                             {bannerPreview
-                                                ? 'تغییر البانر'
-                                                : 'انتخاب البانر'}
+                                                ? 'طھط؛غŒغŒط± ط§ظ„ط¨ط§ظ†ط±'
+                                                : 'ط§ظ†طھط®ط§ط¨ ط§ظ„ط¨ط§ظ†ط±'}
                                         </Button>
 
                                         {bannerPreview && (
@@ -495,7 +564,7 @@ export const HojraExtraInformations = ({
                                                     }
                                                 }}
                                             >
-                                                حذف
+                                                ط­ط°ظپ
                                             </Button>
                                         )}
                                     </div>
@@ -506,7 +575,7 @@ export const HojraExtraInformations = ({
 
                     {/* Map */}
                     <div className="mb-8">
-                        <FormItem label="الموقع على الخريطة">
+                        <FormItem label="ط§ظ„ظ…ظˆظ‚ط¹ ط¹ظ„ظ‰ ط§ظ„ط®ط±ظٹط·ط©">
                             <MapPicker
                                 lat={lat ? Number(lat) : undefined}
                                 lng={lng ? Number(lng) : undefined}
@@ -519,7 +588,7 @@ export const HojraExtraInformations = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                             <FormItem
-                                label="خط العرض (Latitude)"
+                                label="ط®ط· ط§ظ„ط¹ط±ط¶ (Latitude)"
                                 invalid={Boolean(errors.latitude)}
                                 errorMessage={errors.latitude?.message}
                             >
@@ -527,17 +596,20 @@ export const HojraExtraInformations = ({
                                     name="latitude"
                                     control={control}
                                     render={({ field }) => (
-                                        <Input
-                                            type="text"
-                                            placeholder="مثال: 23.5880"
-                                            {...field}
-                                        />
+                                        <div dir="ltr">
+                                            <Input
+                                                type="text"
+                                                placeholder="23.5880"
+                                                className="text-left"
+                                                {...field}
+                                            />
+                                        </div>
                                     )}
                                 />
                             </FormItem>
 
                             <FormItem
-                                label="خط الطول (Longitude)"
+                                label="ط®ط· ط§ظ„ط·ظˆظ„ (Longitude)"
                                 invalid={Boolean(errors.longitude)}
                                 errorMessage={errors.longitude?.message}
                             >
@@ -545,25 +617,28 @@ export const HojraExtraInformations = ({
                                     name="longitude"
                                     control={control}
                                     render={({ field }) => (
-                                        <Input
-                                            type="text"
-                                            placeholder="مثال: 58.3829"
-                                            {...field}
-                                        />
+                                        <div dir="ltr">
+                                            <Input
+                                                type="text"
+                                                placeholder="58.3829"
+                                                className="text-left"
+                                                {...field}
+                                            />
+                                        </div>
                                     )}
                                 />
                             </FormItem>
                         </div>
                     </div>
 
-                    <FormItem label="المدينة" className="mb-6">
+                    <FormItem label="ط§ظ„ظ…ط¯ظٹظ†ط©" className="mb-6">
                         <Controller
                             name="city_id"
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     size="sm"
-                                    placeholder="اختر المدينة"
+                                    placeholder="ط§ط®طھط± ط§ظ„ظ…ط¯ظٹظ†ط©"
                                     options={cityOptions}
                                     value={
                                         cityOptions.find(
@@ -578,42 +653,50 @@ export const HojraExtraInformations = ({
                         />
                     </FormItem>
 
-                    <FormItem label="رقم الهاتف" className="mb-6">
+                    <FormItem label="ط±ظ‚ظ… ط§ظ„ظ‡ط§طھظپ" className="mb-6">
                         <Controller
                             name="phone"
                             control={control}
                             render={({ field }) => (
-                                <Input
-                                    type="text"
-                                    placeholder="مثال: 96890000000"
-                                    {...field}
+                                <PhoneNumberInput
+                                    value={phoneValue}
+                                    onChange={(nextValue) => {
+                                        setPhoneValue(nextValue)
+                                        field.onChange(
+                                            stringifyPhoneValue(nextValue),
+                                        )
+                                    }}
+                                    invalid={Boolean(errors.phone)}
                                 />
                             )}
                         />
                     </FormItem>
 
-                    <FormItem label="الموقع الإلكتروني" className="mb-6">
+                    <FormItem label="ط§ظ„ظ…ظˆظ‚ط¹ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" className="mb-6">
                         <Controller
                             name="website"
                             control={control}
                             render={({ field }) => (
-                                <Input
-                                    type="text"
-                                    placeholder="https://example.com"
-                                    {...field}
-                                />
+                                <div dir="ltr">
+                                    <Input
+                                        type="text"
+                                        placeholder="https://example.com"
+                                        className="text-left"
+                                        {...field}
+                                    />
+                                </div>
                             )}
                         />
                     </FormItem>
 
-                    <FormItem label="العنوان" className="mb-6">
+                    <FormItem label="ط§ظ„ط¹ظ†ظˆط§ظ†" className="mb-6">
                         <Controller
                             name="address"
                             control={control}
                             render={({ field }) => (
                                 <Input
                                     textArea
-                                    placeholder="العنوان"
+                                    placeholder="ط§ظ„ط¹ظ†ظˆط§ظ†"
                                     {...field}
                                 />
                             )}
@@ -626,10 +709,13 @@ export const HojraExtraInformations = ({
                                 name="instagram"
                                 control={control}
                                 render={({ field }) => (
-                                    <Input
-                                        placeholder="https://instagram.com/..."
-                                        {...field}
-                                    />
+                                    <div dir="ltr">
+                                        <Input
+                                            placeholder="https://instagram.com/..."
+                                            className="text-left"
+                                            {...field}
+                                        />
+                                    </div>
                                 )}
                             />
                         </FormItem>
@@ -639,10 +725,13 @@ export const HojraExtraInformations = ({
                                 name="youtube"
                                 control={control}
                                 render={({ field }) => (
-                                    <Input
-                                        placeholder="https://youtube.com/..."
-                                        {...field}
-                                    />
+                                    <div dir="ltr">
+                                        <Input
+                                            placeholder="https://youtube.com/..."
+                                            className="text-left"
+                                            {...field}
+                                        />
+                                    </div>
                                 )}
                             />
                         </FormItem>
@@ -652,10 +741,13 @@ export const HojraExtraInformations = ({
                                 name="linkedin"
                                 control={control}
                                 render={({ field }) => (
-                                    <Input
-                                        placeholder="https://linkedin.com/..."
-                                        {...field}
-                                    />
+                                    <div dir="ltr">
+                                        <Input
+                                            placeholder="https://linkedin.com/..."
+                                            className="text-left"
+                                            {...field}
+                                        />
+                                    </div>
                                 )}
                             />
                         </FormItem>
@@ -665,17 +757,20 @@ export const HojraExtraInformations = ({
                                 name="facebook"
                                 control={control}
                                 render={({ field }) => (
-                                    <Input
-                                        placeholder="https://facebook.com/..."
-                                        {...field}
-                                    />
+                                    <div dir="ltr">
+                                        <Input
+                                            placeholder="https://facebook.com/..."
+                                            className="text-left"
+                                            {...field}
+                                        />
+                                    </div>
                                 )}
                             />
                         </FormItem>
                     </div>
 
                     <FormItem
-                        label="العنوان الرئيسي (H1)"
+                        label="ط§ظ„ط¹ظ†ظˆط§ظ† ط§ظ„ط±ط¦ظٹط³ظٹ (H1)"
                         invalid={Boolean(errors.h1)}
                         errorMessage={errors.h1?.message}
                         className="mb-6"
@@ -690,7 +785,7 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     <FormItem
-                        label="الوصف الرئيسي (Meta Description)"
+                        label="ط§ظ„ظˆطµظپ ط§ظ„ط±ط¦ظٹط³ظٹ (Meta Description)"
                         invalid={Boolean(errors.meta_description)}
                         errorMessage={errors.meta_description?.message}
                         className="mb-6"
@@ -716,7 +811,7 @@ export const HojraExtraInformations = ({
                                 variant="plain"
                                 onClick={() => changeState(1)}
                             >
-                                السابق
+                                ط§ظ„ط³ط§ط¨ظ‚
                             </Button>
 
                             <Button
@@ -725,7 +820,7 @@ export const HojraExtraInformations = ({
                                 size="sm"
                                 variant="solid"
                             >
-                                التالي
+                                ط§ظ„طھط§ظ„ظٹ
                             </Button>
                         </div>
                     </FormItem>
@@ -734,3 +829,6 @@ export const HojraExtraInformations = ({
         </div>
     )
 }
+
+
+

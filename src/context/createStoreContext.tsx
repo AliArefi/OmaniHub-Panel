@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import {
+    createContext,
+    useContext,
+    useState,
+    type Dispatch,
+    type ReactNode,
+    type SetStateAction,
+} from 'react'
 
 export interface ServiceItem {
     id: number
@@ -20,12 +27,18 @@ export interface TeamMember {
     image: string | null
 }
 
+export interface TimeSlot {
+    startTime: string
+    endTime: string
+}
+
 export interface DaySchedule {
     day: 'saturday' | 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
     dayLabel: string
     isOpen: boolean
     startTime: string
     endTime: string
+    slots: TimeSlot[]
 }
 
 export interface ServiceAssignment {
@@ -74,23 +87,23 @@ export interface ExtraInformationDraft {
 
 interface CreateStoreContextType {
     hojraInfo: HojraInfo
-    setHojraInfo: (info: HojraInfo) => void
+    setHojraInfo: Dispatch<SetStateAction<HojraInfo>>
 
-    setNewHojraData: (data: NewHojraData) => void
+    setNewHojraData: Dispatch<SetStateAction<NewHojraData>>
     newHojraData: NewHojraData
 
     services: ServiceItem[]
-    setServices: (services: ServiceItem[]) => void
+    setServices: Dispatch<SetStateAction<ServiceItem[]>>
     addService: (service: ServiceItem) => void
     removeService: (id: number) => void
 
     teamMembers: TeamMember[]
-    setTeamMembers: (members: TeamMember[]) => void
+    setTeamMembers: Dispatch<SetStateAction<TeamMember[]>>
     addTeamMember: (member: TeamMember) => void
     removeTeamMember: (id: number) => void
 
     assignments: ServiceAssignment[]
-    setAssignments: (assignments: ServiceAssignment[]) => void
+    setAssignments: Dispatch<SetStateAction<ServiceAssignment[]>>
     addAssignment: (assignment: ServiceAssignment) => void
     removeAssignment: (id: number) => void
     updateAssignmentSchedule: (
@@ -99,7 +112,7 @@ interface CreateStoreContextType {
     ) => void
 
     extraInformationDraft: ExtraInformationDraft
-    setExtraInformationDraft: (draft: ExtraInformationDraft) => void
+    setExtraInformationDraft: Dispatch<SetStateAction<ExtraInformationDraft>>
     updateExtraInformationDraft: (draft: Partial<ExtraInformationDraft>) => void
 }
 

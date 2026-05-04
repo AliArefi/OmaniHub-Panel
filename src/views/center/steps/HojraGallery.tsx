@@ -5,6 +5,7 @@ import { useCreateStore } from '@/context/createStoreContext'
 import { useTranslation } from 'react-i18next'
 import { apiDeleteMyAgencyMedia, apiGetMyAgencyMedia, apiUploadMyAgencyMedia } from '@/services/CenterService'
 import type { AgencyMediaItem } from '@/@types/center'
+import { prepareValidatedFile } from '../utils/fileUpload'
 
 interface HojraGalleryProps {
     changeState: (value: number) => void
@@ -119,7 +120,29 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                             accept="image/*"
                             onChange={(e) => {
                                 const target = e.target as HTMLInputElement
-                                setFile(target.files?.[0] || null)
+                                const inputFile = target.files?.[0]
+                                if (!inputFile) {
+                                    setFile(null)
+                                    return
+                                }
+
+                                const { file: nextFile, error } =
+                                    prepareValidatedFile(inputFile, {
+                                        category: 'image',
+                                    })
+
+                                if (error || !nextFile) {
+                                    toast.push(
+                                        <Notification type="danger">
+                                            {error}
+                                        </Notification>,
+                                    )
+                                    target.value = ''
+                                    setFile(null)
+                                    return
+                                }
+
+                                setFile(nextFile)
                             }}
                             disabled={loading}
                         />

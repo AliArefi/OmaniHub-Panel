@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState, type ChangeEvent } from 'react'
 import { useCreateStore, type DaySchedule } from '@/context/createStoreContext'
 import { useTranslation } from 'react-i18next'
 import Card from '@/components/ui/Card'
@@ -16,51 +16,37 @@ import {
     apiMemberWorkingHours,
     apiUpdateServiceMember,
 } from '@/services/CenterService'
+import { prepareValidatedFile } from '../utils/fileUpload'
+import {
+    createDefaultWeekSchedule,
+    createEmptyTimeSlot,
+    dayOfWeekFromKey,
+    mergeDaySlots,
+    normalizeDaySchedule,
+} from '../utils/schedule'
 
 type SelectOption = { value: number; label: string }
 
-const DEFAULT_WEEK_DAYS: DaySchedule[] = [
-    { day: 'saturday', dayLabel: 'Saturday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'sunday', dayLabel: 'Sunday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'monday', dayLabel: 'Monday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'tuesday', dayLabel: 'Tuesday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'wednesday', dayLabel: 'Wednesday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'thursday', dayLabel: 'Thursday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-    { day: 'friday', dayLabel: 'Friday', isOpen: false, startTime: '09:00', endTime: '17:00' },
-]
-
 const generateTimeOptions = () => {
     const options: { value: string; label: string }[] = []
-    for (let h = 0; h < 24; h++) {
-        for (let m = 0; m < 60; m += 30) {
-            const hour = h.toString().padStart(2, '0')
-            const minute = m.toString().padStart(2, '0')
-            options.push({ value: `${hour}:${minute}`, label: `${hour}:${minute}` })
+    for (let hour = 0; hour < 24; hour += 1) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            const nextHour = hour.toString().padStart(2, '0')
+            const nextMinute = minute.toString().padStart(2, '0')
+            options.push({
+                value: `${nextHour}:${nextMinute}`,
+                label: `${nextHour}:${nextMinute}`,
+            })
         }
     }
     return options
 }
 
-const dayOfWeekFromKey = (day: DaySchedule['day']): number => {
-    switch (day) {
-        case 'saturday':
-            return 0
-        case 'sunday':
-            return 1
-        case 'monday':
-            return 2
-        case 'tuesday':
-            return 3
-        case 'wednesday':
-            return 4
-        case 'thursday':
-            return 5
-        case 'friday':
-            return 6
-    }
-}
-
-export const HojraAssignServices = ({ changeState }: { changeState: (step: number) => void }) => {
+export const HojraAssignServices = ({
+    changeState,
+}: {
+    changeState: (step: number) => void
+}) => {
     const { t } = useTranslation()
     const {
         services,
@@ -70,21 +56,13 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         setAssignments,
         addTeamMember,
         removeTeamMember,
-        addAssignment,
-        removeAssignment,
         updateAssignmentSchedule,
     } = useCreateStore()
 
     const timeOptions = useMemo(() => generateTimeOptions(), [])
-
-    const serviceOptions: SelectOption[] = services.map((s) => ({
-        value: s.id,
-        label: s.serviceLabel,
-    }))
-
-    const memberOptions: SelectOption[] = teamMembers.map((m) => ({
-        value: m.id,
-        label: m.name,
+    const serviceOptions: SelectOption[] = services.map((service) => ({
+        value: service.id,
+        label: service.serviceLabel,
     }))
 
     const [showNewMemberForm, setShowNewMemberForm] = useState(false)
@@ -95,10 +73,7 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
     const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(null)
     const [isCreatingMember, setIsCreatingMember] = useState(false)
 
-    const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null)
     const [editingScheduleForAssignment, setEditingScheduleForAssignment] = useState<number | null>(null)
-
     const [isSavingSchedules, setIsSavingSchedules] = useState(false)
     const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(null)
 
@@ -109,23 +84,50 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
     const [editMemberImagePreview, setEditMemberImagePreview] = useState<string | null>(null)
     const [isUpdatingMember, setIsUpdatingMember] = useState(false)
 
+    const showFileError = (message: string) => {
+        toast.push(<Notification type="danger">{message}</Notification>)
+    }
+
     const getMemberAgencyServiceId = (memberId: number): number | null => {
-        const assignment = assignments.find((a) => a.memberId === memberId)
+        const assignment = assignments.find((item) => item.memberId === memberId)
         return assignment ? assignment.serviceId : null
     }
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+    const getAssignmentByMemberId = (memberId: number) =>
+        assignments.find((item) => item.memberId === memberId) ?? null
+
+    const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const inputFile = event.target.files?.[0]
+        if (!inputFile) return
+
+        const { file, error } = prepareValidatedFile(inputFile, {
+            category: 'image',
+        })
+        if (error || !file) {
+            showFileError(error || t('center.errors.uploadFailed'))
+            event.target.value = ''
+            return
+        }
+
         setNewMemberImageFile(file)
         const reader = new FileReader()
         reader.onloadend = () => setNewMemberImagePreview(reader.result as string)
         reader.readAsDataURL(file)
     }
 
-    const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+    const handleEditImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const inputFile = event.target.files?.[0]
+        if (!inputFile) return
+
+        const { file, error } = prepareValidatedFile(inputFile, {
+            category: 'image',
+        })
+        if (error || !file) {
+            showFileError(error || t('center.errors.uploadFailed'))
+            event.target.value = ''
+            return
+        }
+
         setEditMemberImageFile(file)
         const reader = new FileReader()
         reader.onloadend = () => setEditMemberImagePreview(reader.result as string)
@@ -170,16 +172,19 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
 
             addTeamMember(createdMember)
 
-            const selectedService = services.find((s) => s.id === newMemberServiceId)
+            const selectedService = services.find((service) => service.id === newMemberServiceId)
             if (selectedService) {
-                addAssignment({
-                    id: Date.now(),
-                    serviceId: selectedService.id,
-                    serviceLabel: selectedService.serviceLabel,
-                    memberId: createdMember.id,
-                    memberName: createdMember.name,
-                    weeklySchedule: DEFAULT_WEEK_DAYS.map((d) => ({ ...d })),
-                })
+                setAssignments((currentAssignments) => [
+                    ...currentAssignments,
+                    {
+                        id: Number(`${selectedService.id}${createdMember.id}`),
+                        serviceId: selectedService.id,
+                        serviceLabel: selectedService.serviceLabel,
+                        memberId: createdMember.id,
+                        memberName: createdMember.name,
+                        weeklySchedule: createDefaultWeekSchedule(),
+                    },
+                ])
             }
 
             setNewMemberName('')
@@ -219,7 +224,7 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
     }
 
     const beginEditMember = (memberId: number) => {
-        const member = teamMembers.find((m) => m.id === memberId)
+        const member = teamMembers.find((item) => item.id === memberId)
         if (!member) return
 
         setEditingMemberId(memberId)
@@ -249,26 +254,31 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         try {
             await apiUpdateServiceMember(agencyServiceId, editingMemberId, payload)
 
-            setTeamMembers((prev) =>
-                prev.map((m) =>
-                    m.id === editingMemberId
+            setTeamMembers((currentMembers) =>
+                currentMembers.map((member) =>
+                    member.id === editingMemberId
                         ? {
-                              ...m,
-                              name: payload.name ?? m.name,
-                              position: payload.position ?? m.position,
-                              image: editMemberImagePreview ?? m.image,
+                              ...member,
+                              name: payload.name ?? member.name,
+                              position: payload.position ?? member.position,
+                              image: editMemberImagePreview ?? member.image,
                           }
-                        : m,
+                        : member,
                 ),
             )
 
-            setAssignments((prev) =>
-                prev.map((a) =>
-                    a.memberId === editingMemberId ? { ...a, memberName: payload.name ?? a.memberName } : a,
+            setAssignments((currentAssignments) =>
+                currentAssignments.map((assignment) =>
+                    assignment.memberId === editingMemberId
+                        ? {
+                              ...assignment,
+                              memberName: payload.name ?? assignment.memberName,
+                          }
+                        : assignment,
                 ),
             )
 
-            toast.push(<Notification type="success">Member updated.</Notification>)
+            toast.push(<Notification type="success">{t('center.members.saveChanges')}</Notification>)
             setEditingMemberId(null)
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : t('center.errors.updateMemberFailed')
@@ -278,101 +288,124 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         }
     }
 
-    const handleAssignService = () => {
-        if (!selectedMemberId || !selectedServiceId) {
-            toast.push(<Notification type="warning">{t('center.validation.selectMemberAndService')}</Notification>)
-            return
-        }
-
-        const alreadyAssigned = assignments.some(
-            (a) => a.memberId === selectedMemberId && a.serviceId === selectedServiceId,
-        )
-        if (alreadyAssigned) {
-            toast.push(<Notification type="warning">{t('center.validation.alreadyAssigned')}</Notification>)
-            return
-        }
-
-        const member = teamMembers.find((m) => m.id === selectedMemberId)
-        const service = services.find((s) => s.id === selectedServiceId)
-        if (!member || !service) return
-
-        addAssignment({
-            id: Date.now(),
-            serviceId: service.id,
-            serviceLabel: service.serviceLabel,
-            memberId: member.id,
-            memberName: member.name,
-            weeklySchedule: DEFAULT_WEEK_DAYS.map((d) => ({ ...d })),
-        })
-
-        setSelectedMemberId(null)
-        setSelectedServiceId(null)
-        toast.push(<Notification type="success">{t('center.success.serviceAssigned')}</Notification>)
-    }
-
-    const handleScheduleChange = (
+    const updateSchedule = (
         assignmentId: number,
-        dayIndex: number,
-        field: 'isOpen' | 'startTime' | 'endTime',
-        value: boolean | string,
+        updater: (weeklySchedule: DaySchedule[]) => DaySchedule[],
     ) => {
-        const assignment = assignments.find((a) => a.id === assignmentId)
+        const assignment = assignments.find((item) => item.id === assignmentId)
         if (!assignment) return
 
-        const updatedSchedule = [...assignment.weeklySchedule]
-        updatedSchedule[dayIndex] = { ...updatedSchedule[dayIndex], [field]: value }
-        updateAssignmentSchedule(assignmentId, updatedSchedule)
+        const nextSchedule = updater(assignment.weeklySchedule.map(normalizeDaySchedule)).map(mergeDaySlots)
+        updateAssignmentSchedule(assignmentId, nextSchedule)
     }
 
-    const mergeMemberSchedules = (): Map<number, DaySchedule[]> => {
-        const byMember = new Map<number, DaySchedule[]>()
+    const handleDayToggle = (assignmentId: number, dayIndex: number, checked: boolean) => {
+        updateSchedule(assignmentId, (weeklySchedule) => {
+            const nextSchedule = [...weeklySchedule]
+            const currentDay = nextSchedule[dayIndex]
+            nextSchedule[dayIndex] = normalizeDaySchedule({
+                ...currentDay,
+                isOpen: checked,
+                slots:
+                    checked && currentDay.slots.length === 0
+                        ? [createEmptyTimeSlot()]
+                        : currentDay.slots,
+            })
+            return nextSchedule
+        })
+    }
 
-        for (const assignment of assignments) {
-            const current = byMember.get(assignment.memberId) ?? DEFAULT_WEEK_DAYS.map((d) => ({ ...d }))
-            const next = current.map((d) => ({ ...d }))
-            const incoming = assignment.weeklySchedule ?? []
+    const handleSlotChange = (
+        assignmentId: number,
+        dayIndex: number,
+        slotIndex: number,
+        field: 'startTime' | 'endTime',
+        value: string,
+    ) => {
+        updateSchedule(assignmentId, (weeklySchedule) => {
+            const nextSchedule = [...weeklySchedule]
+            const currentDay = nextSchedule[dayIndex]
+            const nextSlots = [...currentDay.slots]
+            nextSlots[slotIndex] = {
+                ...nextSlots[slotIndex],
+                [field]: value,
+            }
+            nextSchedule[dayIndex] = normalizeDaySchedule({
+                ...currentDay,
+                slots: nextSlots,
+            })
+            return nextSchedule
+        })
+    }
 
-            for (const inc of incoming) {
-                const idx = next.findIndex((d) => d.day === inc.day)
-                if (idx === -1) continue
-                if (!inc.isOpen) continue
+    const addSlot = (assignmentId: number, dayIndex: number) => {
+        updateSchedule(assignmentId, (weeklySchedule) => {
+            const nextSchedule = [...weeklySchedule]
+            const currentDay = nextSchedule[dayIndex]
+            nextSchedule[dayIndex] = normalizeDaySchedule({
+                ...currentDay,
+                isOpen: true,
+                slots: [...currentDay.slots, createEmptyTimeSlot()],
+            })
+            return nextSchedule
+        })
+    }
 
-                const existing = next[idx]
-                next[idx] = {
-                    ...existing,
-                    isOpen: true,
-                    startTime: existing.isOpen ? (inc.startTime < existing.startTime ? inc.startTime : existing.startTime) : inc.startTime,
-                    endTime: existing.isOpen ? (inc.endTime > existing.endTime ? inc.endTime : existing.endTime) : inc.endTime,
-                }
+    const removeSlot = (assignmentId: number, dayIndex: number, slotIndex: number) => {
+        updateSchedule(assignmentId, (weeklySchedule) => {
+            const nextSchedule = [...weeklySchedule]
+            const currentDay = nextSchedule[dayIndex]
+            const nextSlots = currentDay.slots.filter((_, index) => index !== slotIndex)
+
+            nextSchedule[dayIndex] = normalizeDaySchedule({
+                ...currentDay,
+                isOpen: nextSlots.length > 0,
+                slots: nextSlots.length > 0 ? nextSlots : [createEmptyTimeSlot()],
+            })
+
+            if (nextSlots.length === 0) {
+                nextSchedule[dayIndex].isOpen = false
             }
 
-            byMember.set(assignment.memberId, next)
-        }
-
-        return byMember
+            return nextSchedule
+        })
     }
 
     const persistSchedules = async () => {
-        const schedulesByMember = mergeMemberSchedules()
-        const requests = Array.from(schedulesByMember.entries()).map(async ([memberId, weeklySchedule]) => {
-            const days = weeklySchedule.map((d) => {
-                if (!d.isOpen) {
-                    return { day_of_week: dayOfWeekFromKey(d.day), is_closed: true, slots: [] }
+        const requests = assignments.map(async (assignment) => {
+            const days = assignment.weeklySchedule.map((daySchedule) => {
+                const normalizedDay = mergeDaySlots(normalizeDaySchedule(daySchedule))
+
+                if (!normalizedDay.isOpen) {
+                    return {
+                        day_of_week: dayOfWeekFromKey(normalizedDay.day),
+                        is_closed: true,
+                        slots: [],
+                    }
                 }
 
                 return {
-                    day_of_week: dayOfWeekFromKey(d.day),
+                    day_of_week: dayOfWeekFromKey(normalizedDay.day),
                     is_closed: false,
-                    slots: [{ start: d.startTime, end: d.endTime, is_active: true }],
+                    slots: normalizedDay.slots.map((slot) => ({
+                        start: slot.startTime,
+                        end: slot.endTime,
+                        is_active: true,
+                    })),
                 }
             })
-            await apiMemberWorkingHours({ days }, memberId)
+
+            await apiMemberWorkingHours({ days }, assignment.memberId)
         })
 
         await Promise.all(requests)
     }
 
-    const hasAnySchedule = assignments.some((a) => a.weeklySchedule.some((day) => day.isOpen))
+    const hasAnySchedule = assignments.some((assignment) =>
+        assignment.weeklySchedule.some(
+            (daySchedule) => daySchedule.isOpen && (daySchedule.slots?.length ?? 0) > 0,
+        ),
+    )
 
     const handleNext = async () => {
         if (!hasAnySchedule) {
@@ -407,11 +440,11 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                 {showNewMemberForm && (
                     <div className="mt-4 p-4 border rounded-lg space-y-4">
                         <FormItem label={t('center.members.name')}>
-                            <Input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} />
+                            <Input value={newMemberName} onChange={(event) => setNewMemberName(event.target.value)} />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={newMemberPosition} onChange={(e) => setNewMemberPosition(e.target.value)} />
+                            <Input value={newMemberPosition} onChange={(event) => setNewMemberPosition(event.target.value)} />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
@@ -423,7 +456,7 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
 
                         <FormItem label={t('center.members.service')}>
                             <Select<SelectOption>
-                                value={newMemberServiceId ? serviceOptions.find((s) => s.value === newMemberServiceId) ?? null : null}
+                                value={newMemberServiceId ? serviceOptions.find((service) => service.value === newMemberServiceId) ?? null : null}
                                 options={serviceOptions}
                                 onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
                                 placeholder={t('center.members.service')}
@@ -454,29 +487,36 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                 {teamMembers.length > 0 && (
                     <div className="mt-6 space-y-3">
                         <h4 className="font-medium">{t('center.members.title')}</h4>
-                        {teamMembers.map((member) => (
-                            <div key={member.id} className="flex items-center justify-between p-3 border rounded">
-                                <div className="flex items-center gap-3">
-                                    {member.image && (
-                                        <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
-                                    )}
-                                    <div>
-                                        <div className="font-medium">{member.name}</div>
-                                        <div className="text-sm text-gray-500">{member.position}</div>
+                        {teamMembers.map((member) => {
+                            const assignment = getAssignmentByMemberId(member.id)
+
+                            return (
+                                <div key={member.id} className="flex items-center justify-between p-3 border rounded">
+                                    <div className="flex items-center gap-3">
+                                        {member.image && (
+                                            <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                                        )}
+                                        <div>
+                                            <div className="font-medium">{member.name}</div>
+                                            <div className="text-sm text-gray-500">{member.position}</div>
+                                            {assignment && (
+                                                <div className="text-xs text-gray-500">{assignment.serviceLabel}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button size="sm" variant="plain" icon={<HiOutlinePencil />} onClick={() => beginEditMember(member.id)} />
+                                        <Button
+                                            size="sm"
+                                            variant="plain"
+                                            icon={<HiOutlineTrash />}
+                                            loading={isDeletingMemberId === member.id}
+                                            onClick={() => handleDeleteMember(member.id)}
+                                        />
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Button size="sm" variant="plain" icon={<HiOutlinePencil />} onClick={() => beginEditMember(member.id)} />
-                                    <Button
-                                        size="sm"
-                                        variant="plain"
-                                        icon={<HiOutlineTrash />}
-                                        loading={isDeletingMemberId === member.id}
-                                        onClick={() => handleDeleteMember(member.id)}
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
 
@@ -485,11 +525,11 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                         <h4 className="font-medium">{t('center.members.editTitle')}</h4>
 
                         <FormItem label={t('center.members.name')}>
-                            <Input value={editMemberName} onChange={(e) => setEditMemberName(e.target.value)} />
+                            <Input value={editMemberName} onChange={(event) => setEditMemberName(event.target.value)} />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={editMemberPosition} onChange={(e) => setEditMemberPosition(e.target.value)} />
+                            <Input value={editMemberPosition} onChange={(event) => setEditMemberPosition(event.target.value)} />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
@@ -521,125 +561,113 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
                 )}
             </Card>
 
-            {teamMembers.length > 0 && services.length > 0 && (
+            {assignments.length > 0 && (
                 <Card>
-                    <h3 className="text-lg font-semibold mb-4">{t('center.assignments.title')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('center.assignments.weeklySchedule')}</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <FormItem label={t('center.assignments.member')}>
-                            <Select<SelectOption>
-                                value={selectedMemberId ? memberOptions.find((m) => m.value === selectedMemberId) ?? null : null}
-                                options={memberOptions}
-                                onChange={(option) => setSelectedMemberId(option?.value ?? null)}
-                                placeholder={t('center.assignments.member')}
-                            />
-                        </FormItem>
-
-                        <FormItem label={t('center.assignments.service')}>
-                            <Select<SelectOption>
-                                value={selectedServiceId ? serviceOptions.find((s) => s.value === selectedServiceId) ?? null : null}
-                                options={serviceOptions}
-                                onChange={(option) => setSelectedServiceId(option?.value ?? null)}
-                                placeholder={t('center.assignments.service')}
-                            />
-                        </FormItem>
-                    </div>
-
-                    <Button variant="solid" onClick={handleAssignService}>
-                        {t('center.assignments.assign')}
-                    </Button>
-
-                    {assignments.length > 0 && (
-                        <div className="mt-6 space-y-4">
-                            <h4 className="font-medium">{t('center.assignments.listTitle')}</h4>
-                            {assignments.map((assignment) => (
-                                <div key={assignment.id} className="border rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div>
-                                            <div className="font-medium">{assignment.memberName}</div>
-                                            <div className="text-sm text-gray-500">{assignment.serviceLabel}</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="solid"
-                                                onClick={() =>
-                                                    setEditingScheduleForAssignment(
-                                                        editingScheduleForAssignment === assignment.id ? null : assignment.id,
-                                                    )
-                                                }
-                                            >
-                                                {editingScheduleForAssignment === assignment.id
-                                                    ? t('center.assignments.closeSchedule')
-                                                    : t('center.assignments.editSchedule')}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="plain"
-                                                icon={<HiOutlineTrash />}
-                                                onClick={() => {
-                                                    removeAssignment(assignment.id)
-                                                    if (!assignments.some((a) => a.memberId === assignment.memberId && a.id !== assignment.id)) {
-                                                        // keep member in list; only remove assignment
-                                                    }
-                                                }}
-                                            />
-                                        </div>
+                    <div className="space-y-4">
+                        {assignments.map((assignment) => (
+                            <div key={assignment.id} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <div className="font-medium">{assignment.memberName}</div>
+                                        <div className="text-sm text-gray-500">{assignment.serviceLabel}</div>
                                     </div>
+                                    <Button
+                                        size="sm"
+                                        variant="solid"
+                                        onClick={() =>
+                                            setEditingScheduleForAssignment(
+                                                editingScheduleForAssignment === assignment.id ? null : assignment.id,
+                                            )
+                                        }
+                                    >
+                                        {editingScheduleForAssignment === assignment.id
+                                            ? t('center.assignments.closeSchedule')
+                                            : t('center.assignments.editSchedule')}
+                                    </Button>
+                                </div>
 
-                                    {editingScheduleForAssignment === assignment.id && (
-                                        <div className="space-y-3 mt-4 pt-4 border-t">
-                                            <h5 className="font-medium text-sm mb-3">{t('center.assignments.weeklySchedule')}</h5>
-                                            {assignment.weeklySchedule.map((daySchedule, dayIndex) => (
-                                                <div key={daySchedule.day} className="flex items-center gap-3">
-                                                    <div className="w-28 text-sm">{daySchedule.dayLabel}</div>
+                                {editingScheduleForAssignment === assignment.id && (
+                                    <div className="space-y-4 mt-4 pt-4 border-t">
+                                        {assignment.weeklySchedule.map((daySchedule, dayIndex) => (
+                                            <div key={daySchedule.day} className="rounded-lg border p-3 space-y-3">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="text-sm font-medium">{daySchedule.dayLabel}</div>
                                                     <Switcher
                                                         checked={daySchedule.isOpen}
                                                         onChange={(checked) =>
-                                                            handleScheduleChange(assignment.id, dayIndex, 'isOpen', checked)
+                                                            handleDayToggle(assignment.id, dayIndex, checked)
                                                         }
                                                     />
-                                                    {daySchedule.isOpen && (
-                                                        <>
-                                                            <Select<{ value: string; label: string }>
-                                                                size="sm"
-                                                                className="w-32"
-                                                                value={timeOptions.find((t) => t.value === daySchedule.startTime) ?? null}
-                                                                options={timeOptions}
-                                                                onChange={(option) =>
-                                                                    handleScheduleChange(
-                                                                        assignment.id,
-                                                                        dayIndex,
-                                                                        'startTime',
-                                                                        option?.value ?? '09:00',
-                                                                    )
-                                                                }
-                                                            />
-                                                            <span className="text-gray-500">{t('center.assignments.to')}</span>
-                                                            <Select<{ value: string; label: string }>
-                                                                size="sm"
-                                                                className="w-32"
-                                                                value={timeOptions.find((t) => t.value === daySchedule.endTime) ?? null}
-                                                                options={timeOptions}
-                                                                onChange={(option) =>
-                                                                    handleScheduleChange(
-                                                                        assignment.id,
-                                                                        dayIndex,
-                                                                        'endTime',
-                                                                        option?.value ?? '17:00',
-                                                                    )
-                                                                }
-                                                            />
-                                                        </>
-                                                    )}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+
+                                                {daySchedule.isOpen && (
+                                                    <div className="space-y-3">
+                                                        {daySchedule.slots.map((slot, slotIndex) => (
+                                                            <div
+                                                                key={`${daySchedule.day}-${slotIndex}`}
+                                                                className="flex flex-wrap items-center gap-2"
+                                                            >
+                                                                <Select<{ value: string; label: string }>
+                                                                    size="sm"
+                                                                    className="w-32"
+                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.startTime) ?? null}
+                                                                    options={timeOptions}
+                                                                    onChange={(option) =>
+                                                                        handleSlotChange(
+                                                                            assignment.id,
+                                                                            dayIndex,
+                                                                            slotIndex,
+                                                                            'startTime',
+                                                                            option?.value ?? '09:00',
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <span className="text-gray-500">{t('center.assignments.to')}</span>
+                                                                <Select<{ value: string; label: string }>
+                                                                    size="sm"
+                                                                    className="w-32"
+                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.endTime) ?? null}
+                                                                    options={timeOptions}
+                                                                    onChange={(option) =>
+                                                                        handleSlotChange(
+                                                                            assignment.id,
+                                                                            dayIndex,
+                                                                            slotIndex,
+                                                                            'endTime',
+                                                                            option?.value ?? '17:00',
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="plain"
+                                                                    icon={<HiOutlineTrash />}
+                                                                    onClick={() =>
+                                                                        removeSlot(assignment.id, dayIndex, slotIndex)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        ))}
+
+                                                        <Button
+                                                            size="sm"
+                                                            variant="default"
+                                                            icon={<HiOutlinePlus />}
+                                                            onClick={() => addSlot(assignment.id, dayIndex)}
+                                                        >
+                                                            إضافة فترة
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </Card>
             )}
 
@@ -654,3 +682,5 @@ export const HojraAssignServices = ({ changeState }: { changeState: (step: numbe
         </div>
     )
 }
+
+

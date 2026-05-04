@@ -20,6 +20,7 @@ import {
 } from '@/services/CenterService'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
+import { prepareValidatedFile } from './utils/fileUpload'
 
 type MediaCollection =
     | 'agency_gallery_images'
@@ -31,6 +32,15 @@ const acceptByCollection: Record<MediaCollection, string> = {
     agency_gallery_videos: 'video/*',
     agency_documents:
         '.pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain',
+}
+
+const fileCategoryByCollection: Record<
+    MediaCollection,
+    'image' | 'video' | 'document'
+> = {
+    agency_gallery_images: 'image',
+    agency_gallery_videos: 'video',
+    agency_documents: 'document',
 }
 
 function bytesToHuman(size: number) {
@@ -391,7 +401,33 @@ export default function CenterMedia() {
                                     accept={acceptByCollection[selectedCollection]}
                                     uploadLimit={1}
                                     fileList={selectedFiles}
-                                    onChange={(files) => setSelectedFiles(files)}
+                                    onChange={(files) => {
+                                        const inputFile = files[0]
+                                        if (!inputFile) {
+                                            setSelectedFiles([])
+                                            return
+                                        }
+
+                                        const { file, error } =
+                                            prepareValidatedFile(inputFile, {
+                                                category:
+                                                    fileCategoryByCollection[
+                                                        selectedCollection
+                                                    ],
+                                            })
+
+                                        if (error || !file) {
+                                            toast.push(
+                                                <Notification type="danger">
+                                                    {error}
+                                                </Notification>,
+                                            )
+                                            setSelectedFiles([])
+                                            return
+                                        }
+
+                                        setSelectedFiles([file])
+                                    }}
                                     showList
                                 />
 
@@ -621,4 +657,3 @@ export default function CenterMedia() {
         </>
     )
 }
-
