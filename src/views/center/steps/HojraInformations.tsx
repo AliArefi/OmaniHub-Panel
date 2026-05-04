@@ -1,4 +1,4 @@
-// steps/HojraInformations.tsx
+﻿// steps/HojraInformations.tsx
 import {
     Button,
     Card,
@@ -27,28 +27,31 @@ interface HojraInformationProps {
 const stripHtml = (value: string): string =>
     value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
-const validationSchema = z.object({
-    title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
-    service_id: z.any().refine((val) => Number(val) > 0, {
-        message: 'يجب اختيار نوع الخدمة',
-    }),
-    about_text: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'ط§ظ„ظˆطµظپ ط¥ظ„ط²ط§ظ…ظٹ',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'ط§ظ„ظ†طµ ظ‚طµظٹط±',
+const buildValidationSchema = (t: (key: string) => string) =>
+    z.object({
+        title: z
+            .string()
+            .min(1, { message: t('centerValidationCenterNameRequired') }),
+        service_id: z.any().refine((val) => Number(val) > 0, {
+            message: t('centerValidationServiceTypeRequired'),
         }),
-    about_us: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'About us is required',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'Text is too short',
-        }),
-})
+        about_text: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerValidationDescriptionRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerValidationTextTooShort'),
+            }),
+        about_us: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerValidationAboutUsRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerValidationTextTooShort'),
+            }),
+    })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
@@ -57,6 +60,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation();
+    const validationSchema = buildValidationSchema(t)
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         if (typeof err !== 'object' || err === null) return undefined
@@ -90,7 +94,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                 const resp = await getServices();
                 setServicesList(resp.data)
             } catch (err: unknown) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+                setError(getApiErrorMessage(err) || 'حدث خطأ أثناء تحميل البيانات')
             } finally {
                 setLoading(false)
             }
@@ -160,7 +164,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         <div>
             <Card
                 header={{
-                    content: 'معلومات الحجرة',
+                    content: 'معلومات المركز',
                     bordered: false,
                 }}
             >
@@ -285,3 +289,5 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         </div>
     )
 }
+
+
