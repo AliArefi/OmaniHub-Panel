@@ -1,123 +1,123 @@
 ﻿export const TEXT_CONSTANT = {
     loading: {
         EN: 'Loading',
-        AR: 'ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط§ظ„ظ…ط¹ظ„ظˆظ…ط§طھ',
+        AR: 'جارٍ تحميل المعلومات',
     },
     businessAnalyticsTitle: {
         EN: 'Business Analytics',
-        AR: 'طھط­ظ„ظٹظ„ط§طھ ط§ظ„ط£ط¹ظ…ط§ظ„',
+        AR: 'تحليلات الأعمال',
     },
     businessAnalyticsSubtitle: {
         EN: 'Unique-daily views with owner-scoped KPIs',
-        AR: 'ظ…ط´ط§ظ‡ط¯ط§طھ ظٹظˆظ…ظٹط© ظپط±ظٹط¯ط© ظ…ط¹ ظ…ط¤ط´ط±ط§طھ ط£ط¯ط§ط، ط®ط§طµط© ط¨ط§ظ„ظ…ط§ظ„ظƒ',
+        AR: 'مشاهدات يومية فريدة مع مؤشرات أداء خاصة بالمالك',
     },
     autoRefreshIn: {
         EN: 'Auto refresh in',
-        AR: 'طھط­ط¯ظٹط« طھظ„ظ‚ط§ط¦ظٹ ط®ظ„ط§ظ„',
+        AR: 'تحديث تلقائي خلال',
     },
     secondsShort: {
         EN: 's',
-        AR: 'ط«',
+        AR: 'ث',
     },
     refresh: {
         EN: 'Refresh',
-        AR: 'طھط­ط¯ظٹط«',
+        AR: 'تحديث',
     },
     preset: {
         EN: 'Preset',
-        AR: 'ط§ظ„ظپطھط±ط©',
+        AR: 'الفترة',
     },
     last7Days: {
         EN: 'Last 7 days',
-        AR: 'ط¢ط®ط± 7 ط£ظٹط§ظ…',
+        AR: 'آخر 7 أيام',
     },
     last30Days: {
         EN: 'Last 30 days',
-        AR: 'ط¢ط®ط± 30 ظٹظˆظ…ظ‹ط§',
+        AR: 'آخر 30 يومًا',
     },
     last90Days: {
         EN: 'Last 90 days',
-        AR: 'ط¢ط®ط± 90 ظٹظˆظ…ظ‹ط§',
+        AR: 'آخر 90 يومًا',
     },
     from: {
         EN: 'From',
-        AR: 'ظ…ظ†',
+        AR: 'من',
     },
     to: {
         EN: 'To',
-        AR: 'ط¥ظ„ظ‰',
+        AR: 'إلى',
     },
     timezone: {
         EN: 'Timezone',
-        AR: 'ط§ظ„ظ…ظ†ط·ظ‚ط© ط§ظ„ط²ظ…ظ†ظٹط©',
+        AR: 'المنطقة الزمنية',
     },
     pageviews: {
         EN: 'Pageviews',
-        AR: 'ظ…ط´ط§ظ‡ط¯ط§طھ ط§ظ„طµظپط­ط©',
+        AR: 'مشاهدات الصفحة',
     },
     uniqueVisitors: {
         EN: 'Unique Visitors',
-        AR: 'ط²ظˆط§ط± ظپط±ظٹط¯ظˆظ†',
+        AR: 'زوار فريدون',
     },
     reservations: {
         EN: 'Reservations',
-        AR: 'ط§ظ„ط­ط¬ظˆط²ط§طھ',
+        AR: 'الحجوزات',
     },
     whatsappClicks: {
         EN: 'WhatsApp Clicks',
-        AR: 'ظ†ظ‚ط±ط§طھ ظˆط§طھط³ط§ط¨',
+        AR: 'نقرات واتساب',
     },
     ordersRevenue: {
         EN: 'Orders (Revenue)',
-        AR: 'ط§ظ„ط·ظ„ط¨ط§طھ (ط§ظ„ط¥ظٹط±ط§ط¯)',
+        AR: 'الطلبات (الإيراد)',
     },
     orders: {
         EN: 'Orders',
-        AR: 'ط§ظ„ط·ظ„ط¨ط§طھ',
+        AR: 'الطلبات',
     },
     dailyTrends: {
         EN: 'Daily Trends',
-        AR: 'ط§ظ„ط§طھط¬ط§ظ‡ط§طھ ط§ظ„ظٹظˆظ…ظٹط©',
+        AR: 'الاتجاهات اليومية',
     },
     topAgencies: {
         EN: 'Top Agencies',
-        AR: 'ط£ظپط¶ظ„ ط§ظ„ظˆظƒط§ظ„ط§طھ',
+        AR: 'أفضل الوكالات',
     },
     topStores: {
         EN: 'Top Stores',
-        AR: 'ط£ظپط¶ظ„ ط§ظ„ظ…طھط§ط¬ط±',
+        AR: 'أفضل المتاجر',
     },
     title: {
         EN: 'Title',
-        AR: 'ط§ظ„ط¹ظ†ظˆط§ظ†',
+        AR: 'العنوان',
     },
     unique: {
         EN: 'Unique',
-        AR: 'ظپط±ظٹط¯',
+        AR: 'فريد',
     },
     views: {
         EN: 'Views',
-        AR: 'ظ…ط´ط§ظ‡ط¯ط§طھ',
+        AR: 'مشاهدات',
     },
     noData: {
         EN: 'No data',
-        AR: 'ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ',
+        AR: 'لا توجد بيانات',
     },
     myAgenciesTitle: {
         EN: 'My Agencies',
-        AR: 'ظˆظƒط§ظ„ط§طھظٹ',
+        AR: 'وكالاتي',
     },
     myAgenciesSubtitle: {
         EN: 'Manage and view all your registered agencies in one place',
-        AR: 'ط¥ط¯ط§ط±ط© ظˆط¹ط±ط¶ ط¬ظ…ظٹط¹ ظˆظƒط§ظ„ط§طھظƒ ط§ظ„ظ…ط³ط¬ظ„ط© ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯',
+        AR: 'إدارة وعرض جميع وكالاتك المسجلة في مكان واحد',
     },
     myAgenciesHojra: {
         EN: 'Center',
-        AR: 'ط§ظ„ظ…ط±ظƒط²',
+        AR: 'المركز',
     },
     status: {
         EN: 'Status',
-        AR: 'ط§ظ„ط­ط§ظ„ط©',
+        AR: 'الحالة',
     },
     operation: {
         EN: 'Operation',

@@ -350,7 +350,7 @@ export const HojraExtraInformations = ({
         } catch (err: any) {
             toast.push(
                 <Notification type="danger">
-                    {getApiErrorMessage(err) || err.message || 'ط®ط·ط§ ط¯ط± ط°ط®غŒط±ظ‡'}
+                    {getApiErrorMessage(err) || err.message || 'خطا در ذخیره'}
                 </Notification>,
             )
         }

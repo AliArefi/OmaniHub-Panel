@@ -96,7 +96,7 @@ export default function Chat() {
                 return first?.id ?? null
             })
         } catch {
-            setThreadsError('طھط¹ط°ط± طھط­ظ…ظٹظ„ ط§ظ„ظ…ط­ط§ط¯ط«ط§طھ')
+            setThreadsError('تعذر تحميل المحادثات')
             setThreads([])
             setSelectedThreadId(null)
         } finally {
@@ -121,7 +121,7 @@ export default function Chat() {
                 )
             }
         } catch {
-            setMessagesError('طھط¹ط°ط± طھط­ظ…ظٹظ„ ط§ظ„ط±ط³ط§ط¦ظ„')
+            setMessagesError('تعذر تحميل الرسائل')
             setMessages([])
         } finally {
             setMessagesLoading(false)
@@ -265,17 +265,17 @@ export default function Chat() {
     return (
         <Card className="h-[calc(100vh-140px)]">
             <div className="mb-4">
-                <h2 className="text-xl font-bold">ط§ظ„ظ…ط­ط§ط¯ط«ط§طھ</h2>
+                <h2 className="text-xl font-bold">المحادثات</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    طھظˆط§طµظ„ ظ…ط¹ ط§ظ„ط¹ظ…ظ„ط§ط، ط¨ط®طµظˆطµ ظ…ظˆط§ط¹ظٹط¯ظ‡ظ… ظˆط­ط¬ظˆط²ط§طھظ‡ظ…
+                    تواصل مع العملاء بخصوص مواعيدهم وحجوزاتهم
                 </p>
             </div>
 
             <Tabs value={scope} onChange={(v) => setScope(v as ChatThreadScope)}>
                 <TabList className="mb-4">
-                    <TabNav value="upcoming">ط§ظ„ظ‚ط§ط¯ظ…ط©</TabNav>
-                    <TabNav value="past">ط§ظ„ط³ط§ط¨ظ‚ط©</TabNav>
-                    <TabNav value="all">ط§ظ„ظƒظ„</TabNav>
+                    <TabNav value="upcoming">القادمة</TabNav>
+                    <TabNav value="past">السابقة</TabNav>
+                    <TabNav value="all">الكل</TabNav>
                 </TabList>
 
                 <TabContent value={scope} className="h-full">
@@ -293,7 +293,7 @@ export default function Chat() {
                                     </div>
                                 ) : threads.length === 0 ? (
                                     <div className="p-6 text-gray-500">
-                                        ظ„ط§ طھظˆط¬ط¯ ظ…ط­ط§ط¯ط«ط§طھ ط¨ط¹ط¯.
+                                        لا توجد محادثات بعد.
                                     </div>
                                 ) : (
                                     <div>
@@ -337,7 +337,7 @@ export default function Chat() {
 
                                                         {t.has_unread ? (
                                                             <Badge className="bg-indigo-600 text-white">
-                                                                ط¬ط¯ظٹط¯
+                                                                جديد
                                                             </Badge>
                                                         ) : null}
                                                     </div>
@@ -356,7 +356,7 @@ export default function Chat() {
                         <div className="col-span-12 md:col-span-8 h-full overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col">
                             {!selectedThread ? (
                                 <div className="p-6 text-gray-500">
-                                    ط§ط®طھط± ظ…ط­ط§ط¯ط«ط© ظ…ظ† ط§ظ„ظ‚ط§ط¦ظ…ط©.
+                                    اختر محادثة من القائمة.
                                 </div>
                             ) : (
                                 <>
@@ -392,7 +392,7 @@ export default function Chat() {
                                             </div>
                                         ) : messages.length === 0 ? (
                                             <div className="text-gray-500">
-                                                ظ„ط§ طھظˆط¬ط¯ ط±ط³ط§ط¦ظ„ ط¨ط¹ط¯.
+                                                لا توجد رسائل بعد.
                                             </div>
                                         ) : (
                                             messages.map((m) => {
@@ -465,7 +465,7 @@ export default function Chat() {
                                             disabled={sending || !composer.trim()}
                                             onClick={() => void onSend()}
                                         >
-                                            ط¥ط±ط³ط§ظ„
+                                            إرسال
                                         </Button>
                                     </div>
                                 </>
@@ -477,5 +477,4 @@ export default function Chat() {
         </Card>
     )
 }
-
 

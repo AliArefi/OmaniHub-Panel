@@ -1,4 +1,3 @@
-// steps/HojraServices.tsx
 import { Button, Card, FormItem, Input, Select, toast } from '@/components/ui'
 import Notification from '@/components/ui/Notification'
 import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
@@ -15,18 +14,29 @@ type ServiceNode = {
     id: number
     name: string
     slug: string | null
-    children?: ServiceNode[]
 }
 
 type SelectOption = { value: number; label: string }
+
+const resolveServiceNodes = (response: unknown): ServiceNode[] => {
+    if (!response || typeof response !== 'object') {
+        return []
+    }
+
+    const payload = response as { data?: unknown }
+    const data = payload.data ?? response
+
+    return Array.isArray(data) ? (data as ServiceNode[]) : []
+}
 
 export const HojraServices = ({ changeState }: HojraServicesProps) => {
     const { services, addService, removeService, newHojraData, hojraInfo } =
         useCreateStore()
 
-    const [serviceTree, setServiceTree] = useState<ServiceNode[]>([])
+    const [serviceLevels, setServiceLevels] = useState<ServiceNode[][]>([])
     const [servicePath, setServicePath] = useState<number[]>([])
     const [isLoadingTree, setIsLoadingTree] = useState(false)
+    const [isLoadingNextLevel, setIsLoadingNextLevel] = useState(false)
 
     const [duration, setDuration] = useState<string>('')
     const [pricingType, setPricingType] = useState<
@@ -42,17 +52,18 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
 
         let isMounted = true
         setServicePath([])
+        setServiceLevels([])
         setIsLoadingTree(true)
 
-        getServices({ parent_id: rootId, tree: 1 })
+        getServices({ parent_id: rootId })
             .then((resp) => {
-                const data = (resp?.data ?? resp) as ServiceNode[]
                 if (!isMounted) return
-                setServiceTree(Array.isArray(data) ? data : [])
+                const nodes = resolveServiceNodes(resp)
+                setServiceLevels(nodes.length > 0 ? [nodes] : [])
             })
             .catch(() => {
                 if (!isMounted) return
-                setServiceTree([])
+                setServiceLevels([])
             })
             .finally(() => {
                 if (!isMounted) return
@@ -64,31 +75,23 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
         }
     }, [hojraInfo.service_id])
 
-    const levels = useMemo(() => {
-        const result: ServiceNode[][] = [serviceTree]
-        let cursor = serviceTree
-
-        for (const id of servicePath) {
-            const node = cursor.find((n) => n.id === id)
-            if (!node?.children?.length) break
-            cursor = node.children
-            result.push(cursor)
-        }
-
-        return result.filter((l) => l.length > 0)
-    }, [servicePath, serviceTree])
+    const levels = useMemo(
+        () => serviceLevels.filter((level) => level.length > 0),
+        [serviceLevels],
+    )
 
     const selectedLabels = useMemo(() => {
         const labels: string[] = []
-        let cursor = serviceTree
-        for (const id of servicePath) {
-            const node = cursor.find((n) => n.id === id)
+
+        for (let idx = 0; idx < servicePath.length; idx++) {
+            const levelNodes = serviceLevels[idx] ?? []
+            const node = levelNodes.find((item) => item.id === servicePath[idx])
             if (!node) break
             labels.push(node.name)
-            cursor = node.children ?? []
         }
+
         return labels
-    }, [servicePath, serviceTree])
+    }, [serviceLevels, servicePath])
 
     const selectedServiceId = servicePath.length
         ? servicePath[servicePath.length - 1]
@@ -112,12 +115,40 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
         )
     }
 
-    const handleSelectLevel = (levelIndex: number, option: SelectOption | null) => {
-        const next = servicePath.slice(0, levelIndex)
+    const handleSelectLevel = async (
+        levelIndex: number,
+        option: SelectOption | null,
+    ) => {
+        const nextPath = servicePath.slice(0, levelIndex)
         if (option?.value) {
-            next[levelIndex] = option.value
+            nextPath[levelIndex] = option.value
         }
-        setServicePath(next)
+
+        setServicePath(nextPath)
+        setServiceLevels((prev) => prev.slice(0, levelIndex + 1))
+
+        if (!option?.value) {
+            return
+        }
+
+        setIsLoadingNextLevel(true)
+
+        try {
+            const resp = await getServices({ parent_id: option.value })
+            const nodes = resolveServiceNodes(resp)
+
+            if (nodes.length > 0) {
+                setServiceLevels((prev) => {
+                    const updated = prev.slice(0, levelIndex + 1)
+                    updated[levelIndex + 1] = nodes
+                    return updated
+                })
+            }
+        } catch {
+            // Hide deeper levels and keep the chosen level only.
+        } finally {
+            setIsLoadingNextLevel(false)
+        }
     }
 
     const handleAddService = async () => {
@@ -126,7 +157,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
         if (!newHojraData?.id) {
             toast.push(
                 <Notification type="danger">
-                    لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز أولاً.
+                    لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز أولًا.
                 </Notification>,
             )
             return
@@ -167,8 +198,9 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
             const apiMessage = (() => {
                 if (typeof err !== 'object' || err === null) return undefined
                 const response = (err as { response?: unknown }).response
-                if (typeof response !== 'object' || response === null)
+                if (typeof response !== 'object' || response === null) {
                     return undefined
+                }
                 const data = (response as { data?: unknown }).data
                 if (typeof data !== 'object' || data === null) return undefined
                 const message = (data as { message?: unknown }).message
@@ -208,9 +240,9 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                     <div className="text-sm text-gray-500">
                         جاري تحميل الخدمات...
                     </div>
-                ) : serviceTree.length === 0 ? (
+                ) : levels.length === 0 ? (
                     <div className="text-sm text-gray-500">
-                        لا توجد خدمات فرعية متاحة لهذا النوع حالياً.
+                        لا توجد خدمات فرعية متاحة لهذا النوع حاليًا.
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -224,8 +256,8 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                 idx === 0
                                     ? 'نوع الخدمة الرئيسية'
                                     : idx === 1
-                                        ? 'الخدمة الفرعية'
-                                        : `تصنيف فرعي (المستوى ${idx + 1})`
+                                      ? 'الخدمة الفرعية'
+                                      : `تصنيف فرعي (المستوى ${idx + 1})`
 
                             return (
                                 <FormItem key={idx} label={label}>
@@ -235,20 +267,22 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                         value={
                                             options.find(
                                                 (opt) =>
-                                                    opt.value ===
-                                                    servicePath[idx],
+                                                    opt.value === servicePath[idx],
                                             ) || null
                                         }
                                         onChange={(opt) =>
-                                            handleSelectLevel(
-                                                idx,
-                                                opt ?? null,
-                                            )
+                                            handleSelectLevel(idx, opt ?? null)
                                         }
                                     />
                                 </FormItem>
                             )
                         })}
+
+                        {isLoadingNextLevel && (
+                            <div className="text-sm text-gray-500">
+                                جاري تحميل المستوى التالي...
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -319,7 +353,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                 {pricingType !== 'fixed' && (
                     <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm text-gray-700">
                         {pricingType === 'coordination'
-                            ? 'لن يظهر سعر للعميل أثناء الحجز، وسيتم تحديده لاحقاً من قسم الحجوزات.'
+                            ? 'لن يظهر سعر للعميل أثناء الحجز، وسيتم تحديده لاحقًا من قسم الحجوزات.'
                             : 'سيعتمد السعر على تسعير العضو/الموظف. إذا لم يكن هناك سعر محدد للعضو فسيظهر للعميل أن الخدمة بحاجة إلى تنسيق.'}
                     </div>
                 )}
@@ -364,9 +398,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                             {service.serviceLabel}
                                         </div>
                                         <div className="text-sm text-gray-600 mb-1 flex gap-4">
-                                            <span>
-                                                المدة: {service.duration} دقيقة
-                                            </span>
+                                            <span>المدة: {service.duration} دقيقة</span>
                                             <span>
                                                 التسعير: {getPricingTypeLabel(service.pricingType)}
                                             </span>
@@ -384,9 +416,7 @@ export const HojraServices = ({ changeState }: HojraServicesProps) => {
                                             shape="circle"
                                             size="xs"
                                             className="bg-red-300 hover:bg-red-400 transition-all"
-                                            onClick={() =>
-                                                removeService(service.id)
-                                            }
+                                            onClick={() => removeService(service.id)}
                                         >
                                             حذف
                                         </Button>
