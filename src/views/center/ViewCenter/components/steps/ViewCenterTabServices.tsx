@@ -1,4 +1,12 @@
-import { Button, Card, FormItem, Input, Select, toast } from '@/components/ui'
+import {
+    Button,
+    Card,
+    FormItem,
+    Input,
+    Select,
+    Switcher,
+    toast,
+} from '@/components/ui'
 import Notification from '@/components/ui/Notification'
 import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
 import { useEffect, useMemo, useState } from 'react'
@@ -153,7 +161,8 @@ export const ViewCenterTabServices = () => {
         if (!newHojraData?.id) {
             toast.push(
                 <Notification type="danger">
-                    لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز أولًا.
+                    لم يتم إنشاء المركز بعد. ارجع للخطوة السابقة وأنشئ المركز
+                    أولًا.
                 </Notification>,
             )
             return
@@ -263,7 +272,8 @@ export const ViewCenterTabServices = () => {
                                         value={
                                             options.find(
                                                 (opt) =>
-                                                    opt.value === servicePath[idx],
+                                                    opt.value ===
+                                                    servicePath[idx],
                                             ) || null
                                         }
                                         onChange={(opt) =>
@@ -362,11 +372,12 @@ export const ViewCenterTabServices = () => {
                     />
                 </FormItem>
 
-                {selectedServiceId !== null && isDuplicate(selectedServiceId) && (
-                    <div className="text-red-500 text-xs">
-                        هذه الخدمة مضافة مسبقًا.
-                    </div>
-                )}
+                {selectedServiceId !== null &&
+                    isDuplicate(selectedServiceId) && (
+                        <div className="text-red-500 text-xs">
+                            هذه الخدمة مضافة مسبقًا.
+                        </div>
+                    )}
 
                 <FormItem>
                     <Button
@@ -381,6 +392,73 @@ export const ViewCenterTabServices = () => {
                     </Button>
                 </FormItem>
 
+                <hr />
+
+                <div className='text-red-700 font-extrabold text-xl text-center'>ADDED DEMO SELECT SERVICE</div>
+
+                <Card bodyClass="grid gap-3">
+                    {levels.map((nodes, idx) => {
+                        const options: SelectOption[] = nodes.map((n) => ({
+                            value: n.id,
+                            label: n.name,
+                        }))
+
+                        return options.map((item, index) => {
+                            return (
+                                <Card key={index} className="">
+                                    <div className="grid">
+                                        <div className="grid gap-5">
+                                            <div>
+                                                <div className="flex items-center justify-start gap-2">
+                                                    <Switcher />
+                                                    <div className='text-lg font-bold'>{item.label}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <FormItem label="المدة (دقيقة)">
+                                                        <Input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            value={10}
+                                                            placeholder="المدة"
+                                                            min="1"
+                                                        />
+                                                    </FormItem>
+                                                </div>
+                                                <div>
+                                                    <FormItem label="السعر (ريال)">
+                                                        <Input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            value={1000}
+                                                            placeholder="السعر"
+                                                            min="1"
+                                                            disabled={
+                                                                pricingType !==
+                                                                'fixed'
+                                                            }
+                                                        />
+                                                    </FormItem>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <FormItem label="وصف موجز للخدمة">
+                                                    <Input
+                                                        value={'test'}
+                                                        placeholder="وصف موجز للخدمة"
+                                                    />
+                                                </FormItem>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )
+                        })
+                    })}
+                </Card>
+
                 {services.length > 0 && (
                     <div className="mt-6 space-y-3">
                         <h3 className="text-lg font-semibold">
@@ -394,12 +472,20 @@ export const ViewCenterTabServices = () => {
                                             {service.serviceLabel}
                                         </div>
                                         <div className="text-sm text-gray-600 mb-1 flex gap-4">
-                                            <span>المدة: {service.duration} دقيقة</span>
                                             <span>
-                                                التسعير: {getPricingTypeLabel(service.pricingType)}
+                                                المدة: {service.duration} دقيقة
                                             </span>
                                             <span>
-                                                السعر: {getServicePricingLabel(service)}
+                                                التسعير:{' '}
+                                                {getPricingTypeLabel(
+                                                    service.pricingType,
+                                                )}
+                                            </span>
+                                            <span>
+                                                السعر:{' '}
+                                                {getServicePricingLabel(
+                                                    service,
+                                                )}
                                             </span>
                                         </div>
                                         <div className="text-sm text-gray-700">
@@ -412,7 +498,9 @@ export const ViewCenterTabServices = () => {
                                             shape="circle"
                                             size="xs"
                                             className="bg-red-300 hover:bg-red-400 transition-all"
-                                            onClick={() => removeService(service.id)}
+                                            onClick={() =>
+                                                removeService(service.id)
+                                            }
                                         >
                                             حذف
                                         </Button>

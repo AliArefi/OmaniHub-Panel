@@ -264,7 +264,6 @@ export const ViewCenterTabInformation = () => {
                             <div className="flex items-center justify-end">
                                 <Button
                                     loading={isSubmitting}
-                                    size="sm"
                                     variant="solid"
                                     type="submit"
                                 >

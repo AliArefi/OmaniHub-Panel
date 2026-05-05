@@ -106,7 +106,7 @@ export default function Centers() {
                         <Tr>
                             <Th>{t('myAgenciesHojra')}</Th>
                             <Th>{t('status')}</Th>
-                            <Th>{t('operation')}</Th>
+                            <Th className='text-center'>{t('operation')}</Th>
                         </Tr>
                     </THead>
                     <TBody>
@@ -158,7 +158,7 @@ export default function Centers() {
                                                     variant="solid"
                                                     className="flex items-center gap-1"
                                                 >
-                                                    <TbChartBar /> إحصائيات
+                                                    <TbChartBar size={16} /> إحصائيات
                                                 </Button>
                                             </Link>
                                         )}
@@ -171,7 +171,7 @@ export default function Centers() {
                                                 variant="solid"
                                                 className="flex items-center gap-1"
                                             >
-                                                <TbEdit /> {t('edit') || 'Edit'}
+                                                <TbEdit size={16} /> {t('edit') || 'Edit'}
                                             </Button>
                                         </Link>
 
@@ -187,29 +187,23 @@ export default function Centers() {
                                                     variant="default"
                                                     className="flex items-center gap-1"
                                                 >
-                                                    <TbEye />{' '}
+                                                    <TbEye size={16} />{' '}
                                                     {t('view') || 'View'}
                                                 </Button>
                                             </a>
                                         )}
 
-                                        <div className="flex justify-end text-lg gap-1">
-                                            <Tooltip
-                                                wrapperClass="flex"
-                                                title="مشاهدة"
+                                        <div className="flex justify-end text-lg">
+                                            <Button
+                                                variant="plain"
+                                                onClick={() =>
+                                                    onView(agency.slug)
+                                                }
                                             >
-                                                <span
-                                                    className="cursor-pointer"
-                                                    onClick={() =>
-                                                        onView(agency.slug)
-                                                    }
-                                                >
-                                                    <TbEye />
-                                                </span>
-                                            </Tooltip>
+                                                <TbEye />
+                                            </Button>
 
                                             <Button
-                                                size="xs"
                                                 variant="plain"
                                                 className="hover:text-red-500"
                                                 loading={

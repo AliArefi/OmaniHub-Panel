@@ -803,11 +803,10 @@ export const ViewCenterTabExtraInformations = () => {
                     </FormItem>
 
                     <FormItem>
-                        <div className="flex justify-between">
+                        <div className="flex justify-end">
                             <Button
                                 loading={isSubmitting}
                                 type="submit"
-                                size="sm"
                                 variant="solid"
                             >
                                 تعدیل

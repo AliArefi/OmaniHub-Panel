@@ -64,20 +64,33 @@ export const ViewCenterTabAssignServices = () => {
     const [showNewMemberForm, setShowNewMemberForm] = useState(false)
     const [newMemberName, setNewMemberName] = useState('')
     const [newMemberPosition, setNewMemberPosition] = useState('')
-    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(null)
-    const [newMemberImagePreview, setNewMemberImagePreview] = useState<string | null>(null)
-    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(null)
+    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(
+        null,
+    )
+    const [newMemberImagePreview, setNewMemberImagePreview] = useState<
+        string | null
+    >(null)
+    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(
+        null,
+    )
     const [isCreatingMember, setIsCreatingMember] = useState(false)
 
-    const [editingScheduleForAssignment, setEditingScheduleForAssignment] = useState<number | null>(null)
+    const [editingScheduleForAssignment, setEditingScheduleForAssignment] =
+        useState<number | null>(null)
     const [isSavingSchedules, setIsSavingSchedules] = useState(false)
-    const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(null)
+    const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(
+        null,
+    )
 
     const [editingMemberId, setEditingMemberId] = useState<number | null>(null)
     const [editMemberName, setEditMemberName] = useState('')
     const [editMemberPosition, setEditMemberPosition] = useState('')
-    const [editMemberImageFile, setEditMemberImageFile] = useState<File | null>(null)
-    const [editMemberImagePreview, setEditMemberImagePreview] = useState<string | null>(null)
+    const [editMemberImageFile, setEditMemberImageFile] = useState<File | null>(
+        null,
+    )
+    const [editMemberImagePreview, setEditMemberImagePreview] = useState<
+        string | null
+    >(null)
     const [isUpdatingMember, setIsUpdatingMember] = useState(false)
 
     const showFileError = (message: string) => {
@@ -85,7 +98,9 @@ export const ViewCenterTabAssignServices = () => {
     }
 
     const getMemberAgencyServiceId = (memberId: number): number | null => {
-        const assignment = assignments.find((item) => item.memberId === memberId)
+        const assignment = assignments.find(
+            (item) => item.memberId === memberId,
+        )
         return assignment ? assignment.serviceId : null
     }
 
@@ -107,7 +122,8 @@ export const ViewCenterTabAssignServices = () => {
 
         setNewMemberImageFile(file)
         const reader = new FileReader()
-        reader.onloadend = () => setNewMemberImagePreview(reader.result as string)
+        reader.onloadend = () =>
+            setNewMemberImagePreview(reader.result as string)
         reader.readAsDataURL(file)
     }
 
@@ -126,21 +142,34 @@ export const ViewCenterTabAssignServices = () => {
 
         setEditMemberImageFile(file)
         const reader = new FileReader()
-        reader.onloadend = () => setEditMemberImagePreview(reader.result as string)
+        reader.onloadend = () =>
+            setEditMemberImagePreview(reader.result as string)
         reader.readAsDataURL(file)
     }
 
     const handleCreateMember = async () => {
         if (!newMemberName.trim()) {
-            toast.push(<Notification type="warning">{t('center.validation.enterMemberName')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.enterMemberName')}
+                </Notification>,
+            )
             return
         }
         if (!newMemberServiceId) {
-            toast.push(<Notification type="warning">{t('center.validation.selectService')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectService')}
+                </Notification>,
+            )
             return
         }
         if (!newMemberImageFile) {
-            toast.push(<Notification type="warning">{t('center.validation.selectImage')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectImage')}
+                </Notification>,
+            )
             return
         }
 
@@ -168,7 +197,9 @@ export const ViewCenterTabAssignServices = () => {
 
             addTeamMember(createdMember)
 
-            const selectedService = services.find((service) => service.id === newMemberServiceId)
+            const selectedService = services.find(
+                (service) => service.id === newMemberServiceId,
+            )
             if (selectedService) {
                 setAssignments((currentAssignments) => [
                     ...currentAssignments,
@@ -190,9 +221,16 @@ export const ViewCenterTabAssignServices = () => {
             setNewMemberServiceId(null)
             setShowNewMemberForm(false)
 
-            toast.push(<Notification type="success">{t('center.success.memberCreated')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.memberCreated')}
+                </Notification>,
+            )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.createMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.createMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsCreatingMember(false)
@@ -210,9 +248,16 @@ export const ViewCenterTabAssignServices = () => {
         try {
             await apiDeleteServiceMember(agencyServiceId, memberId)
             removeTeamMember(memberId)
-            toast.push(<Notification type="success">{t('center.success.memberDeleted')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.memberDeleted')}
+                </Notification>,
+            )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.deleteMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.deleteMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsDeletingMemberId(null)
@@ -236,7 +281,11 @@ export const ViewCenterTabAssignServices = () => {
         if (!agencyServiceId) return
 
         if (!editMemberName.trim()) {
-            toast.push(<Notification type="warning">{t('center.validation.memberNameRequired')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.memberNameRequired')}
+                </Notification>,
+            )
             return
         }
 
@@ -248,7 +297,11 @@ export const ViewCenterTabAssignServices = () => {
 
         setIsUpdatingMember(true)
         try {
-            await apiUpdateServiceMember(agencyServiceId, editingMemberId, payload)
+            await apiUpdateServiceMember(
+                agencyServiceId,
+                editingMemberId,
+                payload,
+            )
 
             setTeamMembers((currentMembers) =>
                 currentMembers.map((member) =>
@@ -274,10 +327,17 @@ export const ViewCenterTabAssignServices = () => {
                 ),
             )
 
-            toast.push(<Notification type="success">{t('center.members.saveChanges')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.members.saveChanges')}
+                </Notification>,
+            )
             setEditingMemberId(null)
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.updateMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.updateMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsUpdatingMember(false)
@@ -291,11 +351,17 @@ export const ViewCenterTabAssignServices = () => {
         const assignment = assignments.find((item) => item.id === assignmentId)
         if (!assignment) return
 
-        const nextSchedule = updater(assignment.weeklySchedule.map(normalizeDaySchedule)).map(mergeDaySlots)
+        const nextSchedule = updater(
+            assignment.weeklySchedule.map(normalizeDaySchedule),
+        ).map(mergeDaySlots)
         updateAssignmentSchedule(assignmentId, nextSchedule)
     }
 
-    const handleDayToggle = (assignmentId: number, dayIndex: number, checked: boolean) => {
+    const handleDayToggle = (
+        assignmentId: number,
+        dayIndex: number,
+        checked: boolean,
+    ) => {
         updateSchedule(assignmentId, (weeklySchedule) => {
             const nextSchedule = [...weeklySchedule]
             const currentDay = nextSchedule[dayIndex]
@@ -347,16 +413,23 @@ export const ViewCenterTabAssignServices = () => {
         })
     }
 
-    const removeSlot = (assignmentId: number, dayIndex: number, slotIndex: number) => {
+    const removeSlot = (
+        assignmentId: number,
+        dayIndex: number,
+        slotIndex: number,
+    ) => {
         updateSchedule(assignmentId, (weeklySchedule) => {
             const nextSchedule = [...weeklySchedule]
             const currentDay = nextSchedule[dayIndex]
-            const nextSlots = currentDay.slots.filter((_, index) => index !== slotIndex)
+            const nextSlots = currentDay.slots.filter(
+                (_, index) => index !== slotIndex,
+            )
 
             nextSchedule[dayIndex] = normalizeDaySchedule({
                 ...currentDay,
                 isOpen: nextSlots.length > 0,
-                slots: nextSlots.length > 0 ? nextSlots : [createEmptyTimeSlot()],
+                slots:
+                    nextSlots.length > 0 ? nextSlots : [createEmptyTimeSlot()],
             })
 
             if (nextSlots.length === 0) {
@@ -370,7 +443,9 @@ export const ViewCenterTabAssignServices = () => {
     const persistSchedules = async () => {
         const requests = assignments.map(async (assignment) => {
             const days = assignment.weeklySchedule.map((daySchedule) => {
-                const normalizedDay = mergeDaySlots(normalizeDaySchedule(daySchedule))
+                const normalizedDay = mergeDaySlots(
+                    normalizeDaySchedule(daySchedule),
+                )
 
                 if (!normalizedDay.isOpen) {
                     return {
@@ -399,22 +474,34 @@ export const ViewCenterTabAssignServices = () => {
 
     const hasAnySchedule = assignments.some((assignment) =>
         assignment.weeklySchedule.some(
-            (daySchedule) => daySchedule.isOpen && (daySchedule.slots?.length ?? 0) > 0,
+            (daySchedule) =>
+                daySchedule.isOpen && (daySchedule.slots?.length ?? 0) > 0,
         ),
     )
 
     const handleNext = async () => {
         if (!hasAnySchedule) {
-            toast.push(<Notification type="warning">{t('center.validation.enableWorkingDay')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.enableWorkingDay')}
+                </Notification>,
+            )
             return
         }
 
         setIsSavingSchedules(true)
         try {
             await persistSchedules()
-            toast.push(<Notification type="success">{t('center.success.schedulesSaved')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.schedulesSaved')}
+                </Notification>,
+            )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.saveSchedulesFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.saveSchedulesFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsSavingSchedules(false)
@@ -424,10 +511,16 @@ export const ViewCenterTabAssignServices = () => {
     return (
         <div className="space-y-6">
             <Card>
-                <h3 className="text-lg font-semibold mb-4">{t('center.members.title')}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                    {t('center.members.title')}
+                </h3>
 
                 {!showNewMemberForm && (
-                    <Button variant="solid" icon={<HiOutlinePlus />} onClick={() => setShowNewMemberForm(true)}>
+                    <Button
+                        variant="solid"
+                        icon={<HiOutlinePlus />}
+                        onClick={() => setShowNewMemberForm(true)}
+                    >
                         {t('center.members.add')}
                     </Button>
                 )}
@@ -435,31 +528,63 @@ export const ViewCenterTabAssignServices = () => {
                 {showNewMemberForm && (
                     <div className="mt-4 p-4 border rounded-lg space-y-4">
                         <FormItem label={t('center.members.name')}>
-                            <Input value={newMemberName} onChange={(event) => setNewMemberName(event.target.value)} />
+                            <Input
+                                value={newMemberName}
+                                onChange={(event) =>
+                                    setNewMemberName(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={newMemberPosition} onChange={(event) => setNewMemberPosition(event.target.value)} />
+                            <Input
+                                value={newMemberPosition}
+                                onChange={(event) =>
+                                    setNewMemberPosition(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
-                            <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
                             {newMemberImagePreview && (
-                                <img src={newMemberImagePreview} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
+                                <img
+                                    src={newMemberImagePreview}
+                                    alt="Preview"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
                             )}
                         </FormItem>
 
                         <FormItem label={t('center.members.service')}>
                             <Select<SelectOption>
-                                value={newMemberServiceId ? serviceOptions.find((service) => service.value === newMemberServiceId) ?? null : null}
+                                value={
+                                    newMemberServiceId
+                                        ? (serviceOptions.find(
+                                              (service) =>
+                                                  service.value ===
+                                                  newMemberServiceId,
+                                          ) ?? null)
+                                        : null
+                                }
                                 options={serviceOptions}
-                                onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
+                                onChange={(option) =>
+                                    setNewMemberServiceId(option?.value ?? null)
+                                }
                                 placeholder={t('center.members.service')}
                             />
                         </FormItem>
 
                         <div className="flex gap-2">
-                            <Button variant="solid" onClick={handleCreateMember} loading={isCreatingMember}>
+                            <Button
+                                variant="solid"
+                                onClick={handleCreateMember}
+                                loading={isCreatingMember}
+                            >
                                 {t('center.members.save')}
                             </Button>
                             <Button
@@ -481,32 +606,60 @@ export const ViewCenterTabAssignServices = () => {
 
                 {teamMembers.length > 0 && (
                     <div className="mt-6 space-y-3">
-                        <h4 className="font-medium">{t('center.members.title')}</h4>
+                        <h4 className="font-medium">
+                            {t('center.members.title')}
+                        </h4>
                         {teamMembers.map((member) => {
-                            const assignment = getAssignmentByMemberId(member.id)
+                            const assignment = getAssignmentByMemberId(
+                                member.id,
+                            )
 
                             return (
-                                <div key={member.id} className="flex items-center justify-between p-3 border rounded">
+                                <div
+                                    key={member.id}
+                                    className="flex items-center justify-between p-3 border rounded"
+                                >
                                     <div className="flex items-center gap-3">
                                         {member.image && (
-                                            <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                                            <img
+                                                src={member.image}
+                                                alt={member.name}
+                                                className="w-10 h-10 rounded-full object-cover"
+                                            />
                                         )}
                                         <div>
-                                            <div className="font-medium">{member.name}</div>
-                                            <div className="text-sm text-gray-500">{member.position}</div>
+                                            <div className="font-medium">
+                                                {member.name}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {member.position}
+                                            </div>
                                             {assignment && (
-                                                <div className="text-xs text-gray-500">{assignment.serviceLabel}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {assignment.serviceLabel}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button size="sm" variant="plain" icon={<HiOutlinePencil />} onClick={() => beginEditMember(member.id)} />
+                                        <Button
+                                            size="sm"
+                                            variant="plain"
+                                            icon={<HiOutlinePencil />}
+                                            onClick={() =>
+                                                beginEditMember(member.id)
+                                            }
+                                        />
                                         <Button
                                             size="sm"
                                             variant="plain"
                                             icon={<HiOutlineTrash />}
-                                            loading={isDeletingMemberId === member.id}
-                                            onClick={() => handleDeleteMember(member.id)}
+                                            loading={
+                                                isDeletingMemberId === member.id
+                                            }
+                                            onClick={() =>
+                                                handleDeleteMember(member.id)
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -517,25 +670,49 @@ export const ViewCenterTabAssignServices = () => {
 
                 {editingMemberId && (
                     <div className="mt-6 p-4 border rounded-lg space-y-4">
-                        <h4 className="font-medium">{t('center.members.editTitle')}</h4>
+                        <h4 className="font-medium">
+                            {t('center.members.editTitle')}
+                        </h4>
 
                         <FormItem label={t('center.members.name')}>
-                            <Input value={editMemberName} onChange={(event) => setEditMemberName(event.target.value)} />
+                            <Input
+                                value={editMemberName}
+                                onChange={(event) =>
+                                    setEditMemberName(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={editMemberPosition} onChange={(event) => setEditMemberPosition(event.target.value)} />
+                            <Input
+                                value={editMemberPosition}
+                                onChange={(event) =>
+                                    setEditMemberPosition(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
-                            <Input type="file" accept="image/*" onChange={handleEditImageUpload} />
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleEditImageUpload}
+                            />
                             {editMemberImagePreview && (
-                                <img src={editMemberImagePreview} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
+                                <img
+                                    src={editMemberImagePreview}
+                                    alt="Preview"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
                             )}
                         </FormItem>
 
                         <div className="flex gap-2">
-                            <Button variant="solid" onClick={saveMemberEdits} loading={isUpdatingMember}>
+                            <Button
+                                variant="solid"
+                                onClick={saveMemberEdits}
+                                loading={isUpdatingMember}
+                            >
                                 {t('center.members.saveChanges')}
                             </Button>
                             <Button
@@ -554,126 +731,217 @@ export const ViewCenterTabAssignServices = () => {
                         </div>
                     </div>
                 )}
-            </Card>
+                {assignments.length > 0 && (
+                    <Card>
+                        <h3 className="text-lg font-semibold mb-4">
+                            {t('center.assignments.weeklySchedule')}
+                        </h3>
 
-            {assignments.length > 0 && (
-                <Card>
-                    <h3 className="text-lg font-semibold mb-4">{t('center.assignments.weeklySchedule')}</h3>
-
-                    <div className="space-y-4">
-                        {assignments.map((assignment) => (
-                            <div key={assignment.id} className="border rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <div className="font-medium">{assignment.memberName}</div>
-                                        <div className="text-sm text-gray-500">{assignment.serviceLabel}</div>
+                        <div className="space-y-4">
+                            {assignments.map((assignment) => (
+                                <div
+                                    key={assignment.id}
+                                    className="border rounded-lg p-4"
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <div className="font-medium">
+                                                {assignment.memberName}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {assignment.serviceLabel}
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="solid"
+                                            onClick={() =>
+                                                setEditingScheduleForAssignment(
+                                                    editingScheduleForAssignment ===
+                                                        assignment.id
+                                                        ? null
+                                                        : assignment.id,
+                                                )
+                                            }
+                                        >
+                                            {editingScheduleForAssignment ===
+                                            assignment.id
+                                                ? t(
+                                                      'center.assignments.closeSchedule',
+                                                  )
+                                                : t(
+                                                      'center.assignments.editSchedule',
+                                                  )}
+                                        </Button>
                                     </div>
-                                    <Button
-                                        size="sm"
-                                        variant="solid"
-                                        onClick={() =>
-                                            setEditingScheduleForAssignment(
-                                                editingScheduleForAssignment === assignment.id ? null : assignment.id,
-                                            )
-                                        }
-                                    >
-                                        {editingScheduleForAssignment === assignment.id
-                                            ? t('center.assignments.closeSchedule')
-                                            : t('center.assignments.editSchedule')}
-                                    </Button>
-                                </div>
 
-                                {editingScheduleForAssignment === assignment.id && (
-                                    <div className="space-y-4 mt-4 pt-4 border-t">
-                                        {assignment.weeklySchedule.map((daySchedule, dayIndex) => (
-                                            <div key={daySchedule.day} className="rounded-lg border p-3 space-y-3">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="text-sm font-medium">{daySchedule.dayLabel}</div>
-                                                    <Switcher
-                                                        checked={daySchedule.isOpen}
-                                                        onChange={(checked) =>
-                                                            handleDayToggle(assignment.id, dayIndex, checked)
-                                                        }
-                                                    />
-                                                </div>
+                                    {editingScheduleForAssignment ===
+                                        assignment.id && (
+                                        <div className="space-y-4 mt-4 pt-4 border-t">
+                                            {assignment.weeklySchedule.map(
+                                                (daySchedule, dayIndex) => (
+                                                    <div
+                                                        key={daySchedule.day}
+                                                        className="rounded-lg border p-3 space-y-3"
+                                                    >
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <div className="text-sm font-medium">
+                                                                {
+                                                                    daySchedule.dayLabel
+                                                                }
+                                                            </div>
+                                                            <Switcher
+                                                                checked={
+                                                                    daySchedule.isOpen
+                                                                }
+                                                                onChange={(
+                                                                    checked,
+                                                                ) =>
+                                                                    handleDayToggle(
+                                                                        assignment.id,
+                                                                        dayIndex,
+                                                                        checked,
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
 
-                                                {daySchedule.isOpen && (
-                                                    <div className="space-y-3">
-                                                        {daySchedule.slots.map((slot, slotIndex) => (
-                                                            <div
-                                                                key={`${daySchedule.day}-${slotIndex}`}
-                                                                className="flex flex-wrap items-center gap-2"
-                                                            >
-                                                                <Select<{ value: string; label: string }>
-                                                                    size="sm"
-                                                                    className="w-32"
-                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.startTime) ?? null}
-                                                                    options={timeOptions}
-                                                                    onChange={(option) =>
-                                                                        handleSlotChange(
-                                                                            assignment.id,
-                                                                            dayIndex,
-                                                                            slotIndex,
-                                                                            'startTime',
-                                                                            option?.value ?? '09:00',
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <span className="text-gray-500">{t('center.assignments.to')}</span>
-                                                                <Select<{ value: string; label: string }>
-                                                                    size="sm"
-                                                                    className="w-32"
-                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.endTime) ?? null}
-                                                                    options={timeOptions}
-                                                                    onChange={(option) =>
-                                                                        handleSlotChange(
-                                                                            assignment.id,
-                                                                            dayIndex,
-                                                                            slotIndex,
-                                                                            'endTime',
-                                                                            option?.value ?? '17:00',
-                                                                        )
-                                                                    }
-                                                                />
+                                                        {daySchedule.isOpen && (
+                                                            <div className="space-y-3">
+                                                                {daySchedule.slots.map(
+                                                                    (
+                                                                        slot,
+                                                                        slotIndex,
+                                                                    ) => (
+                                                                        <div
+                                                                            key={`${daySchedule.day}-${slotIndex}`}
+                                                                            className="flex flex-wrap items-center gap-2"
+                                                                        >
+                                                                            <Select<{
+                                                                                value: string
+                                                                                label: string
+                                                                            }>
+                                                                                size="sm"
+                                                                                className="w-32"
+                                                                                value={
+                                                                                    timeOptions.find(
+                                                                                        (
+                                                                                            timeOption,
+                                                                                        ) =>
+                                                                                            timeOption.value ===
+                                                                                            slot.startTime,
+                                                                                    ) ??
+                                                                                    null
+                                                                                }
+                                                                                options={
+                                                                                    timeOptions
+                                                                                }
+                                                                                onChange={(
+                                                                                    option,
+                                                                                ) =>
+                                                                                    handleSlotChange(
+                                                                                        assignment.id,
+                                                                                        dayIndex,
+                                                                                        slotIndex,
+                                                                                        'startTime',
+                                                                                        option?.value ??
+                                                                                            '09:00',
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <span className="text-gray-500">
+                                                                                {t(
+                                                                                    'center.assignments.to',
+                                                                                )}
+                                                                            </span>
+                                                                            <Select<{
+                                                                                value: string
+                                                                                label: string
+                                                                            }>
+                                                                                size="sm"
+                                                                                className="w-32"
+                                                                                value={
+                                                                                    timeOptions.find(
+                                                                                        (
+                                                                                            timeOption,
+                                                                                        ) =>
+                                                                                            timeOption.value ===
+                                                                                            slot.endTime,
+                                                                                    ) ??
+                                                                                    null
+                                                                                }
+                                                                                options={
+                                                                                    timeOptions
+                                                                                }
+                                                                                onChange={(
+                                                                                    option,
+                                                                                ) =>
+                                                                                    handleSlotChange(
+                                                                                        assignment.id,
+                                                                                        dayIndex,
+                                                                                        slotIndex,
+                                                                                        'endTime',
+                                                                                        option?.value ??
+                                                                                            '17:00',
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="plain"
+                                                                                icon={
+                                                                                    <HiOutlineTrash />
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    removeSlot(
+                                                                                        assignment.id,
+                                                                                        dayIndex,
+                                                                                        slotIndex,
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    ),
+                                                                )}
+
                                                                 <Button
                                                                     size="sm"
-                                                                    variant="plain"
-                                                                    icon={<HiOutlineTrash />}
-                                                                    onClick={() =>
-                                                                        removeSlot(assignment.id, dayIndex, slotIndex)
+                                                                    variant="default"
+                                                                    icon={
+                                                                        <HiOutlinePlus />
                                                                     }
-                                                                />
+                                                                    onClick={() =>
+                                                                        addSlot(
+                                                                            assignment.id,
+                                                                            dayIndex,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    إضافة فترة
+                                                                </Button>
                                                             </div>
-                                                        ))}
-
-                                                        <Button
-                                                            size="sm"
-                                                            variant="default"
-                                                            icon={<HiOutlinePlus />}
-                                                            onClick={() => addSlot(assignment.id, dayIndex)}
-                                                        >
-                                                            إضافة فترة
-                                                        </Button>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                )}
 
-            <div className="flex justify-between">
-
-                <Button variant="solid" onClick={handleNext} loading={isSavingSchedules}>
-                    {t('center.wizard.next')}
-                </Button>
-            </div>
+                <div className="flex justify-end mt-5">
+                    <Button
+                        variant="solid"
+                        onClick={handleNext}
+                        loading={isSavingSchedules}
+                    >
+                        تعدیل
+                    </Button>
+                </div>
+            </Card>
         </div>
     )
 }
-
-
