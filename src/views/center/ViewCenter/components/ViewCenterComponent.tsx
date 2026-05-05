@@ -277,14 +277,14 @@ export default function ViewCenterComponent() {
         >
             <div className="grid gap-4">
                 <div>
-                    <Card bodyClass="p-0" className="p-0 overflow-hidden">
+                    <Card bodyClass="p-0" className="overflow-hidden">
                         <TabViewCenter
                             changeState={(state) => setStep(state)}
                             step={step}
                         />
                     </Card>
                 </div>
-                <div className="">
+                <div className="overflow-hidden">
                     {step === VIEW_CENTER_TAB_STEP.INFORMATION && (
                         <ViewCenterTabInformation />
                     )}

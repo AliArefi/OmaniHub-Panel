@@ -1,5 +1,13 @@
 import type { Agency } from '@/@types/center'
-import { Avatar, Button, Card, Spinner, Table, Tooltip } from '@/components/ui'
+import {
+    Avatar,
+    Button,
+    Card,
+    Dropdown,
+    Spinner,
+    Table,
+    Tooltip,
+} from '@/components/ui'
 import TBody from '@/components/ui/Table/TBody'
 import Td from '@/components/ui/Table/Td'
 import Th from '@/components/ui/Table/Th'
@@ -85,6 +93,10 @@ export default function Centers() {
         navigate(`/centers/${slug}/view`)
     }
 
+    const onSelect = (url: string) => {
+        navigate(url)
+    }
+
     if (loading)
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
@@ -106,7 +118,7 @@ export default function Centers() {
                         <Tr>
                             <Th>{t('myAgenciesHojra')}</Th>
                             <Th>{t('status')}</Th>
-                            <Th className='text-center'>{t('operation')}</Th>
+                            <Th className="text-center">{t('operation')}</Th>
                         </Tr>
                     </THead>
                     <TBody>
@@ -133,7 +145,70 @@ export default function Centers() {
                                 </Td>
                                 <Td>{agency.status}</Td>
                                 <Td>
-                                    <div className="flex items-center justify-end gap-2">
+                                    <div className='flex items-center justify-center'>
+                                        <Dropdown title={t('operation')}>
+                                            {agency.status === 'published' && (
+                                                <>
+                                                    <Dropdown.Item
+                                                        onSelect={() =>
+                                                            onSelect(
+                                                                `/bookings?agencySlug=${encodeURIComponent(agency.slug)}`,
+                                                            )
+                                                        }
+                                                    >
+                                                        <TbCalendar size={16} />{' '}
+                                                        {t('reservations') ||
+                                                            'الحجوزات'}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item
+                                                        onSelect={() =>
+                                                            onSelect(
+                                                                `/centers/${encodeURIComponent(agency.slug)}/stats`,
+                                                            )
+                                                        }
+                                                    >
+                                                        <TbChartBar size={16} />{' '}
+                                                        إحصائيات
+                                                    </Dropdown.Item>
+                                                </>
+                                            )}
+
+                                            <Dropdown.Item
+                                                onSelect={() =>
+                                                    onView(agency.slug)
+                                                }
+                                            >
+                                                <TbEye size={16} />{' '}
+                                                {t('view') || 'View'}
+                                            </Dropdown.Item>
+                                            
+                                            {/* <Dropdown.Item
+                                                onSelect={() =>
+                                                    onSelect(
+                                                        `/centers/${agency.slug}/edit`,
+                                                    )
+                                                }
+                                            >
+                                                <TbEdit size={16} />{' '}
+                                                {t('edit') || 'Edit'}
+                                            </Dropdown.Item> */}
+
+                                            <Dropdown.Item
+                                                onClick={() =>
+                                                    setConfirmDeleteSlug(
+                                                        agency.slug,
+                                                    )
+                                                }
+                                            >
+                                                <TbTrash size={16} />{' '}
+                                                حذف
+                                            </Dropdown.Item>
+
+
+                                        </Dropdown>
+                                    </div>
+
+                                    {/* <div className="flex items-center justify-end gap-2">
                                         {agency.status === 'published' && (
                                             <Link
                                                 to={`/bookings?agencySlug=${encodeURIComponent(agency.slug)}`}
@@ -158,7 +233,8 @@ export default function Centers() {
                                                     variant="solid"
                                                     className="flex items-center gap-1"
                                                 >
-                                                    <TbChartBar size={16} /> إحصائيات
+                                                    <TbChartBar size={16} />{' '}
+                                                    إحصائيات
                                                 </Button>
                                             </Link>
                                         )}
@@ -171,7 +247,8 @@ export default function Centers() {
                                                 variant="solid"
                                                 className="flex items-center gap-1"
                                             >
-                                                <TbEdit size={16} /> {t('edit') || 'Edit'}
+                                                <TbEdit size={16} />{' '}
+                                                {t('edit') || 'Edit'}
                                             </Button>
                                         </Link>
 
@@ -218,7 +295,7 @@ export default function Centers() {
                                                 <TbTrash />
                                             </Button>
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </Td>
                             </Tr>
                         ))}

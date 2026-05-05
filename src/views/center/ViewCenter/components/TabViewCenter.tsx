@@ -51,7 +51,7 @@ export function TabViewCenter({ step, changeState }: TabViewCenterProps) {
                     return (
                         <div onClick={() => changeState(item.id)} key={item.id} className={`hover:bg-primary/5 cursor-pointer flex-1 py-4 ${getTabColor(item.id, step)}`} >
                             <p className="text-center">
-                                <span className={`dark:text-gray-100 font-bold text-sm text-center  ${getTextColor(item.id, step)}`}>
+                                <span className={`dark:text-gray-100 font-bold text-[10px] lg:text-sm text-center  ${getTextColor(item.id, step)}`}>
                                     {item.title}
                                 </span>
                             </p>
