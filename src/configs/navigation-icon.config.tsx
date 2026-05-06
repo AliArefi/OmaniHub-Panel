@@ -8,6 +8,7 @@ import {
     PiCurrencyCircleDollarDuotone,
     PiListStarDuotone,
     PiFolderOpenDuotone,
+    PiCalendarCheck,
 } from 'react-icons/pi'
 
 import type { JSX } from 'react'
@@ -26,7 +27,8 @@ const navigationIcon: NavigationIcons = {
     account: <PiUserCircleDuotone />,    
     accountPricing: <PiCurrencyCircleDollarDuotone />,
     newCenter: <PiListStarDuotone />,
-    fileManager: <PiFolderOpenDuotone />
+    fileManager: <PiFolderOpenDuotone />,
+    calendarCheck: <PiCalendarCheck />
 }
 
 export default navigationIcon

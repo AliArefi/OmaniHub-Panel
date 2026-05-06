@@ -97,6 +97,16 @@ const navigationConfig: NavigationTree[] = [
         authority: [],
         subMenu: [],
     },
+    {
+        key: 'workCalendar',
+        path: '/work-calendar',
+        title: 'تقويم العمل',
+        translateKey: 'nav.singleMenuItem',
+        icon: 'calendarCheck',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [],
+        subMenu: [],
+    },
 ]
 
 export default navigationConfig

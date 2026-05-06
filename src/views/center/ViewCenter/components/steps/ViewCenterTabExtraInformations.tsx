@@ -461,7 +461,7 @@ export const ViewCenterTabExtraInformations = () => {
                                                     }
                                                 }}
                                             >
-                                                ط­ط°ظپ
+                                                حذف
                                             </Button>
                                         )}
                                     </div>
