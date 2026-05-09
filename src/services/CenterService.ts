@@ -113,6 +113,24 @@ export async function apiCreateAgencyService(data: CreateAgencyServiceRequest) {
     })
 }
 
+export async function apiUpdateAgencyService(
+    agencyServiceId: number,
+    data: Partial<CreateAgencyServiceRequest>,
+) {
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `/my-services/${agencyServiceId}`,
+        method: 'put',
+        data,
+    })
+}
+
+export async function apiDeleteAgencyService(agencyServiceId: number) {
+    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+        url: `/my-services/${agencyServiceId}`,
+        method: 'delete',
+    })
+}
+
 export async function apiCreateMemberAgency(
     data: CreateMemberAgencyRequest,
     agencyServiceId: number,

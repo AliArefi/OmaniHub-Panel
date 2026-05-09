@@ -4,13 +4,16 @@ import {
     FormItem,
     Input,
     Select,
-    Switcher,
     toast,
 } from '@/components/ui'
 import Notification from '@/components/ui/Notification'
 import { ServiceItem, useCreateStore } from '@/context/createStoreContext'
 import { useEffect, useMemo, useState } from 'react'
-import { apiCreateAgencyService, getServices } from '@/services/CenterService'
+import {
+    apiCreateAgencyService,
+    apiDeleteAgencyService,
+    getServices,
+} from '@/services/CenterService'
 import { extractDigits } from '@/utils/normalizeDigits'
 import { getPricingTypeLabel, getServicePricingLabel } from '@/utils/pricing'
 
@@ -49,6 +52,9 @@ export const ViewCenterTabServices = () => {
     const [price, setPrice] = useState<string>('')
     const [description, setDescription] = useState<string>('')
     const [isSaving, setIsSaving] = useState(false)
+    const [deletingServiceId, setDeletingServiceId] = useState<number | null>(
+        null,
+    )
 
     useEffect(() => {
         const rootId = hojraInfo.service_id ?? null
@@ -233,6 +239,31 @@ export const ViewCenterTabServices = () => {
         setDescription('')
     }
 
+    const handleRemoveService = async (agencyServiceId: number) => {
+        if (deletingServiceId !== null) return
+
+        setDeletingServiceId(agencyServiceId)
+        try {
+            const resp = await apiDeleteAgencyService(agencyServiceId)
+            if (!resp?.success) {
+                throw new Error(resp?.message || 'تعذر حذف الخدمة')
+            }
+
+            removeService(agencyServiceId)
+            toast.push(
+                <Notification type="success">
+                    {resp.message || 'تم حذف الخدمة'}
+                </Notification>,
+            )
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error ? err.message : 'حدث خطأ أثناء حذف الخدمة'
+            toast.push(<Notification type="danger">{message}</Notification>)
+        } finally {
+            setDeletingServiceId(null)
+        }
+    }
+
     return (
         <Card
             header={{
@@ -394,71 +425,6 @@ export const ViewCenterTabServices = () => {
 
                 <hr />
 
-                <div className='text-red-700 font-extrabold text-xl text-center'>ADDED DEMO SELECT SERVICE</div>
-
-                <Card bodyClass="grid gap-3">
-                    {levels.map((nodes, idx) => {
-                        const options: SelectOption[] = nodes.map((n) => ({
-                            value: n.id,
-                            label: n.name,
-                        }))
-
-                        return options.map((item, index) => {
-                            return (
-                                <Card key={index} className="">
-                                    <div className="grid">
-                                        <div className="grid gap-5">
-                                            <div>
-                                                <div className="flex items-center justify-start gap-2">
-                                                    <Switcher />
-                                                    <div className='text-lg font-bold'>{item.label}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <FormItem label="المدة (دقيقة)">
-                                                        <Input
-                                                            type="text"
-                                                            inputMode="numeric"
-                                                            value={10}
-                                                            placeholder="المدة"
-                                                            min="1"
-                                                        />
-                                                    </FormItem>
-                                                </div>
-                                                <div>
-                                                    <FormItem label="السعر (ريال)">
-                                                        <Input
-                                                            type="text"
-                                                            inputMode="numeric"
-                                                            value={1000}
-                                                            placeholder="السعر"
-                                                            min="1"
-                                                            disabled={
-                                                                pricingType !==
-                                                                'fixed'
-                                                            }
-                                                        />
-                                                    </FormItem>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <FormItem label="وصف موجز للخدمة">
-                                                    <Input
-                                                        value={'test'}
-                                                        placeholder="وصف موجز للخدمة"
-                                                    />
-                                                </FormItem>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Card>
-                            )
-                        })
-                    })}
-                </Card>
-
                 {services.length > 0 && (
                     <div className="mt-6 space-y-3">
                         <h3 className="text-lg font-semibold">
@@ -499,7 +465,10 @@ export const ViewCenterTabServices = () => {
                                             size="xs"
                                             className="bg-red-300 hover:bg-red-400 transition-all"
                                             onClick={() =>
-                                                removeService(service.id)
+                                                handleRemoveService(service.id)
+                                            }
+                                            loading={
+                                                deletingServiceId === service.id
                                             }
                                         >
                                             حذف
