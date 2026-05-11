@@ -242,6 +242,16 @@ export default function BookingDetailsModal({
                                     {getReservationPricingLabel(booking)}
                                 </span>
                             </div>
+                            {booking.note ? (
+                                <div className="flex justify-between gap-6">
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                        الملاحظات:
+                                    </span>
+                                    <span className="font-medium text-gray-900 dark:text-white">
+                                        {booking.note}
+                                    </span>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 

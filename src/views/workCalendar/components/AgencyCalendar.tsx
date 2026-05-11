@@ -1,4 +1,4 @@
-import { Card, Spinner, Table, Badge } from '@/components/ui'
+import { Badge, Button, Card, Spinner, Table } from '@/components/ui'
 import TBody from '@/components/ui/Table/TBody'
 import Td from '@/components/ui/Table/Td'
 import Th from '@/components/ui/Table/Th'
@@ -10,6 +10,8 @@ import type { ReservationDailyCount } from '@/@types/reservations'
 import { getAgencyReservationsV2 } from '@/services/BookingService'
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
+import { HiOutlineEye } from 'react-icons/hi'
+import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
 
 interface AgencyCalendarProps {
     slug: string
@@ -31,7 +33,10 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<string>(
         dayjs().format('YYYY-MM-DD'),
     )
+    const [calendarView, setCalendarView] = useState('dayGridMonth')
     const [dayReservations, setDayReservations] = useState<Booking[]>([])
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+    const [showDetailsModal, setShowDetailsModal] = useState(false)
 
     const fetchMonth = async (month: string) => {
         if (!slug) return
@@ -101,6 +106,32 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
         }))
     }, [dailyCounts])
 
+    const reservationEvents = useMemo(() => {
+        return dayReservations.map((reservation) => ({
+            id: String(reservation.id),
+            title:
+                reservation.customer?.name ||
+                reservation.service?.title ||
+                `#${reservation.id}`,
+            start: `${reservation.date}T${formatTimeAr(reservation.start_time)}`,
+            end: `${reservation.date}T${formatTimeAr(reservation.end_time)}`,
+            extendedProps: {
+                eventColor:
+                    reservation.status === 'cancelled'
+                        ? 'red'
+                        : reservation.status === 'confirmed'
+                          ? 'green'
+                          : 'yellow',
+                reservationId: reservation.id,
+            },
+        }))
+    }, [dayReservations])
+
+    const openBookingDetails = (booking: Booking) => {
+        setSelectedBooking(booking)
+        setShowDetailsModal(true)
+    }
+
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<
             string,
@@ -159,8 +190,24 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                         right: 'dayGridMonth,timeGridDay prev,next',
                     }}
                     selectable={false}
-                    events={monthEvents}
+                    events={
+                        calendarView === 'timeGridDay'
+                            ? reservationEvents
+                            : monthEvents
+                    }
+                    eventClick={(arg) => {
+                        const reservationId =
+                            arg.event.extendedProps.reservationId
+                        if (typeof reservationId !== 'number') return
+
+                        const booking = dayReservations.find(
+                            (item) => item.id === reservationId,
+                        )
+                        if (booking) openBookingDetails(booking)
+                    }}
                     datesSet={async (arg) => {
+                        setCalendarView(arg.view.type)
+
                         if (arg.view.type === 'dayGridMonth') {
                             const m = dayjs(arg.view.currentStart).format(
                                 'YYYY-MM',
@@ -214,6 +261,7 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                                 <Th>الخدمة</Th>
                                 <Th>الوقت</Th>
                                 <Th>الحالة</Th>
+                                <Th className="text-left">الإجراءات</Th>
                             </Tr>
                         </THead>
                         <TBody>
@@ -242,12 +290,48 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                                         </div>
                                     </Td>
                                     <Td>{getStatusBadge(r.status)}</Td>
+                                    <Td>
+                                        <div className="flex items-center justify-end">
+                                            <Button
+                                                size="xs"
+                                                variant="solid"
+                                                icon={<HiOutlineEye />}
+                                                onClick={() =>
+                                                    openBookingDetails(r)
+                                                }
+                                            >
+                                                عرض
+                                            </Button>
+                                        </div>
+                                    </Td>
                                 </Tr>
                             ))}
                         </TBody>
                     </Table>
                 )}
             </Card>
+
+            {selectedBooking ? (
+                <BookingDetailsModal
+                    isOpen={showDetailsModal}
+                    onClose={() => {
+                        setShowDetailsModal(false)
+                        setSelectedBooking(null)
+                    }}
+                    booking={selectedBooking}
+                    canQuote
+                    onBookingUpdated={(updatedBooking) => {
+                        setDayReservations((current) =>
+                            current.map((item) =>
+                                item.id === updatedBooking.id
+                                    ? updatedBooking
+                                    : item,
+                            ),
+                        )
+                        setSelectedBooking(updatedBooking)
+                    }}
+                />
+            ) : null}
         </div>
     )
 }
