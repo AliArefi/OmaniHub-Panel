@@ -38,10 +38,10 @@ const validationSchema = z.object({
     about_text: z
         .string()
         .refine((val) => stripHtml(val).length > 0, {
-            message: 'ط§ظ„ظˆطµظپ ط¥ظ„ط²ط§ظ…ظٹ',
+            message: 'الوصف إلزامي',
         })
         .refine((val) => stripHtml(val).length >= 8, {
-            message: 'ط§ظ„ظ†طµ ظ‚طµظٹط±',
+            message: 'النص قصير',
         }),
     about_us: z
         .string()

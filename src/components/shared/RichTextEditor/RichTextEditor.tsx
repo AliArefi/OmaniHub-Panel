@@ -94,7 +94,8 @@ const RichTextEditor = (props: RichTextEditorProps) => {
               ],
               editorProps: {
                   attributes: {
-                      class: 'm-2 focus:outline-hidden',
+                      class: 'm-2 focus:outline-hidden text-right',
+                      dir: 'rtl',
                   },
               },
               content,
@@ -156,7 +157,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
             <EditorContent
                 ref={ref}
                 className={classNames(
-                    'max-h-[600px] overflow-auto px-2 prose prose-p:text-sm dark:prose-p:text-gray-400 max-w-full',
+                    'max-h-[600px] overflow-auto px-2 prose prose-p:text-sm dark:prose-p:text-gray-400 max-w-full text-right',
                     editorContentClass,
                 )}
                 editor={editor}
