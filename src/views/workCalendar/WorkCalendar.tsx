@@ -81,7 +81,13 @@ export default function WorkCalendar() {
             </Card>
             {!loading && selectedSlug && (
                 <div className="mt-3">
-                    <AgencyCalendar slug={selectedSlug} />
+                    <AgencyCalendar
+                        agency={
+                            agencies.find(
+                                (agency) => agency.slug === selectedSlug,
+                            ) || null
+                        }
+                    />
                 </div>
             )}
         </div>

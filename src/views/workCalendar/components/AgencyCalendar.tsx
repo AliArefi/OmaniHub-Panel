@@ -5,16 +5,18 @@ import Th from '@/components/ui/Table/Th'
 import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
 import { CalendarView } from '@/components/shared'
+import type { Agency } from '@/@types/center'
 import type { Booking } from '@/@types/booking'
 import type { ReservationDailyCount } from '@/@types/reservations'
 import { getAgencyReservationsV2 } from '@/services/BookingService'
 import { useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
-import { HiOutlineEye } from 'react-icons/hi'
+import { HiOutlineEye, HiOutlinePencil, HiPlus } from 'react-icons/hi'
 import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
+import ManualReservationModal from './ManualReservationModal'
 
 interface AgencyCalendarProps {
-    slug: string
+    agency: Agency | null
 }
 const formatDateAr = (dateString: string) =>
     new Intl.DateTimeFormat('ar-SA', {
@@ -25,7 +27,8 @@ const formatDateAr = (dateString: string) =>
 
 const formatTimeAr = (time: string) => time?.toString().slice(0, 5)
 
-export function AgencyCalendar({ slug }: AgencyCalendarProps) {
+export function AgencyCalendar({ agency }: AgencyCalendarProps) {
+    const slug = agency?.slug || ''
     const [initialLoading, setInitialLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +40,10 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
     const [dayReservations, setDayReservations] = useState<Booking[]>([])
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
+    const [manualModalOpen, setManualModalOpen] = useState(false)
+    const [editingReservation, setEditingReservation] = useState<Booking | null>(
+        null,
+    )
 
     const fetchMonth = async (month: string) => {
         if (!slug) return
@@ -132,6 +139,19 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
         setShowDetailsModal(true)
     }
 
+    const openManualReservation = (booking?: Booking | null, date?: string) => {
+        if (date) setSelectedDate(date)
+        setEditingReservation(booking || null)
+        setManualModalOpen(true)
+    }
+
+    const refreshCalendarData = async (date = selectedDate) => {
+        await Promise.all([
+            fetchMonth(dayjs(date).format('YYYY-MM')),
+            fetchDay(date),
+        ])
+    }
+
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<
             string,
@@ -203,7 +223,7 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                         const booking = dayReservations.find(
                             (item) => item.id === reservationId,
                         )
-                        if (booking) openBookingDetails(booking)
+                        if (booking) openManualReservation(booking)
                     }}
                     datesSet={async (arg) => {
                         setCalendarView(arg.view.type)
@@ -242,11 +262,19 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
             </Card>
 
             <Card>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between gap-4 mb-4">
                     <h3 className="font-semibold">حجوزات يوم</h3>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                         {formatDateAr(selectedDate)}
                     </div>
+                    <Button
+                        size="sm"
+                        variant="solid"
+                        icon={<HiPlus />}
+                        onClick={() => openManualReservation(null)}
+                    >
+                        New reservation
+                    </Button>
                 </div>
 
                 {dayReservations.length === 0 ? (
@@ -294,6 +322,16 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                                         <div className="flex items-center justify-end">
                                             <Button
                                                 size="xs"
+                                                className="me-2"
+                                                icon={<HiOutlinePencil />}
+                                                onClick={() =>
+                                                    openManualReservation(r)
+                                                }
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                size="xs"
                                                 variant="solid"
                                                 icon={<HiOutlineEye />}
                                                 onClick={() =>
@@ -329,6 +367,27 @@ export function AgencyCalendar({ slug }: AgencyCalendarProps) {
                             ),
                         )
                         setSelectedBooking(updatedBooking)
+                    }}
+                />
+            ) : null}
+
+            {agency ? (
+                <ManualReservationModal
+                    isOpen={manualModalOpen}
+                    onClose={() => {
+                        setManualModalOpen(false)
+                        setEditingReservation(null)
+                    }}
+                    agencyId={agency.id}
+                    agencySlug={agency.slug}
+                    selectedDate={selectedDate}
+                    reservation={editingReservation}
+                    onSaved={async (reservation) => {
+                        setSelectedDate(reservation.date)
+                        await refreshCalendarData(reservation.date)
+                    }}
+                    onDeleted={async () => {
+                        await refreshCalendarData()
                     }}
                 />
             ) : null}

@@ -70,3 +70,61 @@ export async function quoteAgencyReservationPrice(
         data,
     })
 }
+
+export type ManualAgencyReservationPayload = {
+    service_id: number
+    member_id?: number | null
+    customer_name: string
+    customer_mobile: string
+    date: string
+    start_time: string
+    end_time: string
+    status: Booking['status']
+    note?: string | null
+    price?: number | null
+    currency?: string | null
+}
+
+export async function createAgencyReservation(
+    agencySlug: string,
+    data: ManualAgencyReservationPayload,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message: string
+        data: Booking
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/reservations`,
+        method: 'post',
+        data,
+    })
+}
+
+export async function updateAgencyReservation(
+    agencySlug: string,
+    reservationId: number,
+    data: ManualAgencyReservationPayload,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message: string
+        data: Booking
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/reservations/${reservationId}/update`,
+        method: 'post',
+        data,
+    })
+}
+
+export async function deleteAgencyReservation(
+    agencySlug: string,
+    reservationId: number,
+) {
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message: string
+    }>({
+        url: `/my-agencies/${encodeURIComponent(agencySlug)}/reservations/${reservationId}/delete`,
+        method: 'post',
+    })
+}
