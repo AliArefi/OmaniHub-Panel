@@ -7,9 +7,12 @@ import { HojraInformation } from './steps/HojraInformations'
 import { HojraServices } from './steps/HojraServices'
 import {
     CreateStoreProvider,
+    type DaySchedule,
     type HojraInfo,
     type NewHojraData,
+    type ServiceAssignment,
     type ServiceItem,
+    type TeamMember,
 } from '@/context/createStoreContext'
 import { HojraAssignServices } from './steps/HojraAssignServices'
 import { HojraSummary } from './steps/HojraSummary'
@@ -23,11 +26,6 @@ import { useParams } from 'react-router'
 import { HojraExtraInformations } from './steps/HojraExtraInformations'
 import { HojraGallery } from './steps/HojraGallery'
 import { CENTER_WIZARD_STEP } from './centerWizardSteps'
-import type {
-    DaySchedule,
-    ServiceAssignment,
-    TeamMember,
-} from '@/context/createStoreContext'
 import {
     createDefaultWeekSchedule,
     normalizeDaySchedule,
@@ -104,6 +102,15 @@ export default function CreateStoreWizard() {
                                 service.slug ||
                                 String(service.id),
                             duration: Number(service.estimate_time ?? 0),
+                            durationUnit: service.duration_unit ?? 'minute',
+                            durationLabel:
+                                service.duration_label ||
+                                `${service.estimate_time ?? 0} ${service.duration_unit ?? 'minute'}`,
+                            durationMinutes: Number(
+                                service.estimate_time_minutes ??
+                                    service.estimate_time ??
+                                    0,
+                            ),
                             pricingType: service.pricing_type ?? 'fixed',
                             needsCoordination: Boolean(
                                 service.needs_coordination,

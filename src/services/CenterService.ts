@@ -13,6 +13,8 @@ import {
     MyAgencyDetails,
     MyAgencyMediaResponse,
     MyAgencyService,
+    SyncDemoAgencyServicesRequest,
+    SyncDemoAgencyServicesResponse,
     TeamMemberApiResponse,
     RequestMyAgencyGallery,
     Services,
@@ -113,6 +115,16 @@ export async function apiCreateAgencyService(data: CreateAgencyServiceRequest) {
     })
 }
 
+export async function apiSyncDemoAgencyServices(
+    data: SyncDemoAgencyServicesRequest,
+) {
+    return ApiService.fetchDataWithAxios<SyncDemoAgencyServicesResponse>({
+        url: '/my-services/sync-demo',
+        method: 'post',
+        data,
+    })
+}
+
 export async function apiUpdateAgencyService(
     agencyServiceId: number,
     data: Partial<CreateAgencyServiceRequest>,
@@ -197,13 +209,13 @@ export async function apiMemberWorkingHours(
 }
 
 export async function apiGetGallery() {
-    return ApiService.fetchDataWithAxios<{ data: any[] }>({
+    return ApiService.fetchDataWithAxios<{ data: unknown[] }>({
         url: endpointConfig.getGallery,
     })
 }
 
 export async function AddGalleryItemMyAgencies(data: RequestMyAgencyGallery | FormData) {
-    return ApiService.fetchDataWithAxios<any>({
+    return ApiService.fetchDataWithAxios<unknown>({
         url: endpointConfig.getGallery,
         method: 'post',
         data,

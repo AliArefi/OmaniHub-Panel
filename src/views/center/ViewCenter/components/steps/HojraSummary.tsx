@@ -122,7 +122,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                     </div>
                                     <div className="flex gap-4 text-gray-600">
                                         <span>
-                                            المدة: {service.duration} دقيقة
+                                            المدة: {service.durationLabel}
                                         </span>
                                         <span>
                                             نوع التسعير: {getPricingTypeLabel(service.pricingType)}

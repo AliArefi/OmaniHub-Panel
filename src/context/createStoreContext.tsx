@@ -12,6 +12,9 @@ export interface ServiceItem {
     serviceId: number
     serviceLabel: string
     duration: number
+    durationUnit: 'minute' | 'hour' | 'day' | 'week' | 'month'
+    durationLabel: string
+    durationMinutes: number
     pricingType: 'fixed' | 'coordination' | 'member_based'
     needsCoordination?: boolean
     price: number | null
@@ -96,6 +99,7 @@ interface CreateStoreContextType {
     setServices: Dispatch<SetStateAction<ServiceItem[]>>
     addService: (service: ServiceItem) => void
     removeService: (id: number) => void
+    replaceServices: (services: ServiceItem[]) => void
 
     teamMembers: TeamMember[]
     setTeamMembers: Dispatch<SetStateAction<TeamMember[]>>
@@ -175,6 +179,14 @@ export const CreateStoreProvider = ({
         setAssignments((prev) => prev.filter((a) => a.serviceId !== id))
     }
 
+    const replaceServices = (nextServices: ServiceItem[]) => {
+        const nextServiceIds = new Set(nextServices.map((service) => service.id))
+        setServices(nextServices)
+        setAssignments((prev) =>
+            prev.filter((assignment) => nextServiceIds.has(assignment.serviceId)),
+        )
+    }
+
     const addTeamMember = (member: TeamMember) => {
         setTeamMembers((prev) => [...prev, member])
     }
@@ -227,6 +239,7 @@ export const CreateStoreProvider = ({
                 setServices,
                 addService,
                 removeService,
+                replaceServices,
                 teamMembers,
                 setTeamMembers,
                 addTeamMember,

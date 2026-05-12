@@ -71,6 +71,9 @@ export type MyAgencyService = {
     price_min?: number | null
     price_max?: number | null
     estimate_time: number
+    duration_unit: 'minute' | 'hour' | 'day' | 'week' | 'month'
+    duration_label: string
+    estimate_time_minutes: number
     body: string | null
     service: { id: number; name: string } | null
 }
@@ -82,9 +85,26 @@ export type CreateAgencyServiceRequest = {
     title?: string
     sub_title: string
     estimate_time: number
+    duration_unit?: 'minute' | 'hour' | 'day' | 'week' | 'month'
     pricing_type: 'fixed' | 'coordination' | 'member_based'
     price?: number | null
     body?: string
+}
+
+export type SyncDemoAgencyServicesRequest = {
+    agency_id: number
+    services: Array<{
+        service_id: number
+        enabled: boolean
+        title?: string
+        sub_title?: string
+        estimate_time?: number
+        duration_unit?: 'minute' | 'hour' | 'day' | 'week' | 'month'
+        pricing_type?: 'fixed' | 'coordination' | 'member_based'
+        price?: number | null
+        body?: string
+        agency_service_category_id?: number | null
+    }>
 }
 
 export type CreateAgencyServiceResponse = {
@@ -94,6 +114,12 @@ export type CreateAgencyServiceResponse = {
         id: number
         slug: string
     }
+}
+
+export type SyncDemoAgencyServicesResponse = {
+    message: string
+    success: boolean
+    data: MyAgencyService[]
 }
 
 export type CreateMemberAgencyRequest = {
@@ -149,8 +175,8 @@ export type Cities = {
 }
 
 export type UpdateAgencyRequest = {
-    logo?: any
-    banner?: any
+    logo?: File | null
+    banner?: File | null
     latitude?: string | undefined
     longitude?: string | undefined
     city_id?: number | undefined

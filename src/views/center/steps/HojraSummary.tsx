@@ -15,6 +15,25 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
+    const getErrorMessage = (error: unknown) => {
+        if (
+            typeof error === "object" &&
+            error !== null &&
+            "response" in error &&
+            typeof error.response === "object" &&
+            error.response !== null &&
+            "data" in error.response &&
+            typeof error.response.data === "object" &&
+            error.response.data !== null &&
+            "message" in error.response.data &&
+            typeof error.response.data.message === "string"
+        ) {
+            return error.response.data.message;
+        }
+
+        return "ط­ط¯ط« ط®ط·ط£";
+    };
+
     const handleFinalSubmit = async () => {
         setIsSubmitting(true);
 
@@ -64,7 +83,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
             );
 
             navigate("/centers");
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.push(
                 <Notification type="danger">
                     {err?.response?.data?.message || "حدث خطأ"}
@@ -122,7 +141,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                     </div>
                                     <div className="flex gap-4 text-gray-600">
                                         <span>
-                                            المدة: {service.duration} دقيقة
+                                            المدة: {service.durationLabel}
                                         </span>
                                         <span>
                                             نوع التسعير: {getPricingTypeLabel(service.pricingType)}

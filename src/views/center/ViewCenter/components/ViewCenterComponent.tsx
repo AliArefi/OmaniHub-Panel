@@ -3,9 +3,12 @@ import Notification from '@/components/ui/Notification'
 import { useEffect, useMemo, useState } from 'react'
 import {
     CreateStoreProvider,
+    type DaySchedule,
     type HojraInfo,
     type NewHojraData,
+    type ServiceAssignment,
     type ServiceItem,
+    type TeamMember,
 } from '@/context/createStoreContext'
 
 import {
@@ -15,11 +18,6 @@ import {
     apiGetServiceMembers,
 } from '@/services/CenterService'
 import { useParams } from 'react-router'
-import type {
-    DaySchedule,
-    ServiceAssignment,
-    TeamMember,
-} from '@/context/createStoreContext'
 import {
     createDefaultWeekSchedule,
     normalizeDaySchedule,
@@ -105,6 +103,15 @@ export default function ViewCenterComponent() {
                                 service.slug ||
                                 String(service.id),
                             duration: Number(service.estimate_time ?? 0),
+                            durationUnit: service.duration_unit ?? 'minute',
+                            durationLabel:
+                                service.duration_label ||
+                                `${service.estimate_time ?? 0} ${service.duration_unit ?? 'minute'}`,
+                            durationMinutes: Number(
+                                service.estimate_time_minutes ??
+                                    service.estimate_time ??
+                                    0,
+                            ),
                             pricingType: service.pricing_type ?? 'fixed',
                             needsCoordination: Boolean(
                                 service.needs_coordination,
