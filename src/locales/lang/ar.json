@@ -66,7 +66,87 @@
       "memberDeleted": "تم حذف العضو",
       "serviceAssigned": "تم تخصيص الخدمة",
       "schedulesSaved": "تم حفظ الجدول"
+    },
+    "services": {
+      "title": "الخدمات",
+      "flow": {
+        "title": "اختيار الخدمات",
+        "subtitle": "بدّل بين واجهة الاختيار الجديدة والقائمة الكلاسيكية.",
+        "picker": "جديد",
+        "legacy": "كلاسيكي"
+      },
+      "labels": {
+        "service": "خدمة",
+        "duration": "المدة",
+        "durationUnit": "وحدة المدة",
+        "pricingType": "نوع التسعير",
+        "price": "السعر",
+        "description": "الوصف",
+        "mainService": "الخدمة الرئيسية",
+        "subServiceLevel": "مستوى خدمة فرعي {{level}}"
+      },
+      "placeholders": {
+        "chooseService": "اختر خدمة",
+        "duration": "45",
+        "price": "25",
+        "description": "وصف اختياري"
+      },
+      "loading": {
+        "available": "جارٍ تحميل الخدمات المتاحة...",
+        "subServices": "جارٍ تحميل الخدمات الفرعية..."
+      },
+      "empty": {
+        "noChildren": "لا توجد خدمات فرعية متاحة ضمن تصنيف هذا المركز."
+      },
+      "units": {
+        "minute": "دقيقة",
+        "hour": "ساعة",
+        "day": "يوم",
+        "week": "أسبوع",
+        "month": "شهر"
+      },
+      "unitsPlural": {
+        "minute": "دقائق",
+        "hour": "ساعات",
+        "day": "أيام",
+        "week": "أسابيع",
+        "month": "أشهر"
+      },
+      "pricingTypes": {
+        "fixed": "سعر ثابت",
+        "coordination": "بحسب التنسيق",
+        "memberBased": "بحسب العضو"
+      },
+      "pricingLabels": {
+        "coordination": "بحسب التنسيق",
+        "range": "من {{min}} إلى {{max}} OMR",
+        "startsFrom": "يبدأ من {{min}} OMR"
+      },
+      "info": {
+        "coordination": "سيطلب العميل هذه الخدمة أولًا ويمكن تحديد السعر لاحقًا.",
+        "memberBased": "سيتم تحديد السعر النهائي بناءً على تسعير الأعضاء لهذه الخدمة."
+      },
+      "validation": {
+        "durationRequired": "المدة مطلوبة للخدمات المفعّلة.",
+        "priceRequired": "السعر مطلوب للخدمات ذات السعر الثابت.",
+        "duplicateService": "هذه الخدمة مفعّلة بالفعل."
+      },
+      "actions": {
+        "save": "حفظ الخدمات",
+        "add": "إضافة خدمة",
+        "delete": "حذف",
+        "nextAssign": "التالي: تخصيص الفريق"
+      },
+      "enabledServices": "الخدمات المفعّلة ({{count}})",
+      "errors": {
+        "agencyMustBeCreated": "يجب إنشاء المركز قبل حفظ الخدمات.",
+        "saveSelectedFailed": "تعذر حفظ الخدمة المحددة.",
+        "deleteFailed": "تعذر حذف الخدمة.",
+        "syncFailed": "تعذر مزامنة الخدمات."
+      },
+      "success": {
+        "synced": "تمت مزامنة الخدمات بنجاح."
+      }
     }
   }
 }
-

@@ -16,8 +16,8 @@ import {
     getServices,
 } from '@/services/CenterService'
 import { extractDigits } from '@/utils/normalizeDigits'
-import { getPricingTypeLabel, getServicePricingLabel } from '@/utils/pricing'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
     flattenServiceTree,
     mapAgencyServiceToStoreItem,
@@ -29,12 +29,12 @@ import {
 import {
     durationToMinutes,
     durationUnitOptions,
-    formatDurationLabel,
     type DurationUnit,
 } from './duration'
 
 type PricingType = 'fixed' | 'coordination' | 'member_based'
 type DurationUnitOption = { value: DurationUnit; label: string }
+type ViewMode = 'picker' | 'legacy'
 
 type DemoDraft = {
     enabled: boolean
@@ -50,53 +50,21 @@ type AgencyServicesStepProps = {
     onNext?: () => void
 }
 
-const pricingOptions: Array<SelectOption & { pricingType: PricingType }> = [
-    { value: 1, label: 'Fixed price', pricingType: 'fixed' },
-    { value: 2, label: 'Coordination', pricingType: 'coordination' },
-    { value: 3, label: 'Member based', pricingType: 'member_based' },
-]
-
-const getPricingOption = (pricingType: PricingType): SelectOption => {
-    const option = pricingOptions.find((item) => item.pricingType === pricingType)
-
-    return option
-        ? { value: option.value, label: option.label }
-        : { value: 1, label: 'Fixed price' }
-}
-
-const getDurationUnitOption = (durationUnit: DurationUnit): DurationUnitOption => {
-    const option = durationUnitOptions.find((item) => item.value === durationUnit)
-
-    return option
-        ? { value: option.value, label: option.label }
-        : { value: 'minute', label: 'Minute' }
-}
-
-const getDemoValidationError = (draft: DemoDraft): string | null => {
+const getPickerValidationErrorCode = (
+    draft: DemoDraft,
+): 'duration_required' | 'price_required' | null => {
     if (!draft.enabled) {
         return null
     }
 
     if (draft.duration.trim() === '' || Number(draft.duration) <= 0) {
-        return 'Duration is required for enabled services.'
+        return 'duration_required'
     }
 
     if (draft.pricingType === 'fixed') {
         if (draft.price.trim() === '' || Number(draft.price) <= 0) {
-            return 'Price is required for fixed-price services.'
+            return 'price_required'
         }
-    }
-
-    return null
-}
-
-const getDemoInfoText = (pricingType: PricingType): string | null => {
-    if (pricingType === 'coordination') {
-        return 'Customers will request this service first and pricing can be finalized later.'
-    }
-
-    if (pricingType === 'member_based') {
-        return 'Final pricing will come from member assignments for this service.'
     }
 
     return null
@@ -125,6 +93,7 @@ export const AgencyServicesStep = ({
     onBack,
     onNext,
 }: AgencyServicesStepProps) => {
+    const { t, i18n } = useTranslation()
     const {
         services,
         addService,
@@ -138,7 +107,7 @@ export const AgencyServicesStep = ({
     const [servicePath, setServicePath] = useState<number[]>([])
     const [serviceCatalog, setServiceCatalog] = useState<DemoCatalogItem[]>([])
     const [demoDrafts, setDemoDrafts] = useState<Record<number, DemoDraft>>({})
-    const [viewMode, setViewMode] = useState<'demo' | 'legacy'>('demo')
+    const [viewMode, setViewMode] = useState<ViewMode>('picker')
     const [isLoadingTree, setIsLoadingTree] = useState(false)
     const [isLoadingNextLevel, setIsLoadingNextLevel] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
@@ -259,13 +228,127 @@ export const AgencyServicesStep = ({
         ? selectedLabels.join(' / ')
         : ''
 
+    const durationUnitOptionsLocalized = useMemo<DurationUnitOption[]>(
+        () =>
+            durationUnitOptions.map((option) => ({
+                value: option.value,
+                label: t(`center.services.units.${option.value}`),
+            })),
+        [t],
+    )
+
+    const pricingOptionsLocalized = useMemo<
+        Array<SelectOption & { pricingType: PricingType }>
+    >(
+        () => [
+            {
+                value: 1,
+                label: t('center.services.pricingTypes.fixed'),
+                pricingType: 'fixed',
+            },
+            {
+                value: 2,
+                label: t('center.services.pricingTypes.coordination'),
+                pricingType: 'coordination',
+            },
+            {
+                value: 3,
+                label: t('center.services.pricingTypes.memberBased'),
+                pricingType: 'member_based',
+            },
+        ],
+        [t],
+    )
+
+    const getPricingOption = (type: PricingType): SelectOption => {
+        const option = pricingOptionsLocalized.find((item) => item.pricingType === type)
+
+        return option
+            ? { value: option.value, label: option.label }
+            : { value: 1, label: t('center.services.pricingTypes.fixed') }
+    }
+
+    const getDurationUnitOption = (unit: DurationUnit): DurationUnitOption => {
+        const option = durationUnitOptionsLocalized.find((item) => item.value === unit)
+
+        return option
+            ? { value: option.value, label: option.label }
+            : { value: 'minute', label: t('center.services.units.minute') }
+    }
+
+    const formatDurationLabelLocalized = (
+        value: number,
+        unit: DurationUnit,
+    ): string => {
+        const safeValue = Number.isFinite(value) ? Math.max(1, value) : 1
+        const isArabic = i18n.language?.toLowerCase().startsWith('ar')
+
+        if (isArabic) {
+            return `${safeValue} ${t(`center.services.units.${unit}`)}`
+        }
+
+        const unitLabel = t(`center.services.units.${unit}`)
+        const pluralUnitLabel =
+            safeValue === 1 ? unitLabel : t(`center.services.unitsPlural.${unit}`)
+        return `${safeValue} ${pluralUnitLabel}`
+    }
+
+    const getPricingTypeLabelLocalized = (type?: PricingType | null): string => {
+        if (type === 'coordination') return t('center.services.pricingTypes.coordination')
+        if (type === 'member_based') return t('center.services.pricingTypes.memberBased')
+        return t('center.services.pricingTypes.fixed')
+    }
+
+    const formatAmount = (amount: number, currency = 'OMR') =>
+        `${amount.toFixed(2)} ${currency}`
+
+    const getServicePricingLabelLocalized = (service: {
+        needsCoordination?: boolean | null
+        price?: number | null
+        priceMin?: number | null
+        priceMax?: number | null
+    }): string => {
+        if (service.needsCoordination) return t('center.services.pricingLabels.coordination')
+
+        const fixed =
+            typeof service.price === 'number' && Number.isFinite(service.price)
+                ? service.price
+                : null
+        if (fixed !== null) return formatAmount(fixed)
+
+        const min =
+            typeof service.priceMin === 'number' && Number.isFinite(service.priceMin)
+                ? service.priceMin
+                : null
+        const max =
+            typeof service.priceMax === 'number' && Number.isFinite(service.priceMax)
+                ? service.priceMax
+                : null
+
+        if (min !== null && max !== null) {
+            if (min === max) return formatAmount(min)
+            return t('center.services.pricingLabels.range', {
+                min: min.toFixed(2),
+                max: max.toFixed(2),
+            })
+        }
+
+        if (min !== null) {
+            return t('center.services.pricingLabels.startsFrom', {
+                min: min.toFixed(2),
+            })
+        }
+
+        return t('center.services.pricingLabels.coordination')
+    }
+
     const canGoNext = services.length > 0 && typeof onNext === 'function'
 
     const hasDemoValidationErrors = useMemo(
         () =>
             serviceCatalog.some((catalogItem) => {
                 const draft = demoDrafts[catalogItem.serviceId]
-                return draft ? getDemoValidationError(draft) !== null : false
+                return draft ? getPickerValidationErrorCode(draft) !== null : false
             }),
         [demoDrafts, serviceCatalog],
     )
@@ -341,7 +424,7 @@ export const AgencyServicesStep = ({
         if (!newHojraData?.id) {
             toast.push(
                 <Notification type="danger">
-                    Agency must be created before services can be added.
+                    {t('center.services.errors.agencyMustBeCreated')}
                 </Notification>,
             )
             return
@@ -355,7 +438,9 @@ export const AgencyServicesStep = ({
                 service_id: selectedServiceId,
                 title: selectedServiceLabel || undefined,
                 sub_title:
-                    description.trim().slice(0, 191) || selectedServiceLabel || 'Service',
+                    description.trim().slice(0, 191) ||
+                    selectedServiceLabel ||
+                    t('center.services.labels.service'),
                 estimate_time: Number(duration),
                 duration_unit: durationUnit,
                 pricing_type: pricingType,
@@ -369,7 +454,10 @@ export const AgencyServicesStep = ({
                 serviceLabel: selectedServiceLabel,
                 duration: Number(duration),
                 durationUnit,
-                durationLabel: formatDurationLabel(Number(duration), durationUnit),
+                durationLabel: formatDurationLabelLocalized(
+                    Number(duration),
+                    durationUnit,
+                ),
                 durationMinutes: durationToMinutes(Number(duration), durationUnit),
                 pricingType,
                 needsCoordination: pricingType !== 'fixed',
@@ -389,7 +477,7 @@ export const AgencyServicesStep = ({
             const message =
                 error instanceof Error
                     ? error.message
-                    : 'Unable to save the selected service.'
+                    : t('center.services.errors.saveSelectedFailed')
 
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
@@ -407,7 +495,9 @@ export const AgencyServicesStep = ({
         try {
             const response = await apiDeleteAgencyService(agencyServiceId)
             if (!response?.success) {
-                throw new Error(response?.message || 'Unable to delete the service.')
+                throw new Error(
+                    response?.message || t('center.services.errors.deleteFailed'),
+                )
             }
 
             removeService(agencyServiceId)
@@ -415,7 +505,7 @@ export const AgencyServicesStep = ({
             const message =
                 error instanceof Error
                     ? error.message
-                    : 'Unable to delete the service.'
+                    : t('center.services.errors.deleteFailed')
 
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
@@ -431,7 +521,7 @@ export const AgencyServicesStep = ({
         if (!newHojraData?.id) {
             toast.push(
                 <Notification type="danger">
-                    Agency must be created before services can be saved.
+                    {t('center.services.errors.agencyMustBeCreated')}
                 </Notification>,
             )
             return
@@ -443,11 +533,14 @@ export const AgencyServicesStep = ({
                 continue
             }
 
-            const validationError = getDemoValidationError(draft)
-            if (validationError) {
+            const validationErrorCode = getPickerValidationErrorCode(draft)
+            if (validationErrorCode) {
                 toast.push(
                     <Notification type="danger">
-                        {catalogItem.label}: {validationError}
+                        {catalogItem.label}:{' '}
+                        {validationErrorCode === 'duration_required'
+                            ? t('center.services.validation.durationRequired')
+                            : t('center.services.validation.priceRequired')}
                     </Notification>,
                 )
                 return
@@ -495,14 +588,14 @@ export const AgencyServicesStep = ({
 
             toast.push(
                 <Notification type="success">
-                    Demo services were synchronized successfully.
+                    {t('center.services.success.synced')}
                 </Notification>,
             )
         } catch (error: unknown) {
             const message =
                 error instanceof Error
                     ? error.message
-                    : 'Unable to synchronize services.'
+                    : t('center.services.errors.syncFailed')
 
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
@@ -513,7 +606,7 @@ export const AgencyServicesStep = ({
     return (
         <Card
             header={{
-                content: 'Services',
+                content: t('center.services.title'),
                 bordered: false,
             }}
         >
@@ -521,32 +614,31 @@ export const AgencyServicesStep = ({
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/10 bg-primary/5 p-4">
                     <div>
                         <div className="text-sm font-semibold text-primary-deep">
-                            Demo mode
+                            {t('center.services.flow.title')}
                         </div>
                         <div className="text-xs text-gray-500">
-                            Switch between the new service picker and the legacy
-                            dropdown flow.
+                            {t('center.services.flow.subtitle')}
                         </div>
                     </div>
                     <Switcher
-                        checked={viewMode === 'demo'}
-                        checkedContent="Demo"
-                        unCheckedContent="Old"
+                        checked={viewMode === 'picker'}
+                        checkedContent={t('center.services.flow.picker')}
+                        unCheckedContent={t('center.services.flow.legacy')}
                         onChange={(checked) =>
-                            setViewMode(checked ? 'demo' : 'legacy')
+                            setViewMode(checked ? 'picker' : 'legacy')
                         }
                     />
                 </div>
 
                 {isLoadingTree ? (
                     <div className="text-sm text-gray-500">
-                        Loading available services...
+                        {t('center.services.loading.available')}
                     </div>
                 ) : serviceCatalog.length === 0 && levels.length === 0 ? (
                     <div className="text-sm text-gray-500">
-                        No child services are available for this agency category.
+                        {t('center.services.empty.noChildren')}
                     </div>
-                ) : viewMode === 'demo' ? (
+                ) : viewMode === 'picker' ? (
                     <div className="space-y-4">
                         <div className="grid gap-3">
                             {serviceCatalog.map((catalogItem) => {
@@ -558,7 +650,12 @@ export const AgencyServicesStep = ({
                                         price: '',
                                         description: '',
                                     }
-                                const infoText = getDemoInfoText(draft.pricingType)
+                                const infoText =
+                                    draft.pricingType === 'coordination'
+                                        ? t('center.services.info.coordination')
+                                        : draft.pricingType === 'member_based'
+                                          ? t('center.services.info.memberBased')
+                                          : null
 
                                 return (
                                     <Card key={catalogItem.serviceId}>
@@ -584,12 +681,18 @@ export const AgencyServicesStep = ({
                                             {draft.enabled && (
                                                 <>
                                                     <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                                                        <FormItem label="Duration">
+                                                        <FormItem
+                                                            label={t(
+                                                                'center.services.labels.duration',
+                                                            )}
+                                                        >
                                                             <Input
                                                                 type="text"
                                                                 inputMode="numeric"
                                                                 value={draft.duration}
-                                                                placeholder="45"
+                                                                placeholder={t(
+                                                                    'center.services.placeholders.duration',
+                                                                )}
                                                                 onChange={(event) =>
                                                                     setDemoDraft(
                                                                         catalogItem.serviceId,
@@ -609,14 +712,15 @@ export const AgencyServicesStep = ({
                                                             />
                                                         </FormItem>
 
-                                                        <FormItem label="Duration unit">
+                                                        <FormItem
+                                                            label={t(
+                                                                'center.services.labels.durationUnit',
+                                                            )}
+                                                        >
                                                             <Select<DurationUnitOption>
-                                                                options={durationUnitOptions.map(
-                                                                    (option) => ({
-                                                                        value: option.value,
-                                                                        label: option.label,
-                                                                    }),
-                                                                )}
+                                                                options={
+                                                                    durationUnitOptionsLocalized
+                                                                }
                                                                 value={getDurationUnitOption(
                                                                     draft.durationUnit,
                                                                 )}
@@ -636,9 +740,13 @@ export const AgencyServicesStep = ({
                                                             />
                                                         </FormItem>
 
-                                                        <FormItem label="Pricing type">
+                                                        <FormItem
+                                                            label={t(
+                                                                'center.services.labels.pricingType',
+                                                            )}
+                                                        >
                                                             <Select<SelectOption>
-                                                                options={pricingOptions.map(
+                                                                options={pricingOptionsLocalized.map(
                                                                     (
                                                                         option,
                                                                     ) => ({
@@ -657,7 +765,7 @@ export const AgencyServicesStep = ({
                                                                         ) => ({
                                                                             ...currentDraft,
                                                                             pricingType:
-                                                                                pricingOptions.find(
+                                                                                pricingOptionsLocalized.find(
                                                                                     (
                                                                                         pricingOption,
                                                                                     ) =>
@@ -677,12 +785,18 @@ export const AgencyServicesStep = ({
                                                             />
                                                         </FormItem>
 
-                                                        <FormItem label="Price">
+                                                        <FormItem
+                                                            label={t(
+                                                                'center.services.labels.price',
+                                                            )}
+                                                        >
                                                             <Input
                                                                 type="text"
                                                                 inputMode="numeric"
                                                                 value={draft.price}
-                                                                placeholder="25"
+                                                                placeholder={t(
+                                                                    'center.services.placeholders.price',
+                                                                )}
                                                                 disabled={
                                                                     draft.pricingType !==
                                                                     'fixed'
@@ -707,10 +821,16 @@ export const AgencyServicesStep = ({
                                                         </FormItem>
                                                     </div>
 
-                                                    <FormItem label="Description">
+                                                    <FormItem
+                                                        label={t(
+                                                            'center.services.labels.description',
+                                                        )}
+                                                    >
                                                         <Input
                                                             value={draft.description}
-                                                            placeholder="Optional description"
+                                                            placeholder={t(
+                                                                'center.services.placeholders.description',
+                                                            )}
                                                             onChange={(event) =>
                                                                 setDemoDraft(
                                                                     catalogItem.serviceId,
@@ -750,7 +870,7 @@ export const AgencyServicesStep = ({
                                 }
                                 onClick={handleDemoSave}
                             >
-                                Save demo services
+                                {t('center.services.actions.save')}
                             </Button>
                         </div>
                     </div>
@@ -758,8 +878,7 @@ export const AgencyServicesStep = ({
                     <div className="space-y-4">
                         {levels.length === 0 ? (
                             <div className="text-sm text-gray-500">
-                                No child services are available for this agency
-                                category.
+                                {t('center.services.empty.noChildren')}
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -773,13 +892,17 @@ export const AgencyServicesStep = ({
 
                                     const label =
                                         index === 0
-                                            ? 'Main service'
-                                            : `Sub service level ${index + 1}`
+                                            ? t('center.services.labels.mainService')
+                                            : t('center.services.labels.subServiceLevel', {
+                                                  level: index + 1,
+                                              })
 
                                     return (
                                         <FormItem key={index} label={label}>
                                             <Select<SelectOption>
-                                                placeholder="Choose a service"
+                                                placeholder={t(
+                                                    'center.services.placeholders.chooseService',
+                                                )}
                                                 options={options}
                                                 value={
                                                     options.find(
@@ -801,19 +924,21 @@ export const AgencyServicesStep = ({
 
                                 {isLoadingNextLevel && (
                                     <div className="text-sm text-gray-500">
-                                        Loading sub services...
+                                        {t('center.services.loading.subServices')}
                                     </div>
                                 )}
                             </div>
                         )}
 
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                            <FormItem label="Duration">
+                            <FormItem label={t('center.services.labels.duration')}>
                                 <Input
                                     type="text"
                                     inputMode="numeric"
                                     value={duration}
-                                    placeholder="45"
+                                    placeholder={t(
+                                        'center.services.placeholders.duration',
+                                    )}
                                     onChange={(event) =>
                                         setDuration(
                                             extractDigits(event.target.value),
@@ -822,12 +947,9 @@ export const AgencyServicesStep = ({
                                 />
                             </FormItem>
 
-                            <FormItem label="Duration unit">
+                            <FormItem label={t('center.services.labels.durationUnit')}>
                                     <Select<DurationUnitOption>
-                                        options={durationUnitOptions.map((option) => ({
-                                            value: option.value,
-                                            label: option.label,
-                                    }))}
+                                        options={durationUnitOptionsLocalized}
                                     value={getDurationUnitOption(durationUnit)}
                                     onChange={(option) =>
                                         setDurationUnit(
@@ -838,16 +960,16 @@ export const AgencyServicesStep = ({
                                 />
                             </FormItem>
 
-                            <FormItem label="Pricing type">
+                            <FormItem label={t('center.services.labels.pricingType')}>
                                 <Select<SelectOption>
-                                    options={pricingOptions.map((option) => ({
+                                    options={pricingOptionsLocalized.map((option) => ({
                                         value: option.value,
                                         label: option.label,
                                     }))}
                                     value={getPricingOption(pricingType)}
                                     onChange={(option) => {
                                         const nextPricingType =
-                                            pricingOptions.find(
+                                            pricingOptionsLocalized.find(
                                                 (pricingOption) =>
                                                     pricingOption.value ===
                                                     option?.value,
@@ -863,12 +985,14 @@ export const AgencyServicesStep = ({
                         </div>
 
                         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                            <FormItem label="Price">
+                            <FormItem label={t('center.services.labels.price')}>
                                 <Input
                                     type="text"
                                     inputMode="numeric"
                                     value={price}
-                                    placeholder="25"
+                                    placeholder={t(
+                                        'center.services.placeholders.price',
+                                    )}
                                     disabled={pricingType !== 'fixed'}
                                     onChange={(event) =>
                                         setPrice(extractDigits(event.target.value))
@@ -877,16 +1001,20 @@ export const AgencyServicesStep = ({
                             </FormItem>
                         </div>
 
-                        {getDemoInfoText(pricingType) && (
+                        {pricingType !== 'fixed' && (
                             <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm text-gray-700">
-                                {getDemoInfoText(pricingType)}
+                                {pricingType === 'coordination'
+                                    ? t('center.services.info.coordination')
+                                    : t('center.services.info.memberBased')}
                             </div>
                         )}
 
-                        <FormItem label="Description">
+                        <FormItem label={t('center.services.labels.description')}>
                             <Input
                                 value={description}
-                                placeholder="Optional description"
+                                placeholder={t(
+                                    'center.services.placeholders.description',
+                                )}
                                 onChange={(event) =>
                                     setDescription(event.target.value)
                                 }
@@ -896,7 +1024,7 @@ export const AgencyServicesStep = ({
                         {selectedServiceId !== null &&
                             isLegacyDuplicate(selectedServiceId) && (
                                 <div className="text-xs text-red-500">
-                                    This service is already enabled.
+                                    {t('center.services.validation.duplicateService')}
                                 </div>
                             )}
 
@@ -907,7 +1035,7 @@ export const AgencyServicesStep = ({
                                 disabled={isSaving || !isLegacyFormComplete()}
                                 onClick={handleLegacyAddService}
                             >
-                                Add service
+                                {t('center.services.actions.add')}
                             </Button>
                         </div>
                     </div>
@@ -916,7 +1044,9 @@ export const AgencyServicesStep = ({
                 {services.length > 0 && (
                     <div className="space-y-3 border-t pt-6">
                         <h3 className="text-lg font-semibold">
-                            Enabled services ({services.length})
+                            {t('center.services.enabledServices', {
+                                count: services.length,
+                            })}
                         </h3>
 
                         {services.map((service) => (
@@ -927,16 +1057,22 @@ export const AgencyServicesStep = ({
                                             {service.serviceLabel}
                                         </div>
                                         <div className="mb-1 flex flex-wrap gap-4 text-sm text-gray-600">
-                                            <span>Duration: {service.durationLabel}</span>
                                             <span>
-                                                Pricing:{' '}
-                                                {getPricingTypeLabel(
-                                                    service.pricingType,
+                                                {t('center.services.labels.duration')}:{' '}
+                                                {formatDurationLabelLocalized(
+                                                    service.duration,
+                                                    service.durationUnit,
                                                 )}
                                             </span>
                                             <span>
-                                                Price:{' '}
-                                                {getServicePricingLabel(service)}
+                                                {t('center.services.labels.pricingType')}:{' '}
+                                                {getPricingTypeLabelLocalized(
+                                                    service.pricingType as PricingType,
+                                                )}
+                                            </span>
+                                            <span>
+                                                {t('center.services.labels.price')}:{' '}
+                                                {getServicePricingLabelLocalized(service)}
                                             </span>
                                         </div>
                                         {service.description && (
@@ -956,7 +1092,7 @@ export const AgencyServicesStep = ({
                                             handleRemoveService(service.id)
                                         }
                                     >
-                                        Delete
+                                        {t('center.services.actions.delete')}
                                     </Button>
                                 </div>
                             </Card>
@@ -968,12 +1104,12 @@ export const AgencyServicesStep = ({
                     <div className="flex items-center justify-end gap-3">
                         {onBack && (
                             <Button size="sm" variant="default" onClick={onBack}>
-                                Back
+                                {t('center.wizard.back')}
                             </Button>
                         )}
                         {canGoNext && (
                             <Button size="sm" variant="solid" onClick={onNext}>
-                                Next: Assign team
+                                {t('center.services.actions.nextAssign')}
                             </Button>
                         )}
                     </div>

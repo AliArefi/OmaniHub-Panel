@@ -6,6 +6,10 @@ const useLocale = () => {
     const currentLang = useLocaleStore((state) => state.currentLang)
 
     useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.lang = currentLang
+        }
+
         if (i18n.language !== currentLang) {
             const formattedLang = currentLang.replace(
                 /-([a-z])/g,
