@@ -94,7 +94,7 @@ const RichTextEditor = (props: RichTextEditorProps) => {
               ],
               editorProps: {
                   attributes: {
-                      class: 'm-2 focus:outline-hidden text-right',
+                      class: 'm-2 focus:outline-hidden text-right h-40',
                       dir: 'rtl',
                   },
               },

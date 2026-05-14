@@ -1,6 +1,6 @@
 import type { Booking } from '@/@types/booking'
 import type { MyAgencyService, TeamMemberApiResponse } from '@/@types/center'
-import { Button, Dialog, Input, Notification } from '@/components/ui'
+import { Button, Dialog, Input, Notification, Select } from '@/components/ui'
 import {
     apiGetMyServices,
     apiGetServiceMembers,
@@ -129,7 +129,7 @@ export default function ManualReservationModal({
                 })
                 setServices(response.data || [])
             } catch (err) {
-                setError(extractApiMessage(err, 'Could not load services.'))
+                setError(extractApiMessage(err, 'لم يتم تحميل الخدمات'))
             } finally {
                 setLoadingOptions(false)
             }
@@ -151,7 +151,7 @@ export default function ManualReservationModal({
                 setMembers(response.data || [])
             } catch (err) {
                 setMembers([])
-                setError(extractApiMessage(err, 'Could not load members.'))
+                setError(extractApiMessage(err, 'لم يتم تحميل الأعضاء'))
             }
         }
 
@@ -159,7 +159,8 @@ export default function ManualReservationModal({
     }, [form.service_id, isOpen])
 
     const selectedService = useMemo(
-        () => services.find((service) => String(service.id) === form.service_id),
+        () =>
+            services.find((service) => String(service.id) === form.service_id),
         [form.service_id, services],
     )
 
@@ -173,29 +174,33 @@ export default function ManualReservationModal({
     const buildPayload = (): ManualAgencyReservationPayload | null => {
         const serviceId = Number(form.service_id)
         if (!serviceId) {
-            setError('Select a service.')
+            setError('اختر خدمة')
             return null
         }
 
         if (!form.customer_name.trim() || !form.customer_mobile.trim()) {
-            setError('Customer name and mobile are required.')
+            setError('اسم العميل ورقم الجوال مطلوبان')
             return null
         }
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(form.date)) {
-            setError('Select a valid date.')
+            setError('اختر تاريخًا صالحًا')
             return null
         }
 
-        if (!form.start_time || !form.end_time || form.start_time >= form.end_time) {
-            setError('End time must be after start time.')
+        if (
+            !form.start_time ||
+            !form.end_time ||
+            form.start_time >= form.end_time
+        ) {
+            setError('يجب أن يكون وقت الانتهاء بعد وقت البدء')
             return null
         }
 
         const price =
             form.price.trim() === '' ? null : Number(form.price.trim())
         if (price !== null && (!Number.isFinite(price) || price < 0)) {
-            setError('Enter a valid price or leave it empty.')
+            setError('أدخل سعرًا صالحًا أو اتركه فارغًا')
             return null
         }
 
@@ -233,7 +238,7 @@ export default function ManualReservationModal({
             onSaved(response.data)
             onClose()
         } catch (err) {
-            setError(extractApiMessage(err, 'Could not save reservation.'))
+            setError(extractApiMessage(err, 'لم يتم حفظ الحجز'))
         } finally {
             setSaving(false)
         }
@@ -241,7 +246,7 @@ export default function ManualReservationModal({
 
     const handleDelete = async () => {
         if (!reservation?.id) return
-        const confirmed = window.confirm('Delete this reservation?')
+        const confirmed = window.confirm('هل تريد حذف هذا الحجز؟')
         if (!confirmed) return
 
         setDeleting(true)
@@ -251,23 +256,46 @@ export default function ManualReservationModal({
             onDeleted(reservation.id)
             onClose()
         } catch (err) {
-            setError(extractApiMessage(err, 'Could not delete reservation.'))
+            setError(extractApiMessage(err, 'لم يتم حذف الحجز'))
         } finally {
             setDeleting(false)
         }
     }
 
+    const serviceOptions = useMemo(
+        () =>
+            services.map((service) => ({
+                value: service.id.toString(),
+                label: service.title,
+            })),
+        [services],
+    )
+
+    const memberOptions = useMemo(
+        () =>
+            members.map((member) => ({
+                value: member.id.toString(),
+                label: member.name,
+            })),
+        [members],
+    )
+
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="max-w-3xl">
+        <Dialog
+            isOpen={isOpen}
+            onClose={onClose}
+            className="max-w-3xl"
+            contentClassName="m-0"
+        >
             <div
                 className="fixed inset-0 bg-black/60 z-[9999]"
                 onClick={onClose}
             />
-            <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-[10000] max-w-3xl w-full mx-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-[10000] max-w-3xl w-full">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            {isEditing ? 'Edit reservation' : 'Manual reservation'}
+                            {isEditing ? 'تعديل الحجز' : 'حجز يدوي'}
                         </h3>
                         {selectedService ? (
                             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -286,59 +314,75 @@ export default function ManualReservationModal({
                 </div>
 
                 <div className="p-6 max-h-[75vh] overflow-y-auto space-y-5">
-                    {error ? <Notification type="danger">{error}</Notification> : null}
+                    <div className="w-full overflow-hidden">
+                        {error ? (
+                            <div className="w-full bg-red-50 rounded p-2  text-center text-red-500 text-xs">
+                                {error}
+                            </div>
+                        ) : null}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Service</span>
-                            <select
-                                value={form.service_id}
-                                disabled={loadingOptions}
-                                onChange={(event) => {
-                                    updateField('service_id', event.target.value)
+                            <span className="mb-1 block text-sm font-medium">
+                                خدمة
+                            </span>
+                            <Select
+                                size="sm"
+                                placeholder="اختر الخدمة"
+                                isDisabled={loadingOptions}
+                                options={serviceOptions}
+                                value={
+                                    serviceOptions.find(
+                                        (opt) => opt.value === form.service_id,
+                                    ) || null
+                                }
+                                onChange={(opt) => {
+                                    updateField('service_id', opt?.value || '')
                                     updateField('member_id', '')
                                 }}
-                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                            >
-                                <option value="">Select service</option>
-                                {services.map((service) => (
-                                    <option key={service.id} value={service.id}>
-                                        {service.title}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Member</span>
-                            <select
-                                value={form.member_id}
-                                onChange={(event) =>
-                                    updateField('member_id', event.target.value)
+                            <span className="mb-1 block text-sm font-medium">
+                                عضو
+                            </span>
+                            <Select
+                                size="sm"
+                                placeholder="لا يوجد عضو محدد"
+                                isDisabled={loadingOptions}
+                                options={memberOptions}
+                                value={
+                                    memberOptions.find(
+                                        (opt) => opt.value === form.member_id,
+                                    ) || null
                                 }
-                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                            >
-                                <option value="">No specific member</option>
-                                {members.map((member) => (
-                                    <option key={member.id} value={member.id}>
-                                        {member.name}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(opt) => {
+                                    updateField('member_id', opt?.value || '')
+                                }}
+                            />
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Customer name</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                اسم العميل
+                            </span>
                             <Input
                                 value={form.customer_name}
                                 onChange={(event) =>
-                                    updateField('customer_name', event.target.value)
+                                    updateField(
+                                        'customer_name',
+                                        event.target.value,
+                                    )
                                 }
                             />
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Customer mobile</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                رقم جوال العميل
+                            </span>
                             <Input
                                 value={form.customer_mobile}
                                 onChange={(event) =>
@@ -352,7 +396,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Date</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                تاريخ
+                            </span>
                             <Input
                                 type="date"
                                 value={form.date}
@@ -363,7 +409,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Status</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                حالة
+                            </span>
                             <select
                                 value={form.status}
                                 onChange={(event) =>
@@ -374,25 +422,32 @@ export default function ManualReservationModal({
                                 }
                                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending">قيد الانتظار</option>
+                                <option value="confirmed">تم التأكيد</option>
+                                <option value="cancelled">ملغى</option>
                             </select>
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Start time</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                وقت البدء
+                            </span>
                             <Input
                                 type="time"
                                 value={form.start_time}
                                 onChange={(event) =>
-                                    updateField('start_time', event.target.value)
+                                    updateField(
+                                        'start_time',
+                                        event.target.value,
+                                    )
                                 }
                             />
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">End time</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                وقت الانتهاء
+                            </span>
                             <Input
                                 type="time"
                                 value={form.end_time}
@@ -403,13 +458,18 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block md:col-span-2">
-                            <span className="mb-1 block text-sm font-medium">Final price</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                السعر النهائي
+                            </span>
                             <Input
                                 value={form.price}
                                 onChange={(event) =>
                                     updateField(
                                         'price',
-                                        event.target.value.replace(/[^\d.]/g, ''),
+                                        event.target.value.replace(
+                                            /[^\d.]/g,
+                                            '',
+                                        ),
                                     )
                                 }
                                 inputMode="decimal"
@@ -418,7 +478,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block md:col-span-2">
-                            <span className="mb-1 block text-sm font-medium">Notes</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                ملاحظات
+                            </span>
                             <Input
                                 textArea
                                 value={form.note}
@@ -440,18 +502,18 @@ export default function ManualReservationModal({
                                 onClick={handleDelete}
                                 className="text-red-600 hover:text-red-700"
                             >
-                                Delete
+                                حذف
                             </Button>
                         ) : null}
                     </div>
                     <div className="flex items-center justify-end gap-3">
-                        <Button onClick={onClose}>Cancel</Button>
+                        <Button onClick={onClose}>ملغى</Button>
                         <Button
                             variant="solid"
                             loading={saving}
                             onClick={handleSave}
                         >
-                            Save reservation
+                            حفظ الحجز
                         </Button>
                     </div>
                 </div>

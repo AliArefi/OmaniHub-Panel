@@ -62,7 +62,7 @@ export type MyAgencyDetails = {
 }
 
 export type MyAgencyService = {
-    id: number
+    id: number 
     title: string
     slug: string
     pricing_type: 'fixed' | 'coordination' | 'member_based'

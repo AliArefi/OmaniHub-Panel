@@ -41,9 +41,10 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [manualModalOpen, setManualModalOpen] = useState(false)
-    const [editingReservation, setEditingReservation] = useState<Booking | null>(
-        null,
-    )
+    const [editingReservation, setEditingReservation] =
+        useState<Booking | null>(null)
+
+    const [monthReservations, setMonthReservations] = useState<any[]>([])
 
     const fetchMonth = async (month: string) => {
         if (!slug) return
@@ -52,9 +53,10 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
             view: 'month',
             month,
             include_daily_counts: true,
-            include_reservations: false,
+            include_reservations: true,
         })
         setDailyCounts(resp.daily_counts || [])
+        setMonthReservations(resp.reservations?.data || [])
     }
 
     const fetchDay = async (date: string) => {
@@ -104,14 +106,34 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
     }, [slug])
 
     const monthEvents = useMemo(() => {
-        return (dailyCounts || []).map((d) => ({
-            id: d.date,
+        const reservationEvents = monthReservations.map((reservation) => ({
+            id: `reservation-${reservation.id}`,
+            title: reservation.customer.name || 'رزرو',
+            start: `${reservation.date}T${reservation.start_time}`,
+            end: `${reservation.date}T${reservation.end_time}`,
+            allDay: false,
+            extendedProps: {
+                reservationId: reservation.id,
+                eventColor:
+                    reservation.status === 'confirmed'
+                        ? 'green'
+                        : reservation.status === 'pending'
+                          ? 'orange'
+                          : 'gray',
+            },
+        }))
+
+        const countEvents = (dailyCounts || []).map((d) => ({
+            id: `count-${d.date}`,
             title: `${d.count} حجز`,
             start: d.date,
             allDay: true,
+            display: 'background',
             extendedProps: { eventColor: 'blue' },
         }))
-    }, [dailyCounts])
+
+        return [...reservationEvents, ...countEvents]
+    }, [dailyCounts, monthReservations])
 
     const reservationEvents = useMemo(() => {
         return dayReservations.map((reservation) => ({
@@ -123,13 +145,13 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
             start: `${reservation.date}T${formatTimeAr(reservation.start_time)}`,
             end: `${reservation.date}T${formatTimeAr(reservation.end_time)}`,
             extendedProps: {
+                reservationId: reservation.id,
                 eventColor:
                     reservation.status === 'cancelled'
                         ? 'red'
                         : reservation.status === 'confirmed'
                           ? 'green'
                           : 'yellow',
-                reservationId: reservation.id,
             },
         }))
     }, [dayReservations])
@@ -218,11 +240,17 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                     eventClick={(arg) => {
                         const reservationId =
                             arg.event.extendedProps.reservationId
+
                         if (typeof reservationId !== 'number') return
 
-                        const booking = dayReservations.find(
-                            (item) => item.id === reservationId,
-                        )
+                        const booking =
+                            calendarView === 'dayGridMonth'
+                                ? monthReservations.find(
+                                      (item) => item.id === reservationId,
+                                  )
+                                : dayReservations.find(
+                                      (item) => item.id === reservationId,
+                                  )
                         if (booking) openManualReservation(booking)
                     }}
                     datesSet={async (arg) => {
@@ -263,17 +291,20 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
 
             <Card>
                 <div className="flex items-center justify-between gap-4 mb-4">
-                    <h3 className="font-semibold">حجوزات يوم</h3>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDateAr(selectedDate)}
+                    <div>
+                        <h3 className="font-semibold text-lg">حجوزات يوم</h3>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDateAr(selectedDate)}
+                        </div>
                     </div>
+
                     <Button
                         size="sm"
                         variant="solid"
                         icon={<HiPlus />}
                         onClick={() => openManualReservation(null)}
                     >
-                        New reservation
+                        حجز جديد
                     </Button>
                 </div>
 
@@ -328,7 +359,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                                                     openManualReservation(r)
                                                 }
                                             >
-                                                Edit
+                                                تعديل
                                             </Button>
                                             <Button
                                                 size="xs"
