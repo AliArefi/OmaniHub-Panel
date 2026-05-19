@@ -1,170 +1,254 @@
 {
-    "nav": {
-        "home": "Home",
-        "singleMenuItem": "Single menu item",
-        "collapseMenu": {
-            "collapseMenu": "Collapse menu item",
-            "item1": "Collapse menu item 1",
-            "item2": "Collapse menu item 2"
-        },
-        "groupMenu": {
-            "groupMenu": "Group menu",
-            "single": "Group single menu item",
-            "collapse": {
-                "collapse": "Group collapse menu",
-                "item1": "Group collapse menu item 1",
-                "item2": "Group collapse menu item 2"
-            }
-        }
+  "nav": {
+    "home": "Home",
+    "singleMenuItem": "Single menu item",
+    "collapseMenu": {
+      "collapseMenu": "Collapse menu item",
+      "item1": "Collapse menu item 1",
+      "item2": "Collapse menu item 2"
     },
-    "center": {
-        "wizard": {
-            "back": "Back",
-            "next": "Next",
-            "finish": "Finish"
-        },
-        "members": {
-            "title": "Team members",
-            "add": "Add member",
-            "save": "Save member",
-            "cancel": "Cancel",
-            "name": "Member name",
-            "position": "Position",
-            "image": "Image",
-            "service": "Service",
-            "editTitle": "Edit member",
-            "saveChanges": "Save changes"
-        },
-        "assignments": {
-            "title": "Assign services to members",
-            "assign": "Assign",
-            "member": "Member",
-            "service": "Service",
-            "listTitle": "Assignments",
-            "editSchedule": "Edit schedule",
-            "closeSchedule": "Close schedule",
-            "weeklySchedule": "Weekly schedule",
-            "to": "to"
-        },
-        "gallery": {
-            "title": "Gallery",
-            "alt": "Alt text (ALT)",
-            "altPlaceholder": "Example: Front desk",
-            "image": "Image",
-            "uploading": "Uploading...",
-            "addToGallery": "Add to gallery",
-            "loading": "Loading...",
-            "noImages": "No images yet.",
-            "delete": "Delete",
-            "imageUploaded": "Image uploaded.",
-            "imageDeleted": "Image deleted."
-        },
-        "validation": {
-            "enterMemberName": "Please enter a member name.",
-            "selectService": "Please select a service.",
-            "selectImage": "Please select an image.",
-            "selectMemberAndService": "Select a member and a service.",
-            "alreadyAssigned": "This member is already assigned to this service.",
-            "memberNameRequired": "Member name is required.",
-            "enableWorkingDay": "Please enable at least one working day."
-        },
-        "errors": {
-            "centerSlugMissing": "Center slug is missing.",
-            "centerIdMissing": "Center id is missing.",
-            "uploadFailed": "Upload failed.",
-            "deleteFailed": "Delete failed.",
-            "createMemberFailed": "Failed to create member.",
-            "updateMemberFailed": "Failed to update member.",
-            "deleteMemberFailed": "Failed to delete member.",
-            "saveSchedulesFailed": "Failed to save schedules."
-        },
-        "services": {
-            "title": "Services",
-            "flow": {
-                "title": "Service selection",
-                "subtitle": "Switch between the new picker and the classic dropdown flow.",
-                "picker": "New",
-                "legacy": "Classic"
-            },
-            "labels": {
-                "service": "Service",
-                "duration": "Duration",
-                "durationUnit": "Duration unit",
-                "pricingType": "Pricing type",
-                "price": "Price",
-                "description": "Description",
-                "mainService": "Main service",
-                "subServiceLevel": "Sub service level {{level}}"
-            },
-            "placeholders": {
-                "chooseService": "Choose a service",
-                "duration": "45",
-                "price": "25",
-                "description": "Optional description"
-            },
-            "loading": {
-                "available": "Loading available services...",
-                "subServices": "Loading sub services..."
-            },
-            "empty": {
-                "noChildren": "No child services are available for this agency category."
-            },
-            "units": {
-                "minute": "minute",
-                "hour": "hour",
-                "day": "day",
-                "week": "week",
-                "month": "month"
-            },
-            "unitsPlural": {
-                "minute": "minutes",
-                "hour": "hours",
-                "day": "days",
-                "week": "weeks",
-                "month": "months"
-            },
-            "pricingTypes": {
-                "fixed": "Fixed price",
-                "coordination": "Coordination",
-                "memberBased": "Member based"
-            },
-            "pricingLabels": {
-                "coordination": "Coordination",
-                "range": "From {{min}} to {{max}} OMR",
-                "startsFrom": "Starts from {{min}} OMR"
-            },
-            "info": {
-                "coordination": "Customers will request this service first and pricing can be finalized later.",
-                "memberBased": "Final pricing will come from member assignments for this service."
-            },
-            "validation": {
-                "durationRequired": "Duration is required for enabled services.",
-                "priceRequired": "Price is required for fixed-price services.",
-                "duplicateService": "This service is already enabled."
-            },
-            "actions": {
-                "save": "Save services",
-                "add": "Add service",
-                "delete": "Delete",
-                "nextAssign": "Next: Assign team"
-            },
-            "enabledServices": "Enabled services ({{count}})",
-            "errors": {
-                "agencyMustBeCreated": "The center must be created before services can be saved.",
-                "saveSelectedFailed": "Unable to save the selected service.",
-                "deleteFailed": "Unable to delete the service.",
-                "syncFailed": "Unable to synchronize services."
-            },
-            "success": {
-                "synced": "Services were synchronized successfully."
-            }
-        },
-        "success": {
-            "memberCreated": "Member created.",
-            "memberUpdated": "Member updated.",
-            "memberDeleted": "Member deleted.",
-            "serviceAssigned": "Service assigned.",
-            "schedulesSaved": "Schedules saved."
-        }
+    "groupMenu": {
+      "groupMenu": "Group menu",
+      "single": "Group single menu item",
+      "collapse": {
+        "collapse": "Group collapse menu",
+        "item1": "Group collapse menu item 1",
+        "item2": "Group collapse menu item 2"
+      }
     }
+  },
+  "center": {
+    "wizard": {
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish"
+    },
+    "members": {
+      "title": "Team members",
+      "add": "Add member",
+      "save": "Save member",
+      "cancel": "Cancel",
+      "name": "Member name",
+      "position": "Position",
+      "image": "Image",
+      "service": "Service",
+      "editTitle": "Edit member",
+      "saveChanges": "Save changes"
+    },
+    "assignments": {
+      "title": "Assign services to members",
+      "assign": "Assign",
+      "member": "Member",
+      "service": "Service",
+      "listTitle": "Assignments",
+      "editSchedule": "Edit schedule",
+      "closeSchedule": "Close schedule",
+      "weeklySchedule": "Weekly schedule",
+      "to": "to"
+    },
+    "gallery": {
+      "title": "Gallery",
+      "alt": "Alt text (ALT)",
+      "altPlaceholder": "Example: Front desk",
+      "image": "Image",
+      "uploading": "Uploading...",
+      "addToGallery": "Add to gallery",
+      "loading": "Loading...",
+      "noImages": "No images yet.",
+      "delete": "Delete",
+      "imageUploaded": "Image uploaded.",
+      "imageDeleted": "Image deleted."
+    },
+    "validation": {
+      "enterMemberName": "Please enter a member name.",
+      "selectService": "Please select a service.",
+      "selectImage": "Please select an image.",
+      "selectMemberAndService": "Select a member and a service.",
+      "alreadyAssigned": "This member is already assigned to this service.",
+      "memberNameRequired": "Member name is required.",
+      "enableWorkingDay": "Please enable at least one working day."
+    },
+    "errors": {
+      "centerSlugMissing": "Center slug is missing.",
+      "centerIdMissing": "Center id is missing.",
+      "uploadFailed": "Upload failed.",
+      "deleteFailed": "Delete failed.",
+      "createMemberFailed": "Failed to create member.",
+      "updateMemberFailed": "Failed to update member.",
+      "deleteMemberFailed": "Failed to delete member.",
+      "saveSchedulesFailed": "Failed to save schedules."
+    },
+    "services": {
+      "title": "Services",
+      "flow": {
+        "title": "Service selection",
+        "subtitle": "Switch between the new picker and the classic dropdown flow.",
+        "picker": "New",
+        "legacy": "Classic"
+      },
+      "labels": {
+        "service": "Service",
+        "duration": "Duration",
+        "durationUnit": "Duration unit",
+        "pricingType": "Pricing type",
+        "price": "Price",
+        "description": "Description",
+        "mainService": "Main service",
+        "subServiceLevel": "Sub service level {{level}}"
+      },
+      "placeholders": {
+        "chooseService": "Choose a service",
+        "duration": "45",
+        "price": "25",
+        "description": "Optional description"
+      },
+      "loading": {
+        "available": "Loading available services...",
+        "subServices": "Loading sub services..."
+      },
+      "empty": {
+        "noChildren": "No child services are available for this agency category."
+      },
+      "units": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week",
+        "month": "month"
+      },
+      "unitsPlural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
+      },
+      "pricingTypes": {
+        "fixed": "Fixed price",
+        "coordination": "Coordination",
+        "memberBased": "Member based"
+      },
+      "pricingLabels": {
+        "coordination": "Coordination",
+        "range": "From {{min}} to {{max}} OMR",
+        "startsFrom": "Starts from {{min}} OMR"
+      },
+      "info": {
+        "coordination": "Customers will request this service first and pricing can be finalized later.",
+        "memberBased": "Final pricing will come from member assignments for this service."
+      },
+      "validation": {
+        "durationRequired": "Duration is required for enabled services.",
+        "priceRequired": "Price is required for fixed-price services.",
+        "duplicateService": "This service is already enabled."
+      },
+      "actions": {
+        "save": "Save services",
+        "add": "Add service",
+        "delete": "Delete",
+        "nextAssign": "Next: Assign team"
+      },
+      "enabledServices": "Enabled services ({{count}})",
+      "errors": {
+        "agencyMustBeCreated": "The center must be created before services can be saved.",
+        "saveSelectedFailed": "Unable to save the selected service.",
+        "deleteFailed": "Unable to delete the service.",
+        "syncFailed": "Unable to synchronize services."
+      },
+      "success": {
+        "synced": "Services were synchronized successfully."
+      }
+    },
+    "success": {
+      "memberCreated": "Member created.",
+      "memberUpdated": "Member updated.",
+      "memberDeleted": "Member deleted.",
+      "serviceAssigned": "Service assigned.",
+      "schedulesSaved": "Schedules saved."
+    }
+  },
+  "workCalendar": {
+    "title": "Work calendar",
+    "labels": {
+      "center": "Center"
+    },
+    "placeholders": {
+      "chooseCenter": "Choose a center"
+    },
+    "errors": {
+      "loadCenters": "Failed to load centers.",
+      "loadCalendar": "Failed to load calendar data."
+    },
+    "calendar": {
+      "loading": "Loading...",
+      "bookingsForDay": "Bookings for day",
+      "newReservation": "New reservation",
+      "noBookings": "No bookings for this day.",
+      "bookingCount": "{{count}} bookings",
+      "table": {
+        "customer": "Customer",
+        "service": "Service",
+        "time": "Time",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "unknown": "Unknown",
+      "actions": {
+        "edit": "Edit",
+        "view": "View"
+      },
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "modal": {
+      "titleCreate": "Manual reservation",
+      "titleEdit": "Edit reservation",
+      "close": "Close",
+      "fields": {
+        "service": "Service",
+        "member": "Member",
+        "customerName": "Customer name",
+        "customerMobile": "Customer mobile",
+        "date": "Date",
+        "status": "Status",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "finalPrice": "Final price",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "selectService": "Select service",
+        "noMember": "No specific member",
+        "priceOptional": "Optional"
+      },
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "save": "Save reservation",
+        "delete": "Delete"
+      },
+      "confirmDelete": "Delete this reservation?",
+      "validation": {
+        "selectService": "Select a service.",
+        "customerRequired": "Customer name and mobile are required.",
+        "validDate": "Select a valid date.",
+        "validTime": "End time must be after start time.",
+        "validPrice": "Enter a valid price or leave it empty."
+      },
+      "errors": {
+        "loadServices": "Could not load services.",
+        "loadMembers": "Could not load members.",
+        "saveReservation": "Could not save reservation.",
+        "deleteReservation": "Could not delete reservation."
+      }
+    }
+  }
 }

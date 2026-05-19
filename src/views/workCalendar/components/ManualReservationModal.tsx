@@ -1,10 +1,7 @@
 import type { Booking } from '@/@types/booking'
 import type { MyAgencyService, TeamMemberApiResponse } from '@/@types/center'
 import { Button, Dialog, Input, Notification } from '@/components/ui'
-import {
-    apiGetMyServices,
-    apiGetServiceMembers,
-} from '@/services/CenterService'
+import { apiGetMyServices, apiGetServiceMembers } from '@/services/CenterService'
 import {
     createAgencyReservation,
     deleteAgencyReservation,
@@ -13,6 +10,7 @@ import {
 } from '@/services/BookingService'
 import { useEffect, useMemo, useState } from 'react'
 import { HiOutlineTrash, HiX } from 'react-icons/hi'
+import { useTranslation } from 'react-i18next'
 
 type ManualReservationModalProps = {
     isOpen: boolean
@@ -78,6 +76,8 @@ export default function ManualReservationModal({
     onSaved,
     onDeleted,
 }: ManualReservationModalProps) {
+    const { t } = useTranslation()
+
     const [services, setServices] = useState<MyAgencyService[]>([])
     const [members, setMembers] = useState<TeamMemberApiResponse[]>([])
     const [form, setForm] = useState<FormState>(defaultForm(selectedDate))
@@ -129,14 +129,19 @@ export default function ManualReservationModal({
                 })
                 setServices(response.data || [])
             } catch (err) {
-                setError(extractApiMessage(err, 'Could not load services.'))
+                setError(
+                    extractApiMessage(
+                        err,
+                        t('workCalendar.modal.errors.loadServices'),
+                    ),
+                )
             } finally {
                 setLoadingOptions(false)
             }
         }
 
         loadServices()
-    }, [agencyId, isOpen])
+    }, [agencyId, isOpen, t])
 
     useEffect(() => {
         const serviceId = Number(form.service_id)
@@ -151,12 +156,17 @@ export default function ManualReservationModal({
                 setMembers(response.data || [])
             } catch (err) {
                 setMembers([])
-                setError(extractApiMessage(err, 'Could not load members.'))
+                setError(
+                    extractApiMessage(
+                        err,
+                        t('workCalendar.modal.errors.loadMembers'),
+                    ),
+                )
             }
         }
 
         loadMembers()
-    }, [form.service_id, isOpen])
+    }, [form.service_id, isOpen, t])
 
     const selectedService = useMemo(
         () => services.find((service) => String(service.id) === form.service_id),
@@ -173,29 +183,28 @@ export default function ManualReservationModal({
     const buildPayload = (): ManualAgencyReservationPayload | null => {
         const serviceId = Number(form.service_id)
         if (!serviceId) {
-            setError('Select a service.')
+            setError(t('workCalendar.modal.validation.selectService'))
             return null
         }
 
         if (!form.customer_name.trim() || !form.customer_mobile.trim()) {
-            setError('Customer name and mobile are required.')
+            setError(t('workCalendar.modal.validation.customerRequired'))
             return null
         }
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(form.date)) {
-            setError('Select a valid date.')
+            setError(t('workCalendar.modal.validation.validDate'))
             return null
         }
 
         if (!form.start_time || !form.end_time || form.start_time >= form.end_time) {
-            setError('End time must be after start time.')
+            setError(t('workCalendar.modal.validation.validTime'))
             return null
         }
 
-        const price =
-            form.price.trim() === '' ? null : Number(form.price.trim())
+        const price = form.price.trim() === '' ? null : Number(form.price.trim())
         if (price !== null && (!Number.isFinite(price) || price < 0)) {
-            setError('Enter a valid price or leave it empty.')
+            setError(t('workCalendar.modal.validation.validPrice'))
             return null
         }
 
@@ -223,17 +232,15 @@ export default function ManualReservationModal({
         try {
             const response =
                 reservation && reservation.id
-                    ? await updateAgencyReservation(
-                          agencySlug,
-                          reservation.id,
-                          payload,
-                      )
+                    ? await updateAgencyReservation(agencySlug, reservation.id, payload)
                     : await createAgencyReservation(agencySlug, payload)
 
             onSaved(response.data)
             onClose()
         } catch (err) {
-            setError(extractApiMessage(err, 'Could not save reservation.'))
+            setError(
+                extractApiMessage(err, t('workCalendar.modal.errors.saveReservation')),
+            )
         } finally {
             setSaving(false)
         }
@@ -241,7 +248,7 @@ export default function ManualReservationModal({
 
     const handleDelete = async () => {
         if (!reservation?.id) return
-        const confirmed = window.confirm('Delete this reservation?')
+        const confirmed = window.confirm(t('workCalendar.modal.confirmDelete'))
         if (!confirmed) return
 
         setDeleting(true)
@@ -251,7 +258,9 @@ export default function ManualReservationModal({
             onDeleted(reservation.id)
             onClose()
         } catch (err) {
-            setError(extractApiMessage(err, 'Could not delete reservation.'))
+            setError(
+                extractApiMessage(err, t('workCalendar.modal.errors.deleteReservation')),
+            )
         } finally {
             setDeleting(false)
         }
@@ -259,15 +268,14 @@ export default function ManualReservationModal({
 
     return (
         <Dialog isOpen={isOpen} onClose={onClose} className="max-w-3xl">
-            <div
-                className="fixed inset-0 bg-black/60 z-[9999]"
-                onClick={onClose}
-            />
+            <div className="fixed inset-0 bg-black/60 z-[9999]" onClick={onClose} />
             <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-[10000] max-w-3xl w-full mx-4">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            {isEditing ? 'Edit reservation' : 'Manual reservation'}
+                            {isEditing
+                                ? t('workCalendar.modal.titleEdit')
+                                : t('workCalendar.modal.titleCreate')}
                         </h3>
                         {selectedService ? (
                             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -279,18 +287,22 @@ export default function ManualReservationModal({
                         type="button"
                         onClick={onClose}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                        aria-label="Close"
+                        aria-label={t('workCalendar.modal.close')}
                     >
                         <HiX className="h-5 w-5" />
                     </button>
                 </div>
 
                 <div className="p-6 max-h-[75vh] overflow-y-auto space-y-5">
-                    {error ? <Notification type="danger">{error}</Notification> : null}
+                    {error ? (
+                        <Notification type="danger">{error}</Notification>
+                    ) : null}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Service</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.service')}
+                            </span>
                             <select
                                 value={form.service_id}
                                 disabled={loadingOptions}
@@ -300,7 +312,9 @@ export default function ManualReservationModal({
                                 }}
                                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             >
-                                <option value="">Select service</option>
+                                <option value="">
+                                    {t('workCalendar.modal.placeholders.selectService')}
+                                </option>
                                 {services.map((service) => (
                                     <option key={service.id} value={service.id}>
                                         {service.title}
@@ -310,7 +324,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Member</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.member')}
+                            </span>
                             <select
                                 value={form.member_id}
                                 onChange={(event) =>
@@ -318,7 +334,9 @@ export default function ManualReservationModal({
                                 }
                                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             >
-                                <option value="">No specific member</option>
+                                <option value="">
+                                    {t('workCalendar.modal.placeholders.noMember')}
+                                </option>
                                 {members.map((member) => (
                                     <option key={member.id} value={member.id}>
                                         {member.name}
@@ -328,7 +346,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Customer name</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.customerName')}
+                            </span>
                             <Input
                                 value={form.customer_name}
                                 onChange={(event) =>
@@ -338,21 +358,22 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Customer mobile</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.customerMobile')}
+                            </span>
                             <Input
                                 value={form.customer_mobile}
                                 onChange={(event) =>
-                                    updateField(
-                                        'customer_mobile',
-                                        event.target.value,
-                                    )
+                                    updateField('customer_mobile', event.target.value)
                                 }
                                 inputMode="tel"
                             />
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Date</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.date')}
+                            </span>
                             <Input
                                 type="date"
                                 value={form.date}
@@ -363,7 +384,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Status</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.status')}
+                            </span>
                             <select
                                 value={form.status}
                                 onChange={(event) =>
@@ -374,14 +397,22 @@ export default function ManualReservationModal({
                                 }
                                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending">
+                                    {t('workCalendar.modal.status.pending')}
+                                </option>
+                                <option value="confirmed">
+                                    {t('workCalendar.modal.status.confirmed')}
+                                </option>
+                                <option value="cancelled">
+                                    {t('workCalendar.modal.status.cancelled')}
+                                </option>
                             </select>
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">Start time</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.startTime')}
+                            </span>
                             <Input
                                 type="time"
                                 value={form.start_time}
@@ -392,7 +423,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium">End time</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.endTime')}
+                            </span>
                             <Input
                                 type="time"
                                 value={form.end_time}
@@ -403,7 +436,9 @@ export default function ManualReservationModal({
                         </label>
 
                         <label className="block md:col-span-2">
-                            <span className="mb-1 block text-sm font-medium">Final price</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.finalPrice')}
+                            </span>
                             <Input
                                 value={form.price}
                                 onChange={(event) =>
@@ -413,12 +448,14 @@ export default function ManualReservationModal({
                                     )
                                 }
                                 inputMode="decimal"
-                                placeholder="Optional"
+                                placeholder={t('workCalendar.modal.placeholders.priceOptional')}
                             />
                         </label>
 
                         <label className="block md:col-span-2">
-                            <span className="mb-1 block text-sm font-medium">Notes</span>
+                            <span className="mb-1 block text-sm font-medium">
+                                {t('workCalendar.modal.fields.notes')}
+                            </span>
                             <Input
                                 textArea
                                 value={form.note}
@@ -440,18 +477,16 @@ export default function ManualReservationModal({
                                 onClick={handleDelete}
                                 className="text-red-600 hover:text-red-700"
                             >
-                                Delete
+                                {t('workCalendar.modal.actions.delete')}
                             </Button>
                         ) : null}
                     </div>
                     <div className="flex items-center justify-end gap-3">
-                        <Button onClick={onClose}>Cancel</Button>
-                        <Button
-                            variant="solid"
-                            loading={saving}
-                            onClick={handleSave}
-                        >
-                            Save reservation
+                        <Button onClick={onClose}>
+                            {t('workCalendar.modal.actions.cancel')}
+                        </Button>
+                        <Button variant="solid" loading={saving} onClick={handleSave}>
+                            {t('workCalendar.modal.actions.save')}
                         </Button>
                     </div>
                 </div>

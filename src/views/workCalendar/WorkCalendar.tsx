@@ -1,8 +1,8 @@
 import { Agency } from '@/@types/center'
 import { Card, FormItem, Select, Spinner } from '@/components/ui'
 import { getMyAgencies } from '@/services/CenterService'
-import { useTranslation } from '@/store/useTranslation'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AgencyCalendar } from './components/AgencyCalendar'
 
 export default function WorkCalendar() {
@@ -23,27 +23,25 @@ export default function WorkCalendar() {
                 }
             } catch (err: unknown) {
                 const apiMessage = (() => {
-                    if (typeof err !== 'object' || err === null)
-                        return undefined
+                    if (typeof err !== 'object' || err === null) return undefined
                     const response = (err as { response?: unknown }).response
                     if (typeof response !== 'object' || response === null)
                         return undefined
                     const data = (response as { data?: unknown }).data
-                    if (typeof data !== 'object' || data === null)
-                        return undefined
+                    if (typeof data !== 'object' || data === null) return undefined
                     const message = (data as { message?: unknown }).message
                     return typeof message === 'string' && message.trim()
                         ? message
                         : undefined
                 })()
-                setError(apiMessage || 'حدث خطأ أثناء تحميل المراكز')
+                setError(apiMessage || t('workCalendar.errors.loadCenters'))
             } finally {
                 setLoading(false)
             }
         }
 
         fetchAgencies()
-    }, [])
+    }, [t])
 
     type AgencyOption = {
         label: string
@@ -62,15 +60,19 @@ export default function WorkCalendar() {
                 <div>{t('loading')}</div>
             </div>
         )
+
     if (error) return <div>{error}</div>
 
     return (
         <div>
             <Card>
-                <FormItem label="حجرة" className="mb-6">
+                <FormItem
+                    label={t('workCalendar.labels.center')}
+                    className="mb-6"
+                >
                     <Select
                         size="sm"
-                        placeholder="اختر حجرة"
+                        placeholder={t('workCalendar.placeholders.chooseCenter')}
                         options={agencyOptions}
                         value={agencyOptions.find(
                             (opt) => opt.value === selectedSlug,
@@ -79,17 +81,16 @@ export default function WorkCalendar() {
                     />
                 </FormItem>
             </Card>
-            {!loading && selectedSlug && (
+            {selectedSlug ? (
                 <div className="mt-3">
                     <AgencyCalendar
                         agency={
-                            agencies.find(
-                                (agency) => agency.slug === selectedSlug,
-                            ) || null
+                            agencies.find((agency) => agency.slug === selectedSlug) ||
+                            null
                         }
                     />
                 </div>
-            )}
+            ) : null}
         </div>
     )
 }

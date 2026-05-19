@@ -148,5 +148,89 @@
         "synced": "تمت مزامنة الخدمات بنجاح."
       }
     }
+  },
+  "workCalendar": {
+    "title": "تقويم العمل",
+    "labels": {
+      "center": "المركز"
+    },
+    "placeholders": {
+      "chooseCenter": "اختر مركزًا"
+    },
+    "errors": {
+      "loadCenters": "تعذر تحميل المراكز.",
+      "loadCalendar": "تعذر تحميل بيانات التقويم."
+    },
+    "calendar": {
+      "loading": "جارٍ التحميل...",
+      "bookingsForDay": "حجوزات اليوم",
+      "newReservation": "حجز جديد",
+      "noBookings": "لا توجد حجوزات لهذا اليوم.",
+      "bookingCount": "{{count}} حجز",
+      "table": {
+        "customer": "العميل",
+        "service": "الخدمة",
+        "time": "الوقت",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "unknown": "غير محدد",
+      "actions": {
+        "edit": "تعديل",
+        "view": "عرض"
+      },
+      "status": {
+        "pending": "قيد الانتظار",
+        "confirmed": "مؤكد",
+        "completed": "مكتمل",
+        "cancelled": "ملغي"
+      }
+    },
+    "modal": {
+      "titleCreate": "حجز يدوي",
+      "titleEdit": "تعديل الحجز",
+      "close": "إغلاق",
+      "fields": {
+        "service": "الخدمة",
+        "member": "العضو",
+        "customerName": "اسم العميل",
+        "customerMobile": "هاتف العميل",
+        "date": "التاريخ",
+        "status": "الحالة",
+        "startTime": "وقت البدء",
+        "endTime": "وقت الانتهاء",
+        "finalPrice": "السعر النهائي",
+        "notes": "ملاحظات"
+      },
+      "placeholders": {
+        "selectService": "اختر خدمة",
+        "noMember": "بدون عضو محدد",
+        "priceOptional": "اختياري"
+      },
+      "status": {
+        "pending": "قيد الانتظار",
+        "confirmed": "مؤكد",
+        "cancelled": "ملغي"
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "save": "حفظ الحجز",
+        "delete": "حذف"
+      },
+      "confirmDelete": "هل تريد حذف هذا الحجز؟",
+      "validation": {
+        "selectService": "يرجى اختيار خدمة.",
+        "customerRequired": "اسم العميل ورقم الهاتف مطلوبان.",
+        "validDate": "يرجى اختيار تاريخ صحيح.",
+        "validTime": "يجب أن يكون وقت الانتهاء بعد وقت البدء.",
+        "validPrice": "يرجى إدخال سعر صحيح أو تركه فارغًا."
+      },
+      "errors": {
+        "loadServices": "تعذر تحميل الخدمات.",
+        "loadMembers": "تعذر تحميل الأعضاء.",
+        "saveReservation": "تعذر حفظ الحجز.",
+        "deleteReservation": "تعذر حذف الحجز."
+      }
+    }
   }
 }
