@@ -815,83 +815,86 @@ export const ViewCenterTabAssignServices = () => {
                                                                     ) => (
                                                                         <div
                                                                             key={`${daySchedule.day}-${slotIndex}`}
-                                                                            className="flex flex-wrap items-center gap-2"
+                                                                            className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2"
                                                                         >
-                                                                            <Select<{
-                                                                                value: string
-                                                                                label: string
-                                                                            }>
-                                                                                size="sm"
-                                                                                className="w-32"
-                                                                                value={
-                                                                                    timeOptions.find(
-                                                                                        (
-                                                                                            timeOption,
-                                                                                        ) =>
-                                                                                            timeOption.value ===
-                                                                                            slot.startTime,
-                                                                                    ) ??
-                                                                                    null
-                                                                                }
-                                                                                options={
-                                                                                    timeOptions
-                                                                                }
-                                                                                onChange={(
-                                                                                    option,
-                                                                                ) =>
-                                                                                    handleSlotChange(
-                                                                                        assignment.id,
-                                                                                        dayIndex,
-                                                                                        slotIndex,
-                                                                                        'startTime',
-                                                                                        option?.value ??
-                                                                                            '09:00',
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                            <span className="text-gray-500">
-                                                                                {t(
-                                                                                    'center.assignments.to',
-                                                                                )}
-                                                                            </span>
-                                                                            <Select<{
-                                                                                value: string
-                                                                                label: string
-                                                                            }>
-                                                                                size="sm"
-                                                                                className="w-32"
-                                                                                value={
-                                                                                    timeOptions.find(
-                                                                                        (
-                                                                                            timeOption,
-                                                                                        ) =>
-                                                                                            timeOption.value ===
-                                                                                            slot.endTime,
-                                                                                    ) ??
-                                                                                    null
-                                                                                }
-                                                                                options={
-                                                                                    timeOptions
-                                                                                }
-                                                                                onChange={(
-                                                                                    option,
-                                                                                ) =>
-                                                                                    handleSlotChange(
-                                                                                        assignment.id,
-                                                                                        dayIndex,
-                                                                                        slotIndex,
-                                                                                        'endTime',
-                                                                                        option?.value ??
-                                                                                            '17:00',
-                                                                                    )
-                                                                                }
-                                                                            />
+                                                                            <div className="flex flex-col sm:flex-row items-center gap-2 flex-1 min-w-0">
+                                                                                <Select<{
+                                                                                    value: string
+                                                                                    label: string
+                                                                                }>
+                                                                                    size="sm"
+                                                                                    className="w-full sm:w-32 flex-shrink-0"
+                                                                                    value={
+                                                                                        timeOptions.find(
+                                                                                            (
+                                                                                                timeOption,
+                                                                                            ) =>
+                                                                                                timeOption.value ===
+                                                                                                slot.startTime,
+                                                                                        ) ??
+                                                                                        null
+                                                                                    }
+                                                                                    options={
+                                                                                        timeOptions
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        option,
+                                                                                    ) =>
+                                                                                        handleSlotChange(
+                                                                                            assignment.id,
+                                                                                            dayIndex,
+                                                                                            slotIndex,
+                                                                                            'startTime',
+                                                                                            option?.value ??
+                                                                                                '09:00',
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                                <span className="text-gray-500 flex-shrink-0">
+                                                                                    {t(
+                                                                                        'center.assignments.to',
+                                                                                    )}
+                                                                                </span>
+                                                                                <Select<{
+                                                                                    value: string
+                                                                                    label: string
+                                                                                }>
+                                                                                    size="sm"
+                                                                                    className="w-full sm:w-32 flex-shrink-0"
+                                                                                    value={
+                                                                                        timeOptions.find(
+                                                                                            (
+                                                                                                timeOption,
+                                                                                            ) =>
+                                                                                                timeOption.value ===
+                                                                                                slot.endTime,
+                                                                                        ) ??
+                                                                                        null
+                                                                                    }
+                                                                                    options={
+                                                                                        timeOptions
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        option,
+                                                                                    ) =>
+                                                                                        handleSlotChange(
+                                                                                            assignment.id,
+                                                                                            dayIndex,
+                                                                                            slotIndex,
+                                                                                            'endTime',
+                                                                                            option?.value ??
+                                                                                                '17:00',
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            </div>
                                                                             <Button
                                                                                 size="sm"
                                                                                 variant="plain"
                                                                                 icon={
                                                                                     <HiOutlineTrash />
                                                                                 }
+                                                                                className="w-full sm:w-auto"
                                                                                 onClick={() =>
                                                                                     removeSlot(
                                                                                         assignment.id,
@@ -910,6 +913,7 @@ export const ViewCenterTabAssignServices = () => {
                                                                     icon={
                                                                         <HiOutlinePlus />
                                                                     }
+                                                                    className="w-full sm:w-auto"
                                                                     onClick={() =>
                                                                         addSlot(
                                                                             assignment.id,
