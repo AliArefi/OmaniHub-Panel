@@ -27,31 +27,42 @@ interface HojraInformationProps {
 const stripHtml = (value: string): string =>
     value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
-const buildValidationSchema = (t: (key: string) => string) =>
-    z.object({
-        title: z
-            .string()
-            .min(1, { message: t('centerValidationCenterNameRequired') }),
-        service_id: z.any().refine((val) => Number(val) > 0, {
-            message: t('centerValidationServiceTypeRequired'),
-        }),
-        about_text: z
-            .string()
-            .refine((val) => stripHtml(val).length > 0, {
-                message: t('centerValidationDescriptionRequired'),
-            })
-            .refine((val) => stripHtml(val).length >= 8, {
-                message: t('centerValidationTextTooShort'),
-            }),
-        about_us: z
-            .string()
-            .refine((val) => stripHtml(val).length > 0, {
-                message: t('centerValidationAboutUsRequired'),
-            })
-            .refine((val) => stripHtml(val).length >= 8, {
-                message: t('centerValidationTextTooShort'),
-            }),
-    })
+const buildValidationSchema = (
+    t: (key: string) => string,
+    requireService: boolean,
+) =>
+    z
+        .object({
+            title: z
+                .string()
+                .min(1, { message: t('centerValidationCenterNameRequired') }),
+            service_id: z.any().nullable().optional(),
+            about_text: z
+                .string()
+                .refine((val) => stripHtml(val).length > 0, {
+                    message: t('centerValidationDescriptionRequired'),
+                })
+                .refine((val) => stripHtml(val).length >= 8, {
+                    message: t('centerValidationTextTooShort'),
+                }),
+            about_us: z
+                .string()
+                .refine((val) => stripHtml(val).length > 0, {
+                    message: t('centerValidationAboutUsRequired'),
+                })
+                .refine((val) => stripHtml(val).length >= 8, {
+                    message: t('centerValidationTextTooShort'),
+                }),
+        })
+        .superRefine((values, ctx) => {
+            if (requireService && Number(values.service_id) <= 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['service_id'],
+                    message: t('centerValidationServiceTypeRequired'),
+                })
+            }
+        })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
@@ -60,7 +71,8 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { t } = useTranslation();
-    const validationSchema = buildValidationSchema(t)
+    const canUpdate = Boolean(newHojraData?.id && newHojraData?.slug)
+    const validationSchema = buildValidationSchema(t, !canUpdate)
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         if (typeof err !== 'object' || err === null) return undefined
@@ -118,8 +130,6 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
 
     const onSubmit = async (values: HojraInfo) => {
         try {
-            const canUpdate = Boolean(newHojraData?.id && newHojraData?.slug)
-
             if (canUpdate) {
                 const resp = await apiUpdateMyAgency(newHojraData.slug, values)
                 if (!resp?.success) {

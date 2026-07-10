@@ -32,9 +32,7 @@ const stripHtml = (value: string): string =>
 
 const validationSchema = z.object({
     title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
-    service_id: z.any().refine((val) => Number(val) > 0, {
-        message: 'يجب اختيار نوع الخدمة',
-    }),
+    service_id: z.any().nullable().optional(),
     about_text: z
         .string()
         .refine((val) => stripHtml(val).length > 0, {
