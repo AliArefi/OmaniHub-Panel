@@ -79,6 +79,7 @@ export default function ViewCenterComponent() {
                     service_id: agency.service?.id ?? null,
                     about_text: agency.about_text ?? '',
                     about_us: agency.about_us ?? '',
+                    show_in_marketplace: agency.show_in_marketplace !== false,
                 }
 
                 const newHojra: Partial<NewHojraData> = {

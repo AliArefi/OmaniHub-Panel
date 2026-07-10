@@ -58,6 +58,7 @@ export interface HojraInfo {
     service_id: number | null
     about_text: string
     about_us: string
+    show_in_marketplace: boolean
 }
 
 export interface NewHojraData {
@@ -149,6 +150,7 @@ export const CreateStoreProvider = ({
         service_id: initialHojraInfo?.service_id ?? null,
         about_text: initialHojraInfo?.about_text ?? '',
         about_us: initialHojraInfo?.about_us ?? '',
+        show_in_marketplace: initialHojraInfo?.show_in_marketplace ?? true,
     })
 
     const [newHojraData, setNewHojraData] = useState<NewHojraData>({

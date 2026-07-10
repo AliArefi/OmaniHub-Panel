@@ -7,6 +7,7 @@ import {
     Input,
     Select,
     Spinner,
+    Switcher,
     toast,
 } from '@/components/ui'
 import Notification from '@/components/ui/Notification'
@@ -30,28 +31,37 @@ const stripHtml = (value: string): string =>
         .replace(/\s+/g, ' ')
         .trim()
 
-const validationSchema = z.object({
-    title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
-    service_id: z.any().refine((val) => Number(val) > 0, {
-        message: 'يجب اختيار نوع الخدمة',
-    }),
-    about_text: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'الوصف إلزامي',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'النص قصير',
-        }),
-    about_us: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'About us is required',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'Text is too short',
-        }),
-})
+const validationSchema = z
+    .object({
+        title: z.string().min(1, { message: 'Center name is required' }),
+        service_id: z.number().nullable().optional(),
+        show_in_marketplace: z.boolean(),
+        about_text: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: 'Description is required',
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: 'Text is too short',
+            }),
+        about_us: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: 'About us is required',
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: 'Text is too short',
+            }),
+    })
+    .superRefine((values, ctx) => {
+        if (values.show_in_marketplace && Number(values.service_id) <= 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['service_id'],
+                message: 'Service type is required when shown in marketplace',
+            })
+        }
+    })
 
 export const ViewCenterTabInformation = () => {
     const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
@@ -111,6 +121,7 @@ export const ViewCenterTabInformation = () => {
             service_id: hojraInfo.service_id || null,
             about_text: hojraInfo.about_text || '',
             about_us: hojraInfo.about_us || '',
+            show_in_marketplace: hojraInfo.show_in_marketplace ?? true,
         },
         resolver: zodResolver(validationSchema),
     })
@@ -175,6 +186,31 @@ export const ViewCenterTabInformation = () => {
                                         placeholder="اسم المركز"
                                         {...field}
                                     />
+                                )}
+                            />
+                        </FormItem>
+
+                        <FormItem className="mb-8">
+                            <Controller
+                                name="show_in_marketplace"
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="flex items-center justify-between gap-4 rounded border border-gray-200 px-4 py-3">
+                                        <div>
+                                            <div className="font-semibold text-gray-800">
+                                                Show in marketplace
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                Hide this center from marketplace listings and search.
+                                            </div>
+                                        </div>
+                                        <Switcher
+                                            checked={field.value !== false}
+                                            onChange={(checked) =>
+                                                field.onChange(checked)
+                                            }
+                                        />
+                                    </div>
                                 )}
                             />
                         </FormItem>

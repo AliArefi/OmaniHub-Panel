@@ -5,6 +5,7 @@ export type Agency = {
     category: string
     logo: string
     status: string
+    show_in_marketplace: boolean
     url: string
     created_at: string
 }
@@ -23,6 +24,7 @@ export type CreateNewAgencyRequest = {
     service_id: number | null
     about_text: string
     about_us: string
+    show_in_marketplace: boolean
 }
 
 export type CreateNewAgencyResponse = {
@@ -59,6 +61,7 @@ export type MyAgencyDetails = {
     youtube: string
     h1: string
     meta_description: string
+    show_in_marketplace: boolean
 }
 
 export type MyAgencyService = {
