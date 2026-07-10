@@ -7,7 +7,6 @@ import {
     Input,
     Select,
     Spinner,
-    Switcher,
     toast,
 } from '@/components/ui'
 import Notification from '@/components/ui/Notification'
@@ -29,39 +28,30 @@ const stripHtml = (value: string): string =>
     value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
 const buildValidationSchema = (t: (key: string) => string) =>
-    z
-        .object({
-            title: z
-                .string()
-                .min(1, { message: t('centerValidationCenterNameRequired') }),
-            service_id: z.number().nullable().optional(),
-            show_in_marketplace: z.boolean(),
-            about_text: z
-                .string()
-                .refine((val) => stripHtml(val).length > 0, {
-                    message: t('centerValidationDescriptionRequired'),
-                })
-                .refine((val) => stripHtml(val).length >= 8, {
-                    message: t('centerValidationTextTooShort'),
-                }),
-            about_us: z
-                .string()
-                .refine((val) => stripHtml(val).length > 0, {
-                    message: t('centerValidationAboutUsRequired'),
-                })
-                .refine((val) => stripHtml(val).length >= 8, {
-                    message: t('centerValidationTextTooShort'),
-                }),
-        })
-        .superRefine((values, ctx) => {
-            if (values.show_in_marketplace && Number(values.service_id) <= 0) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['service_id'],
-                    message: t('centerValidationServiceTypeRequired'),
-                })
-            }
-        })
+    z.object({
+        title: z
+            .string()
+            .min(1, { message: t('centerValidationCenterNameRequired') }),
+        service_id: z.any().refine((val) => Number(val) > 0, {
+            message: t('centerValidationServiceTypeRequired'),
+        }),
+        about_text: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerValidationDescriptionRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerValidationTextTooShort'),
+            }),
+        about_us: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerValidationAboutUsRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerValidationTextTooShort'),
+            }),
+    })
 
 export const HojraInformation = ({ changeState }: HojraInformationProps) => {
     const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
@@ -122,7 +112,6 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             service_id: hojraInfo.service_id || null,
             about_text: hojraInfo.about_text || '',
             about_us: hojraInfo.about_us || '',
-            show_in_marketplace: hojraInfo.show_in_marketplace ?? true,
         },
         resolver: zodResolver(validationSchema),
     })
@@ -197,31 +186,6 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                         placeholder="اسم المركز"
                                         {...field}
                                     />
-                                )}
-                            />
-                        </FormItem>
-
-                        <FormItem className="mb-8">
-                            <Controller
-                                name="show_in_marketplace"
-                                control={control}
-                                render={({ field }) => (
-                                    <div className="flex items-center justify-between gap-4 rounded border border-gray-200 px-4 py-3">
-                                        <div>
-                                            <div className="font-semibold text-gray-800">
-                                                Show in marketplace
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                Hide this center from marketplace listings and search.
-                                            </div>
-                                        </div>
-                                        <Switcher
-                                            checked={field.value !== false}
-                                            onChange={(checked) =>
-                                                field.onChange(checked)
-                                            }
-                                        />
-                                    </div>
                                 )}
                             />
                         </FormItem>
