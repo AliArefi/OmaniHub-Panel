@@ -114,8 +114,11 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          printf '%s' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
+          # GitHub Secrets may preserve CRLF when the key was pasted on Windows.
+          # OpenSSH rejects those carriage returns with an opaque libcrypto error.
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" | tr -d '\r' > ~/.ssh/vps_key
           chmod 600 ~/.ssh/vps_key
+          ssh-keygen -y -f ~/.ssh/vps_key >/dev/null
 
           touch ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
@@ -129,6 +132,6 @@ jobs:
           DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
 
           rsync -az --delete \
-            -e "ssh -i ~/.ssh/vps_key -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ~/.ssh/vps_key -o IdentitiesOnly=yes -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=yes" \
             out/ \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEST_DIR%/}/"
