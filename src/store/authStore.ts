@@ -10,12 +10,18 @@ type Session = {
 type AuthState = {
     session: Session
     user: User
+    // Device-level flag (not per-user): whether we've already auto-switched
+    // the UI to EN/LTR once for an admin on this browser. See AuthProvider's
+    // /auth/me bootstrap — an admin's own later language choice always wins
+    // after this first seed.
+    adminUiSeeded: boolean
 }
 
 type AuthAction = {
     setSessionSignedIn: (payload: boolean) => void
     setAccessToken: (token: string | null) => void
     setUser: (payload: User) => void
+    setAdminUiSeeded: (payload: boolean) => void
     reset: () => void
 }
 
@@ -61,6 +67,7 @@ const initialState: AuthState = {
         created_at: null,
         authority: [],
     },
+    adminUiSeeded: false,
 }
 
 export const useSessionUser = create<AuthState & AuthAction>()(
@@ -88,6 +95,8 @@ export const useSessionUser = create<AuthState & AuthAction>()(
                         ...normalizeUser(payload),
                     },
                 })),
+            setAdminUiSeeded: (payload) =>
+                set(() => ({ adminUiSeeded: payload })),
             reset: () => set(() => ({ ...initialState })),
         }),
         { name: 'sessionUser', storage: createJSONStorage(() => localStorage) },

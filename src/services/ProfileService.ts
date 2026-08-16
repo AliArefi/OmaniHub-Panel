@@ -7,12 +7,16 @@ export type UpdateProfileResponse = {
 
 export type UpdateProfileRequest = {
     name: string
+    bio?: string
     avatar?: File | null
 }
 
 export const toUpdateProfileFormData = (payload: UpdateProfileRequest) => {
     const formData = new FormData()
     formData.append('name', payload.name)
+    if (payload.bio !== undefined) {
+        formData.append('bio', payload.bio)
+    }
     if (payload.avatar) {
         formData.append('avatar', payload.avatar)
     }

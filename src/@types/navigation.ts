@@ -21,6 +21,8 @@ export interface NavigationTree {
     icon: string
     type: 'title' | 'collapse' | 'item'
     authority: string[]
+    /** Permission names (any-match). Empty/omitted = no restriction. */
+    permissions?: string[]
     subMenu: NavigationTree[]
     description?: string
     meta?: {

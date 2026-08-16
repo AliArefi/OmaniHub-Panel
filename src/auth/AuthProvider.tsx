@@ -2,6 +2,8 @@ import { useRef, useImperativeHandle, useEffect, useCallback } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser } from '@/store/authStore'
+import { useThemeStore } from '@/store/themeStore'
+import { useLocaleStore } from '@/store/localeStore'
 import { apiAuthMe, apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
@@ -19,6 +21,16 @@ import type { ReactNode, Ref } from 'react'
 import type { NavigateFunction } from 'react-router'
 
 type AuthProviderProps = { children: ReactNode }
+
+// AuthUser.roles maps to the app-wide `authority` concept (used by
+// useAuthority/AuthorityGuard/AuthorityCheck); permissions/is_admin are kept
+// alongside for the finer-grained usePermission() checks admin screens need.
+const toSessionUser = (payload: User): User => ({
+    ...payload,
+    authority: payload.roles ?? [],
+    permissions: payload.permissions ?? [],
+    is_admin: Boolean(payload.is_admin),
+})
 
 export type IsolatedNavigatorRef = {
     navigate: NavigateFunction
@@ -44,8 +56,26 @@ function AuthProvider({ children }: AuthProviderProps) {
         (state) => state.setSessionSignedIn,
     )
     const setAccessToken = useSessionUser((state) => state.setAccessToken)
+    const adminUiSeeded = useSessionUser((state) => state.adminUiSeeded)
+    const setAdminUiSeeded = useSessionUser((state) => state.setAdminUiSeeded)
+    const setDirection = useThemeStore((state) => state.setDirection)
+    const setLang = useLocaleStore((state) => state.setLang)
     const setPendingChallenge = useAuthChallengeStore((s) => s.setPending)
     const clearPendingChallenge = useAuthChallengeStore((s) => s.clear)
+
+    // One-time, device-level seed: the first time an admin session is
+    // detected on this browser, force English/LTR. After that the user's own
+    // choice always wins — including on user-facing (non-admin) pages.
+    const seedAdminUiIfNeeded = useCallback(
+        (sessionUser: User) => {
+            if (sessionUser.is_admin && !adminUiSeeded) {
+                setLang('en')
+                setDirection('ltr')
+                setAdminUiSeeded(true)
+            }
+        },
+        [adminUiSeeded, setAdminUiSeeded, setDirection, setLang],
+    )
 
     const authenticated = Boolean(signedIn)
 
@@ -68,6 +98,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
         if (user) {
             setUser(user)
+            seedAdminUiIfNeeded(user)
         }
     }
 
@@ -82,12 +113,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
             handleSignIn(
                 { accessToken: resp.token },
-                resp.user
-                    ? {
-                          ...resp.user,
-                          authority: [],
-                      }
-                    : undefined,
+                resp.user ? toSessionUser(resp.user) : undefined,
             )
             redirect()
             return
@@ -112,12 +138,7 @@ function AuthProvider({ children }: AuthProviderProps) {
             if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
                 handleSignIn(
                     { accessToken: resp.token },
-                    resp.user
-                        ? {
-                              ...resp.user,
-                              authority: [],
-                          }
-                        : undefined,
+                    resp.user ? toSessionUser(resp.user) : undefined,
                 )
                 redirect()
                 return { status: 'success', message: resp.message }
@@ -162,12 +183,7 @@ function AuthProvider({ children }: AuthProviderProps) {
             if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
                 handleSignIn(
                     { accessToken: resp.token },
-                    resp.user
-                        ? {
-                              ...resp.user,
-                              authority: [],
-                          }
-                        : undefined,
+                    resp.user ? toSessionUser(resp.user) : undefined,
                 )
                 redirect()
                 return { status: 'success', message: resp.message }
@@ -214,10 +230,9 @@ function AuthProvider({ children }: AuthProviderProps) {
 
                 if (resp?.authenticated) {
                     setSessionSignedIn(true)
-                    setUser({
-                        ...resp.user,
-                        authority: [],
-                    })
+                    const sessionUser = toSessionUser(resp.user)
+                    setUser(sessionUser)
+                    seedAdminUiIfNeeded(sessionUser)
                 } else {
                     handleSignOut()
                 }
@@ -231,7 +246,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         return () => {
             cancelled = true
         }
-    }, [handleSignOut, setSessionSignedIn, setUser])
+    }, [handleSignOut, setSessionSignedIn, setUser, seedAdminUiIfNeeded])
     const oAuthSignIn = (
         callback: (payload: OauthSignInCallbackPayload) => void,
     ) => {

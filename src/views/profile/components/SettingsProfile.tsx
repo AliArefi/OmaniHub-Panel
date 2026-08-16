@@ -23,11 +23,13 @@ import {
 type ProfileSchema = {
     name: string
     email?: string
+    bio?: string
 }
 
 const validationSchema = z.object({
     name: z.string().trim().min(1, { message: 'نام الزامی است' }),
     email: z.string().trim().email({ message: 'ایمیل معتبر نیست' }).optional(),
+    bio: z.string().trim().max(1024).optional(),
 })
 
 const extractApiErrorMessage = (error: unknown) => {
@@ -91,7 +93,7 @@ const SettingsProfile = () => {
         control,
     } = useForm<ProfileSchema>({
         resolver: zodResolver(validationSchema),
-        defaultValues: { name: '', email: '' },
+        defaultValues: { name: '', email: '', bio: '' },
     })
 
     useEffect(() => {
@@ -100,6 +102,7 @@ const SettingsProfile = () => {
         reset({
             name: user?.name ?? '',
             email: user?.email ?? '',
+            bio: user?.bio ?? '',
         })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
@@ -120,6 +123,7 @@ const SettingsProfile = () => {
             const resp = await apiUpdateProfile(
                 toUpdateProfileFormData({
                     name: values.name,
+                    bio: values.bio,
                     avatar: avatarFile,
                 }),
             )
@@ -244,6 +248,27 @@ const SettingsProfile = () => {
                                     type="email"
                                     autoComplete="off"
                                     placeholder="ایمیل"
+                                    {...field}
+                                />
+                            )}
+                        />
+                    </FormItem>
+
+                    <FormItem
+                        label="نبذة"
+                        className="md:col-span-2"
+                        invalid={Boolean(errors.bio)}
+                        errorMessage={errors.bio?.message}
+                    >
+                        <Controller
+                            name="bio"
+                            control={control}
+                            render={({ field }) => (
+                                <Input
+                                    textArea
+                                    rows={3}
+                                    autoComplete="off"
+                                    placeholder="نبذة مختصرة عنك"
                                     {...field}
                                 />
                             )}

@@ -5,19 +5,18 @@ import useQuery from '@/utils/hooks/useQuery'
 import {
     TbUserSquare,
     TbLock,
-    TbBell,
-    TbRefreshDot,
 } from 'react-icons/tb'
 import type { View } from '../types'
 import type { ReactNode } from 'react'
 
 const { MenuItem } = Menu
 
+// 'notification' and 'integration' point at template-leftover endpoints
+// (/setting/notification, /setting/intergration) the backend doesn't serve —
+// left out until those are real features.
 const menuList: { label: string; value: View; icon: ReactNode }[] = [
     { label: 'الملف الشخصي', value: 'profile', icon: <TbUserSquare /> },
     { label: 'الأمان', value: 'security', icon: <TbLock /> },
-    { label: 'الإشعارات', value: 'notification', icon: <TbBell /> },
-    { label: 'التكامل', value: 'integration', icon: <TbRefreshDot /> },
 ]
 
 export const SettingsMenu = ({ onChange }: { onChange?: () => void }) => {

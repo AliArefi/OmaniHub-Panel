@@ -4,13 +4,19 @@ import Dropdown from '@/components/ui/Dropdown'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useLocaleStore } from '@/store/localeStore'
+import { useThemeStore } from '@/store/themeStore'
 import { HiCheck } from 'react-icons/hi'
 import type { CommonProps } from '@/@types/common'
+import type { Direction } from '@/@types/theme'
 
-const languageList = [{ label: 'English', value: 'en', flag: 'US' }]
+const languageList = [
+    { label: 'العربية', value: 'ar', flag: 'OM', direction: 'rtl' as Direction },
+    { label: 'English', value: 'en', flag: 'US', direction: 'ltr' as Direction },
+]
 
 const _LanguageSelector = ({ className }: CommonProps) => {
     const { currentLang: locale, setLang } = useLocaleStore((state) => state)
+    const setDirection = useThemeStore((state) => state.setDirection)
 
     const selectLangFlag = useMemo(() => {
         return languageList.find((lang) => lang.value === locale)?.flag
@@ -33,7 +39,14 @@ const _LanguageSelector = ({ className }: CommonProps) => {
                     key={lang.label}
                     className="justify-between"
                     eventKey={lang.label}
-                    onClick={() => setLang(lang.value)}
+                    onClick={() => {
+                        setLang(lang.value)
+                        // Content language and UI direction are decoupled
+                        // everywhere else in the app, but the language picker
+                        // is the one place a human is explicitly choosing a
+                        // language — switching direction to match is expected.
+                        setDirection(lang.direction)
+                    }}
                 >
                     <span className="flex items-center">
                         <Avatar

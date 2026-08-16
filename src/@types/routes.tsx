@@ -21,6 +21,8 @@ export type Route = {
     path: string
     component: LazyExoticComponent<<T extends Meta>(props: T) => JSX.Element>
     authority: string[]
+    /** Permission names (any-match). Omit/empty for no restriction beyond authentication. */
+    permissions?: string[]
     meta?: Meta
 }
 

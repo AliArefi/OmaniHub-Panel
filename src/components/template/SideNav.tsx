@@ -5,7 +5,7 @@ import VerticalMenuContent from '@/components/template/VerticalMenuContent'
 import { useThemeStore } from '@/store/themeStore'
 import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
-import navigationConfig from '@/configs/navigation.config'
+import useFilteredNavigationConfig from '@/utils/hooks/useFilteredNavigationConfig'
 import appConfig from '@/configs/app.config'
 import { Link } from 'react-router'
 import {
@@ -51,6 +51,7 @@ const SideNav = ({
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
 
     const userAuthority = useSessionUser((state) => state.user.authority)
+    const navigationConfig = useFilteredNavigationConfig()
 
     return (
         <div
