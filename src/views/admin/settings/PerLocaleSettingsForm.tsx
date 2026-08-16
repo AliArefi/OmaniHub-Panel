@@ -4,13 +4,14 @@ import { useForm, Controller } from 'react-hook-form'
 import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Upload from '@/components/ui/Upload'
 import Select from '@/components/ui/Select'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import useAdminLocales from '@/utils/hooks/useAdminLocales'
 import usePermission from '@/utils/hooks/usePermission'
+import ImageUploadField from '@/components/admin/ImageUploadField'
+import { resolveImageUrl } from '@/utils/imageUrl'
 import {
     apiGetPerLocaleSettings,
     apiUpdatePerLocaleSettings,
@@ -134,12 +135,18 @@ const PerLocaleSettingsForm = (props: PerLocaleSettingsFormProps) => {
                                 control={control}
                                 render={({ field: rhfField }) => {
                                     if (field.type === 'file') {
+                                        const existingUrl =
+                                            typeof rhfField.value === 'string'
+                                                ? resolveImageUrl(rhfField.value) ?? null
+                                                : null
+
                                         return (
-                                            <Upload
-                                                uploadLimit={1}
-                                                onChange={(files) =>
-                                                    rhfField.onChange(files[0] ?? null)
+                                            <ImageUploadField
+                                                existingUrl={existingUrl}
+                                                onChange={(file) =>
+                                                    rhfField.onChange(file)
                                                 }
+                                                disabled={!canEdit}
                                             />
                                         )
                                     }

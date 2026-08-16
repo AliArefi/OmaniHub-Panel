@@ -12,6 +12,14 @@ import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import FaqsManager from '@/components/admin/FaqsManager'
+import { Tabs } from '@/components/ui/Tabs'
+import OrganizationAgenciesTab from './tabs/OrganizationAgenciesTab'
+import OrganizationMembersTab from './tabs/OrganizationMembersTab'
+import OrganizationMediaTab from './tabs/OrganizationMediaTab'
+import OrganizationHighlightsTab from './tabs/OrganizationHighlightsTab'
+import OrganizationRibbonsTab from './tabs/OrganizationRibbonsTab'
+import OrganizationReviewsTab from './tabs/OrganizationReviewsTab'
 import {
     apiGetAdminOrganization,
     apiCreateAdminOrganization,
@@ -129,8 +137,7 @@ const OrganizationForm = () => {
         }
     }
 
-    return (
-        <Container>
+    const overviewForm = (
             <AdaptiveCard>
                 <h3 className="mb-6">
                     {isEditing ? 'Edit Organization' : 'New Organization'}
@@ -217,6 +224,54 @@ const OrganizationForm = () => {
                     </div>
                 </Form>
             </AdaptiveCard>
+    )
+
+    if (!isEditing) {
+        return <Container>{overviewForm}</Container>
+    }
+
+    const organizationSlug = slug as string
+
+    return (
+        <Container>
+            <Tabs defaultValue="overview">
+                <Tabs.TabList>
+                    <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
+                    <Tabs.TabNav value="agencies">Agencies</Tabs.TabNav>
+                    <Tabs.TabNav value="members">Members</Tabs.TabNav>
+                    <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
+                    <Tabs.TabNav value="media">Media</Tabs.TabNav>
+                    <Tabs.TabNav value="highlights">Highlights</Tabs.TabNav>
+                    <Tabs.TabNav value="ribbons">Ribbons</Tabs.TabNav>
+                    <Tabs.TabNav value="reviews">Reviews</Tabs.TabNav>
+                </Tabs.TabList>
+                <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
+                <Tabs.TabContent value="agencies">
+                    <OrganizationAgenciesTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="members">
+                    <OrganizationMembersTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="faqs">
+                    <FaqsManager
+                        parent="organizations"
+                        parentSlug={organizationSlug}
+                        permission="organizations.edit"
+                    />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="media">
+                    <OrganizationMediaTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="highlights">
+                    <OrganizationHighlightsTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="ribbons">
+                    <OrganizationRibbonsTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="reviews">
+                    <OrganizationReviewsTab organizationSlug={organizationSlug} />
+                </Tabs.TabContent>
+            </Tabs>
         </Container>
     )
 }

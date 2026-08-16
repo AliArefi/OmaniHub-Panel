@@ -8,11 +8,13 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Switcher from '@/components/ui/Switcher'
-import Upload from '@/components/ui/Upload'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import ImageUploadField from '@/components/admin/ImageUploadField'
+import FaqsManager from '@/components/admin/FaqsManager'
+import { Tabs } from '@/components/ui/Tabs'
 import {
     apiGetAdminService,
     apiGetAdminServiceTree,
@@ -158,8 +160,7 @@ const ServiceForm = () => {
         value: option.id,
     }))
 
-    return (
-        <Container>
+    const overviewForm = (
             <AdaptiveCard>
                 <h3 className="mb-6">
                     {isEditing ? 'Edit Service' : 'New Service'}
@@ -228,9 +229,10 @@ const ServiceForm = () => {
                                 name="icon"
                                 control={control}
                                 render={({ field: { onChange } }) => (
-                                    <Upload
-                                        uploadLimit={1}
-                                        onChange={(files) => onChange(files[0] ?? null)}
+                                    <ImageUploadField
+                                        existingUrl={existing?.data.icon}
+                                        onChange={onChange}
+                                        size={64}
                                     />
                                 )}
                             />
@@ -240,9 +242,10 @@ const ServiceForm = () => {
                                 name="image"
                                 control={control}
                                 render={({ field: { onChange } }) => (
-                                    <Upload
-                                        uploadLimit={1}
-                                        onChange={(files) => onChange(files[0] ?? null)}
+                                    <ImageUploadField
+                                        existingUrl={existing?.data.image}
+                                        onChange={onChange}
+                                        size={64}
                                     />
                                 )}
                             />
@@ -278,6 +281,28 @@ const ServiceForm = () => {
                     </div>
                 </Form>
             </AdaptiveCard>
+    )
+
+    if (!isEditing) {
+        return <Container>{overviewForm}</Container>
+    }
+
+    return (
+        <Container>
+            <Tabs defaultValue="overview">
+                <Tabs.TabList>
+                    <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
+                    <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
+                </Tabs.TabList>
+                <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
+                <Tabs.TabContent value="faqs">
+                    <FaqsManager
+                        parent="services"
+                        parentSlug={slug as string}
+                        permission="services.edit"
+                    />
+                </Tabs.TabContent>
+            </Tabs>
         </Container>
     )
 }

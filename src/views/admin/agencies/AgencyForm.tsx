@@ -8,11 +8,22 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Switcher from '@/components/ui/Switcher'
-import Upload from '@/components/ui/Upload'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import ImageUploadField from '@/components/admin/ImageUploadField'
+import FaqsManager from '@/components/admin/FaqsManager'
+import { Tabs } from '@/components/ui/Tabs'
+import AgencyServiceCategoriesTab from './tabs/AgencyServiceCategoriesTab'
+import AgencyMediaTab from './tabs/AgencyMediaTab'
+import AgencyServicesTab from './tabs/AgencyServicesTab'
+import AgencyMembersTab from './tabs/AgencyMembersTab'
+import AgencyCapabilitiesTab from './tabs/AgencyCapabilitiesTab'
+import AgencySchedulesTab from './tabs/AgencySchedulesTab'
+import AgencyBookingsTab from './tabs/AgencyBookingsTab'
+import AgencyReviewsTab from './tabs/AgencyReviewsTab'
+import AgencyAnalyticsTab from './tabs/AgencyAnalyticsTab'
 import {
     apiGetAdminAgency,
     apiGetAdminAgencyServiceOptions,
@@ -178,8 +189,7 @@ const AgencyForm = () => {
         value: o.id,
     }))
 
-    return (
-        <Container>
+    const overviewForm = (
             <AdaptiveCard>
                 <h3 className="mb-6">{isEditing ? 'Edit Agency' : 'New Agency'}</h3>
                 <Form onSubmit={handleSubmit(onSubmit)}>
@@ -254,9 +264,10 @@ const AgencyForm = () => {
                                 name="logo"
                                 control={control}
                                 render={({ field: { onChange } }) => (
-                                    <Upload
-                                        uploadLimit={1}
-                                        onChange={(files) => onChange(files[0] ?? null)}
+                                    <ImageUploadField
+                                        existingUrl={existing?.data.logo}
+                                        onChange={onChange}
+                                        shape="circle"
                                     />
                                 )}
                             />
@@ -266,9 +277,10 @@ const AgencyForm = () => {
                                 name="banner"
                                 control={control}
                                 render={({ field: { onChange } }) => (
-                                    <Upload
-                                        uploadLimit={1}
-                                        onChange={(files) => onChange(files[0] ?? null)}
+                                    <ImageUploadField
+                                        existingUrl={existing?.data.banner}
+                                        onChange={onChange}
+                                        size={120}
                                     />
                                 )}
                             />
@@ -331,6 +343,68 @@ const AgencyForm = () => {
                     </div>
                 </Form>
             </AdaptiveCard>
+    )
+
+    if (!isEditing) {
+        return <Container>{overviewForm}</Container>
+    }
+
+    const agencySlug = slug as string
+
+    return (
+        <Container>
+            <Tabs defaultValue="overview">
+                <Tabs.TabList>
+                    <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
+                    <Tabs.TabNav value="service-categories">Service Categories</Tabs.TabNav>
+                    <Tabs.TabNav value="media">Media</Tabs.TabNav>
+                    <Tabs.TabNav value="services">Services</Tabs.TabNav>
+                    <Tabs.TabNav value="members">Members</Tabs.TabNav>
+                    <Tabs.TabNav value="capabilities">
+                        Member-Service Pricing &amp; Duration
+                    </Tabs.TabNav>
+                    <Tabs.TabNav value="schedules">Member Schedules</Tabs.TabNav>
+                    <Tabs.TabNav value="reservations">Bookings</Tabs.TabNav>
+                    <Tabs.TabNav value="reviews">Reviews</Tabs.TabNav>
+                    <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
+                    <Tabs.TabNav value="analytics">Analytics</Tabs.TabNav>
+                </Tabs.TabList>
+                <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
+                <Tabs.TabContent value="service-categories">
+                    <AgencyServiceCategoriesTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="media">
+                    <AgencyMediaTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="services">
+                    <AgencyServicesTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="members">
+                    <AgencyMembersTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="capabilities">
+                    <AgencyCapabilitiesTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="schedules">
+                    <AgencySchedulesTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="reservations">
+                    <AgencyBookingsTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="reviews">
+                    <AgencyReviewsTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="faqs">
+                    <FaqsManager
+                        parent="agencies"
+                        parentSlug={agencySlug}
+                        permission="agencies.edit"
+                    />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="analytics">
+                    <AgencyAnalyticsTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+            </Tabs>
         </Container>
     )
 }
