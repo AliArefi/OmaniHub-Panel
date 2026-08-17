@@ -12,6 +12,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import FaqsManager from '@/components/admin/FaqsManager'
 import { Tabs } from '@/components/ui/Tabs'
 import OrganizationAgenciesTab from './tabs/OrganizationAgenciesTab'
@@ -63,7 +64,7 @@ const OrganizationForm = () => {
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing } = useSWR(
+    const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-organization', slug] : null,
         () => apiGetAdminOrganization(slug as string),
     )
@@ -228,6 +229,10 @@ const OrganizationForm = () => {
 
     if (!isEditing) {
         return <Container>{overviewForm}</Container>
+    }
+
+    if (isExistingLoading) {
+        return <AdminEditLoading label="Loading organization..." />
     }
 
     const organizationSlug = slug as string

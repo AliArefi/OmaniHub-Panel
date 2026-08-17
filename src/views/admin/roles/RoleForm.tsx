@@ -10,6 +10,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import PermissionMatrix from '@/components/admin/PermissionMatrix'
+import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import {
     apiGetAdminRole,
     apiCreateAdminRole,
@@ -27,7 +28,7 @@ const RoleForm = () => {
     const isEditing = Boolean(id)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing } = useSWR(
+    const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-role', id] : null,
         () => apiGetAdminRole(Number(id)),
     )
@@ -68,6 +69,10 @@ const RoleForm = () => {
         } finally {
             setSubmitting(false)
         }
+    }
+
+    if (isEditing && isExistingLoading) {
+        return <AdminEditLoading label="Loading role..." />
     }
 
     return (

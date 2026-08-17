@@ -15,6 +15,7 @@ import ToolButtonBulletList from './toolButtons/ToolButtonBulletList'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import type { Editor, EditorContentProps, JSONContent } from '@tiptap/react'
+import { useEffect } from 'react'
 import type { ReactNode, JSX, Ref } from 'react'
 import type { BaseToolButtonProps, HeadingLevel } from './toolButtons/types'
 
@@ -107,6 +108,17 @@ const RichTextEditor = (props: RichTextEditorProps) => {
                   })
               },
           })
+
+    useEffect(() => {
+        if (!editor || editor.isDestroyed || editor.getHTML() === content) {
+            return
+        }
+
+        // TipTap reads `content` only while creating the editor. Admin forms
+        // load their values asynchronously, so synchronize later resets
+        // without emitting an update that would mark the form as edited.
+        editor.commands.setContent(content, false)
+    }, [content, editor])
 
     if (!editor) return null
 

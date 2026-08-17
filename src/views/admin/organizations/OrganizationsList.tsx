@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
+import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import { TbEdit, TbTrash } from 'react-icons/tb'
@@ -44,6 +45,10 @@ const OrganizationsList = () => {
                 const row = props.row.original
                 return (
                     <div className="flex items-center gap-3">
+                        <AdminPreviewAction
+                            label="organization"
+                            slug={row.slug}
+                        />
                         {can('organizations.edit') && (
                             <Tooltip title="Edit">
                                 <button

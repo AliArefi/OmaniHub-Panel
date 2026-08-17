@@ -12,6 +12,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import FaqsManager from '@/components/admin/FaqsManager'
 import { Tabs } from '@/components/ui/Tabs'
@@ -75,7 +76,7 @@ const AgencyForm = () => {
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing } = useSWR(
+    const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-agency', slug] : null,
         () => apiGetAdminAgency(slug as string),
     )
@@ -347,6 +348,10 @@ const AgencyForm = () => {
 
     if (!isEditing) {
         return <Container>{overviewForm}</Container>
+    }
+
+    if (isExistingLoading) {
+        return <AdminEditLoading label="Loading agency..." />
     }
 
     const agencySlug = slug as string

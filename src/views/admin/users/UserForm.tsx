@@ -10,6 +10,7 @@ import Select from '@/components/ui/Select'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
+import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import usePermission from '@/utils/hooks/usePermission'
 import {
     apiGetAdminUser,
@@ -35,7 +36,7 @@ const UserForm = () => {
     const [submitting, setSubmitting] = useState(false)
     const { can } = usePermission()
 
-    const { data: existing } = useSWR(
+    const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-user', id] : null,
         () => apiGetAdminUser(Number(id)),
     )
@@ -114,6 +115,10 @@ const UserForm = () => {
         label: role.name,
         value: role.id,
     }))
+
+    if (isEditing && isExistingLoading) {
+        return <AdminEditLoading label="Loading user..." />
+    }
 
     return (
         <Container>

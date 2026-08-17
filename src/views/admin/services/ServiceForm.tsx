@@ -14,6 +14,7 @@ import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import FaqsManager from '@/components/admin/FaqsManager'
+import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import { Tabs } from '@/components/ui/Tabs'
 import {
     apiGetAdminService,
@@ -62,7 +63,7 @@ const ServiceForm = () => {
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing } = useSWR(
+    const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-service', slug] : null,
         () => apiGetAdminService(slug as string),
     )
@@ -282,6 +283,10 @@ const ServiceForm = () => {
                 </Form>
             </AdaptiveCard>
     )
+
+    if (isEditing && isExistingLoading) {
+        return <AdminEditLoading label="Loading service..." />
+    }
 
     if (!isEditing) {
         return <Container>{overviewForm}</Container>
