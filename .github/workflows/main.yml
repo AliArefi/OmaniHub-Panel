@@ -131,7 +131,14 @@ jobs:
 
           DEST_DIR="${{ secrets.PANEL_WEB_ROOT }}"
 
-          rsync -az --delete \
+          rsync -az --delete --exclude version.json \
             -e "ssh -i ~/.ssh/vps_key -o IdentitiesOnly=yes -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=yes" \
             out/ \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEST_DIR%/}/"
+
+          # Publish the version marker only after every HTML and hashed asset
+          # has arrived, so open tabs never refresh into a partial deployment.
+          rsync -az \
+            -e "ssh -i ~/.ssh/vps_key -o IdentitiesOnly=yes -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=yes" \
+            out/version.json \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${DEST_DIR%/}/version.json"

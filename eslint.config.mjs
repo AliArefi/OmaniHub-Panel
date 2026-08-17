@@ -29,6 +29,7 @@ export default tseslint.config(
                 '**/eslint.config.mjs',
                 '**/postcss.config.cjs',
                 '**/tailwind.config.cjs',
+                '**/scripts/*.mjs',
             ],
         },
         ...fixupConfigRules(
