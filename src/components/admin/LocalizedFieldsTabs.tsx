@@ -156,23 +156,23 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                                                             if (field.type === 'textarea') {
                                                                 return (
                                                                     <Input
+                                                                        {...rhfField}
                                                                         textArea
                                                                         dir={direction}
                                                                         rows={field.rows ?? 4}
                                                                         maxLength={field.maxLength}
                                                                         value={rhfField.value ?? ''}
-                                                                        onChange={rhfField.onChange}
                                                                     />
                                                                 )
                                                             }
 
                                                             return (
                                                                 <Input
+                                                                    {...rhfField}
                                                                     type={field.type === 'url' ? 'url' : 'text'}
                                                                     dir={direction}
                                                                     maxLength={field.maxLength}
                                                                     value={rhfField.value ?? ''}
-                                                                    onChange={rhfField.onChange}
                                                                 />
                                                             )
                                                         }}
