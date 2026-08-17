@@ -21,7 +21,7 @@ const ServicesList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
 
-    const columns = ({ mutate }: { mutate: () => void }): ColumnDef<AdminService>[] => [
+    const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<AdminService>[] => [
         {
             header: 'Name',
             accessorKey: 'name',
@@ -51,8 +51,8 @@ const ServicesList = () => {
                 const row = props.row.original
                 return (
                     <div className="flex items-center gap-3">
-                        <AdminPreviewAction label="service" slug={row.slug} />
-                        {can('services.edit') && (
+                        {!isTrash && <AdminPreviewAction label="service" slug={row.slug} />}
+                        {!isTrash && can('services.edit') && (
                             <Tooltip title="Edit">
                                 <button
                                     type="button"
@@ -65,7 +65,7 @@ const ServicesList = () => {
                                 </button>
                             </Tooltip>
                         )}
-                        {can('services.delete') && (
+                        {!isTrash && can('services.delete') && (
                             <Tooltip title="Delete">
                                 <button
                                     type="button"
@@ -102,6 +102,7 @@ const ServicesList = () => {
 
     return (
         <AdminListPage<AdminService>
+            trashEnabled
             title="Services"
             endpoint="/admin/services"
             columns={columns}
@@ -110,6 +111,7 @@ const ServicesList = () => {
             deletePermission="services.delete"
             viewPermission="services.view"
             searchPlaceholder="Search services…"
+            statusFilters={['published', 'draft', 'pending']}
         />
     )
 }

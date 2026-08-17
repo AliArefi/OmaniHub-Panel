@@ -33,6 +33,7 @@ function useAdminList<T>(
         total: data?.meta?.total ?? 0,
         pageSize: data?.meta?.per_page ?? tableData.pageSize ?? 20,
         currentPage: data?.meta?.current_page ?? tableData.pageIndex ?? 1,
+        counts: data?.counts ?? {},
         error,
         isLoading,
         mutate,

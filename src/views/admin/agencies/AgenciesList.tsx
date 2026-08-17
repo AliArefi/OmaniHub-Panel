@@ -22,7 +22,7 @@ const AgenciesList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
 
-    const columns = ({ mutate }: { mutate: () => void }): ColumnDef<AdminAgency>[] => [
+    const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<AdminAgency>[] => [
         {
             header: 'Agency',
             accessorKey: 'title',
@@ -55,8 +55,8 @@ const AgenciesList = () => {
                 const row = props.row.original
                 return (
                     <div className="flex items-center gap-3">
-                        <AdminPreviewAction label="agency" slug={row.slug} />
-                        {can('agencies.edit') && (
+                        {!isTrash && <AdminPreviewAction label="agency" slug={row.slug} />}
+                        {!isTrash && can('agencies.edit') && (
                             <Tooltip title="Edit">
                                 <button
                                     type="button"
@@ -69,7 +69,7 @@ const AgenciesList = () => {
                                 </button>
                             </Tooltip>
                         )}
-                        {can('agencies.delete') && (
+                        {!isTrash && can('agencies.delete') && (
                             <Tooltip title="Delete">
                                 <button
                                     type="button"
@@ -106,6 +106,7 @@ const AgenciesList = () => {
 
     return (
         <AdminListPage<AdminAgency>
+            trashEnabled
             title="Agencies"
             endpoint="/admin/agencies"
             columns={columns}
@@ -114,6 +115,7 @@ const AgenciesList = () => {
             deletePermission="agencies.delete"
             viewPermission="agencies.view"
             searchPlaceholder="Search agencies…"
+            statusFilters={['published', 'draft', 'pending']}
         />
     )
 }

@@ -11,6 +11,7 @@ export type AdminListMeta = {
 export type AdminListResponse<T> = {
     data: T[]
     meta: AdminListMeta
+    counts?: Record<string, number>
 }
 
 export type AdminListFilters = Record<string, string | number | boolean | undefined>

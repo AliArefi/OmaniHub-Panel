@@ -23,8 +23,10 @@ const OrganizationsList = () => {
 
     const columns = ({
         mutate,
+        isTrash,
     }: {
         mutate: () => void
+        isTrash: boolean
     }): ColumnDef<AdminOrganization>[] => [
         { header: 'Title', accessorKey: 'title' },
         { header: 'Slug', accessorKey: 'slug' },
@@ -45,11 +47,13 @@ const OrganizationsList = () => {
                 const row = props.row.original
                 return (
                     <div className="flex items-center gap-3">
-                        <AdminPreviewAction
-                            label="organization"
-                            slug={row.slug}
-                        />
-                        {can('organizations.edit') && (
+                        {!isTrash && (
+                            <AdminPreviewAction
+                                label="organization"
+                                slug={row.slug}
+                            />
+                        )}
+                        {!isTrash && can('organizations.edit') && (
                             <Tooltip title="Edit">
                                 <button
                                     type="button"
@@ -64,7 +68,7 @@ const OrganizationsList = () => {
                                 </button>
                             </Tooltip>
                         )}
-                        {can('organizations.delete') && (
+                        {!isTrash && can('organizations.delete') && (
                             <Tooltip title="Delete">
                                 <button
                                     type="button"
@@ -103,6 +107,7 @@ const OrganizationsList = () => {
 
     return (
         <AdminListPage<AdminOrganization>
+            trashEnabled
             title="Organizations"
             endpoint="/admin/organizations"
             columns={columns}
@@ -111,6 +116,7 @@ const OrganizationsList = () => {
             deletePermission="organizations.delete"
             viewPermission="organizations.view"
             searchPlaceholder="Search organizations…"
+            statusFilters={['published', 'draft', 'pending']}
         />
     )
 }
