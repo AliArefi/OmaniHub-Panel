@@ -192,14 +192,18 @@ export default function CmsEntryForm() {
         ),
     })
 
-    const onSubmit = async (values: FormValues) => {
+    const onSubmit = async (
+        values: FormValues,
+        workflow?: 'publish' | 'unpublish',
+    ) => {
         setSubmitting(true)
         try {
             const payload = serialize(values)
+            let entryId = Number(id)
             if (isEditing) {
-                await apiUpdateCmsEntry(Number(id), payload)
+                await apiUpdateCmsEntry(entryId, payload)
             } else {
-                await apiCreateCmsEntry(
+                const created = await apiCreateCmsEntry(
                     typeKey,
                     payload.translations as Partial<
                         Record<CmsLocale, CmsTranslation>
@@ -211,17 +215,29 @@ export default function CmsEntryForm() {
                           }
                         : { featured: values.featured },
                 )
+                entryId = created.data.id
+            }
+            if (workflow) {
+                await apiCmsEntryAction(entryId, workflow)
             }
             toast.push(
-                <Notification type="success" title="Saved">
-                    CMS entry saved successfully.
+                <Notification
+                    type="success"
+                    title={workflow === 'publish' ? 'Published' : 'Saved'}
+                >
+                    CMS entry {workflow === 'publish' ? 'published' : 'saved'}{' '}
+                    successfully.
                 </Notification>,
             )
             navigate(`/admin/cms/${type}`)
-        } catch {
+        } catch (error) {
+            const message =
+                (error as { response?: { data?: { message?: string } } })
+                    ?.response?.data?.message ??
+                'Check required Arabic fields and try again.'
             toast.push(
                 <Notification type="danger" title="Failed to save">
-                    Check required Arabic fields and try again.
+                    {message}
                 </Notification>,
             )
         } finally {
@@ -325,40 +341,26 @@ export default function CmsEntryForm() {
                                 >
                                     Cancel
                                 </Button>
-                                {id &&
-                                    entryResponse?.data.status !==
-                                        'published' && (
-                                        <Button
-                                            type="button"
-                                            onClick={() =>
-                                                apiCmsEntryAction(
-                                                    Number(id),
-                                                    'publish',
-                                                ).then(() =>
-                                                    navigate(
-                                                        `/admin/cms/${type}`,
-                                                    ),
-                                                )
-                                            }
-                                        >
-                                            Publish
-                                        </Button>
-                                    )}
+                                {entryResponse?.data.status !== 'published' && (
+                                    <Button
+                                        type="button"
+                                        loading={submitting}
+                                        onClick={handleSubmit((values) =>
+                                            onSubmit(values, 'publish'),
+                                        )}
+                                    >
+                                        Publish
+                                    </Button>
+                                )}
                                 {id &&
                                     entryResponse?.data.status ===
                                         'published' && (
                                         <Button
                                             type="button"
-                                            onClick={() =>
-                                                apiCmsEntryAction(
-                                                    Number(id),
-                                                    'unpublish',
-                                                ).then(() =>
-                                                    navigate(
-                                                        `/admin/cms/${type}`,
-                                                    ),
-                                                )
-                                            }
+                                            loading={submitting}
+                                            onClick={handleSubmit((values) =>
+                                                onSubmit(values, 'unpublish'),
+                                            )}
                                         >
                                             Unpublish
                                         </Button>

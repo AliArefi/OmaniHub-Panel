@@ -1,6 +1,9 @@
 import useSWR from 'swr'
 import { buildAdminListParams } from '@/services/admin/AdminApiService'
-import type { AdminListFilters, AdminListResponse } from '@/services/admin/AdminApiService'
+import type {
+    AdminListFilters,
+    AdminListResponse,
+} from '@/services/admin/AdminApiService'
 import type { TableQueries } from '@/@types/common'
 
 /**
@@ -25,7 +28,11 @@ function useAdminList<T>(
                     params: queryParams,
                 }),
             ),
-        { revalidateOnFocus: false, revalidateIfStale: false },
+        {
+            revalidateOnMount: true,
+            revalidateOnFocus: false,
+            revalidateIfStale: false,
+        },
     )
 
     return {
