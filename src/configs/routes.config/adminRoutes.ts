@@ -10,6 +10,24 @@ import type { Routes } from '@/@types/routes'
  */
 const adminRoutes: Routes = [
     {
+        key: 'admin.cms',
+        path: '/admin/cms/:type',
+        component: lazy(() => import('@/views/admin/cms/CmsManager')),
+        authority: [],
+        permissions: ['cms.pages.view', 'cms.posts.view', 'cms.blocks.view'],
+    },
+    {
+        key: 'admin.cms.manage',
+        path: '/admin/cms/manage/:resource',
+        component: lazy(() => import('@/views/admin/cms/CmsCollectionManager')),
+        authority: [],
+        permissions: [
+            'cms.taxonomy.view',
+            'cms.types.view',
+            'cms.comments.view',
+        ],
+    },
+    {
         key: 'admin.services',
         path: '/admin/services',
         component: lazy(() => import('@/views/admin/services/ServicesList')),
