@@ -6,6 +6,7 @@ import AdaptiveCard from '@/components/shared/AdaptiveCard'
 import Container from '@/components/shared/Container'
 import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import CmsMediaManager from './CmsMediaManager'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Switcher from '@/components/ui/Switcher'
@@ -19,7 +20,6 @@ import {
     apiGetCmsEntry,
     apiGetCmsTypes,
     apiUpdateCmsEntry,
-    apiUploadCmsMedia,
     type CmsContentType,
     type CmsCustomField,
     type CmsLocale,
@@ -103,9 +103,12 @@ export default function CmsEntryForm() {
     const isEditing = Boolean(id)
     const [submitting, setSubmitting] = useState(false)
     const { data: typesResponse } = useSWR('cms-types', apiGetCmsTypes)
-    const { data: entryResponse, isLoading } = useSWR(
-        isEditing ? ['cms-entry', id] : null,
-        () => apiGetCmsEntry(Number(id)),
+    const {
+        data: entryResponse,
+        isLoading,
+        mutate: mutateEntry,
+    } = useSWR(isEditing ? ['cms-entry', id] : null, () =>
+        apiGetCmsEntry(Number(id)),
     )
     const contentType = useMemo(
         () => typesResponse?.data.find((item) => item.key === typeKey),
@@ -217,16 +220,6 @@ export default function CmsEntryForm() {
         } finally {
             setSubmitting(false)
         }
-    }
-
-    const upload = async (
-        locale: CmsLocale,
-        collection: 'featured_image' | 'gallery' | 'attachments',
-        files: FileList | null,
-    ) => {
-        if (!id || !files?.length) return
-        await apiUploadCmsMedia(Number(id), locale, collection, files)
-        toast.push(<Notification type="success" title="Uploaded" />)
     }
 
     if (isEditing && isLoading)
@@ -355,47 +348,13 @@ export default function CmsEntryForm() {
                                     Save the entry before uploading media.
                                 </p>
                             )}
-                            {id &&
-                                LOCALES.map((locale) => (
-                                    <div
-                                        key={locale}
-                                        className="mb-5 border-b border-gray-200 pb-4 last:border-0"
-                                    >
-                                        <strong className="mb-2 block uppercase">
-                                            {locale}
-                                        </strong>
-                                        {(
-                                            [
-                                                'featured_image',
-                                                'gallery',
-                                                'attachments',
-                                            ] as const
-                                        ).map((collection) => (
-                                            <FormItem
-                                                key={collection}
-                                                label={collection.replace(
-                                                    '_',
-                                                    ' ',
-                                                )}
-                                            >
-                                                <Input
-                                                    type="file"
-                                                    multiple={
-                                                        collection !==
-                                                        'featured_image'
-                                                    }
-                                                    onChange={(event) =>
-                                                        void upload(
-                                                            locale,
-                                                            collection,
-                                                            event.target.files,
-                                                        )
-                                                    }
-                                                />
-                                            </FormItem>
-                                        ))}
-                                    </div>
-                                ))}
+                            {id && (
+                                <CmsMediaManager
+                                    entryId={Number(id)}
+                                    entry={entryResponse?.data}
+                                    onChanged={() => mutateEntry()}
+                                />
+                            )}
                         </AdaptiveCard>
                     </div>
                 </div>

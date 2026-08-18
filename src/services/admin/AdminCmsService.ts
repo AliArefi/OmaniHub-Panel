@@ -26,12 +26,23 @@ export type CmsEntry = {
     published_at?: string | null
     scheduled_for?: string | null
     translations?: Partial<Record<CmsLocale, CmsTranslation>>
-    media?: Partial<
-        Record<
-            CmsLocale,
-            Array<{ id: number; url: string; collection: string }>
-        >
-    >
+    media?: Partial<Record<CmsLocale, CmsMediaItem[]>>
+}
+
+export type CmsMediaItem = {
+    id: number
+    url: string
+    name?: string
+    file_name?: string
+    mime_type?: string
+    size?: number
+    collection: 'featured_image' | 'gallery' | 'attachments'
+    meta?: {
+        alt?: string
+        title?: string
+        caption?: string
+        visibility?: 'public' | 'private' | 'admin_only'
+    }
 }
 
 export type CmsCustomField = {
@@ -114,7 +125,7 @@ export const apiUploadCmsMedia = (
     id: number,
     locale: CmsLocale,
     collection: 'featured_image' | 'gallery' | 'attachments',
-    files: FileList,
+    files: File[] | FileList,
 ) => {
     const data = new FormData()
     data.append('locale', locale)
@@ -127,6 +138,34 @@ export const apiUploadCmsMedia = (
         headers: { 'Content-Type': 'multipart/form-data' },
     })
 }
+
+export const apiUpdateCmsMedia = (
+    entryId: number,
+    mediaId: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios<{ data: CmsMediaItem }>({
+        url: `/admin/cms/entries/${entryId}/media/${mediaId}/update`,
+        method: 'post',
+        data,
+    })
+
+export const apiDeleteCmsMedia = (entryId: number, mediaId: number) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/media/${mediaId}/delete`,
+        method: 'post',
+    })
+
+export const apiReorderCmsMedia = (
+    entryId: number,
+    locale: CmsLocale,
+    ids: number[],
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/media/reorder`,
+        method: 'post',
+        data: { locale, ids },
+    })
 
 export type CmsCollectionItem = {
     id: number
