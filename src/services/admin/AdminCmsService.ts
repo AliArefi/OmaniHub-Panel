@@ -17,15 +17,44 @@ export type CmsTranslation = {
 export type CmsEntry = {
     id: number
     type: string
+    title?: string
+    slug?: string
     status: string
     featured: boolean
     is_system: boolean
+    comments_count?: number
+    published_at?: string | null
+    scheduled_for?: string | null
     translations?: Partial<Record<CmsLocale, CmsTranslation>>
     media?: Partial<
         Record<
             CmsLocale,
             Array<{ id: number; url: string; collection: string }>
         >
+    >
+}
+
+export type CmsCustomField = {
+    id: string
+    type: 'text' | 'textarea' | 'number' | 'boolean' | 'date'
+    required?: boolean
+}
+
+export type CmsContentType = {
+    id: number
+    key: string
+    is_system: boolean
+    settings?: { supports?: string[]; custom_fields?: CmsCustomField[] }
+    translations?: Record<
+        string,
+        {
+            name?: string
+            description?: string
+            custom_fields?: Record<
+                string,
+                { label?: string; default?: unknown }
+            >
+        }
     >
 }
 
@@ -38,6 +67,21 @@ export const apiGetCmsEntries = (type: string) =>
 export const apiGetCmsEntry = (id: number) =>
     ApiService.fetchDataWithAxios<{ data: CmsEntry }>({
         url: `/admin/cms/entries/${id}`,
+    })
+
+export const apiGetCmsTypes = () =>
+    ApiService.fetchDataWithAxios<{ data: CmsContentType[] }>({
+        url: '/admin/cms/types',
+    })
+
+export const apiSaveCmsType = (
+    id: number | null,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: id ? `/admin/cms/types/${id}/update` : '/admin/cms/types',
+        method: 'post',
+        data,
     })
 
 export const apiCreateCmsEntry = (
@@ -90,7 +134,18 @@ export type CmsCollectionItem = {
     is_system?: boolean
     status?: boolean
     comment?: string
-    translations?: Record<string, { name?: string; slug?: string }>
+    settings?: { supports?: string[]; custom_fields?: CmsCustomField[] }
+    translations?: Record<
+        string,
+        {
+            name?: string
+            slug?: string
+            custom_fields?: Record<
+                string,
+                { label?: string; default?: unknown }
+            >
+        }
+    >
 }
 
 export const apiGetCmsCollection = (resource: string) =>
@@ -104,6 +159,17 @@ export const apiCreateCmsCollectionItem = (
 ) =>
     ApiService.fetchDataWithAxios({
         url: `/admin/cms/${resource}`,
+        method: 'post',
+        data,
+    })
+
+export const apiUpdateCmsCollectionItem = (
+    resource: string,
+    id: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/${resource}/${id}/update`,
         method: 'post',
         data,
     })

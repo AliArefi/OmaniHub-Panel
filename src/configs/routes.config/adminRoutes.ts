@@ -10,11 +10,40 @@ import type { Routes } from '@/@types/routes'
  */
 const adminRoutes: Routes = [
     {
+        key: 'admin.cms.new',
+        path: '/admin/cms/:type/new',
+        component: lazy(() => import('@/views/admin/cms/CmsEntryForm')),
+        authority: [],
+        permissions: [
+            'cms.pages.create',
+            'cms.posts.create',
+            'cms.blocks.create',
+            'cms.entries.create',
+        ],
+    },
+    {
+        key: 'admin.cms.edit',
+        path: '/admin/cms/:type/:id/edit',
+        component: lazy(() => import('@/views/admin/cms/CmsEntryForm')),
+        authority: [],
+        permissions: [
+            'cms.pages.edit',
+            'cms.posts.edit',
+            'cms.blocks.edit',
+            'cms.entries.edit',
+        ],
+    },
+    {
         key: 'admin.cms',
         path: '/admin/cms/:type',
         component: lazy(() => import('@/views/admin/cms/CmsManager')),
         authority: [],
-        permissions: ['cms.pages.view', 'cms.posts.view', 'cms.blocks.view'],
+        permissions: [
+            'cms.pages.view',
+            'cms.posts.view',
+            'cms.blocks.view',
+            'cms.entries.view',
+        ],
     },
     {
         key: 'admin.cms.manage',
