@@ -145,6 +145,7 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                                                                     <div dir={direction}>
                                                                         <RichTextEditor
                                                                             content={rhfField.value ?? ''}
+                                                                            invalid={Boolean(errorMessage)}
                                                                             onChange={({ html }) =>
                                                                                 rhfField.onChange(html)
                                                                             }

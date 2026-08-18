@@ -26,6 +26,7 @@ import {
     type CmsTranslation,
 } from '@/services/admin/AdminCmsService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
+import type { Path } from 'react-hook-form'
 
 const TYPE_KEYS: Record<string, string> = {
     pages: 'page',
@@ -119,7 +120,14 @@ export default function CmsEntryForm() {
         () => contentType?.settings?.custom_fields ?? [],
         [contentType],
     )
-    const { control, handleSubmit, reset } = useForm<FormValues>({
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setError,
+        clearErrors,
+        formState: { errors },
+    } = useForm<FormValues>({
         defaultValues: {
             featured: false,
             is_system: false,
@@ -196,6 +204,7 @@ export default function CmsEntryForm() {
         values: FormValues,
         workflow?: 'publish' | 'unpublish',
     ) => {
+        clearErrors()
         setSubmitting(true)
         try {
             const payload = serialize(values)
@@ -231,9 +240,28 @@ export default function CmsEntryForm() {
             )
             navigate(`/admin/cms/${type}`)
         } catch (error) {
+            const response = (
+                error as {
+                    response?: {
+                        data?: {
+                            message?: string
+                            errors?: Record<string, string[]>
+                        }
+                    }
+                }
+            ).response?.data
+            const validationErrors = response?.errors ?? {}
+            Object.entries(validationErrors).forEach(([field, messages]) => {
+                if (field.startsWith('translations.')) {
+                    setError(field as Path<FormValues>, {
+                        type: 'server',
+                        message: messages[0],
+                    })
+                }
+            })
             const message =
-                (error as { response?: { data?: { message?: string } } })
-                    ?.response?.data?.message ??
+                Object.values(validationErrors)[0]?.[0] ??
+                response?.message ??
                 'Check required Arabic fields and try again.'
             toast.push(
                 <Notification type="danger" title="Failed to save">
@@ -276,6 +304,7 @@ export default function CmsEntryForm() {
                                         : []),
                                 ]}
                                 control={control}
+                                errors={errors}
                             />
                             {customFields.length > 0 && (
                                 <CustomFields
