@@ -71,6 +71,7 @@ type FlatTranslation = Record<string, unknown> & {
 }
 type FormValues = {
     featured: boolean
+    is_system: boolean
     translations: Record<CmsLocale, FlatTranslation>
 }
 const emptyTranslation = (): FlatTranslation => ({
@@ -121,6 +122,7 @@ export default function CmsEntryForm() {
     const { control, handleSubmit, reset } = useForm<FormValues>({
         defaultValues: {
             featured: false,
+            is_system: false,
             translations: { ar: emptyTranslation(), en: emptyTranslation() },
         },
     })
@@ -129,6 +131,7 @@ export default function CmsEntryForm() {
         if (!entryResponse?.data) return
         reset({
             featured: entryResponse.data.featured,
+            is_system: entryResponse.data.is_system,
             translations: {
                 ar: flattenTranslation(entryResponse.data.translations?.ar),
                 en: flattenTranslation(entryResponse.data.translations?.en),
@@ -154,11 +157,12 @@ export default function CmsEntryForm() {
                 },
             ]),
         ) as Record<CmsLocale, FlatTranslation>
-        reset({ featured: false, translations })
+        reset({ featured: false, is_system: false, translations })
     }, [contentType, customFields, isEditing, reset])
 
     const serialize = (values: FormValues) => ({
         featured: values.featured,
+        ...(typeKey === 'page' ? { is_system: values.is_system } : {}),
         translations: Object.fromEntries(
             LOCALES.map((locale) => {
                 const value = values.translations[locale]
@@ -195,15 +199,18 @@ export default function CmsEntryForm() {
             if (isEditing) {
                 await apiUpdateCmsEntry(Number(id), payload)
             } else {
-                const created = await apiCreateCmsEntry(
+                await apiCreateCmsEntry(
                     typeKey,
                     payload.translations as Partial<
                         Record<CmsLocale, CmsTranslation>
                     >,
+                    typeKey === 'page'
+                        ? {
+                              is_system: values.is_system,
+                              featured: values.featured,
+                          }
+                        : { featured: values.featured },
                 )
-                await apiUpdateCmsEntry(created.data.id, {
-                    featured: values.featured,
-                })
             }
             toast.push(
                 <Notification type="success" title="Saved">
@@ -278,6 +285,23 @@ export default function CmsEntryForm() {
                                     )}
                                 />
                             </FormItem>
+                            {typeKey === 'page' && (
+                                <FormItem
+                                    label="System page"
+                                    extra="System pages are protected from trash and permanent deletion."
+                                >
+                                    <Controller
+                                        name="is_system"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Switcher
+                                                checked={field.value}
+                                                onChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </FormItem>
+                            )}
                             {entryResponse?.data && (
                                 <div className="mb-4 flex items-center justify-between">
                                     <span>Status</span>

@@ -98,11 +98,12 @@ export const apiSaveCmsType = (
 export const apiCreateCmsEntry = (
     type: string,
     translations: Partial<Record<CmsLocale, CmsTranslation>>,
+    shared: { is_system?: boolean; featured?: boolean } = {},
 ) =>
     ApiService.fetchDataWithAxios<{ data: { id: number } }>({
         url: '/admin/cms/entries',
         method: 'post',
-        data: { type, translations },
+        data: { type, translations, ...shared },
     })
 
 export const apiUpdateCmsEntry = (id: number, data: Record<string, unknown>) =>
