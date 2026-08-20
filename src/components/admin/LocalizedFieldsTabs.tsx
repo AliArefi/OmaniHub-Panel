@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Controller, useWatch } from 'react-hook-form'
 import { Tabs } from '@/components/ui/Tabs'
 import { FormItem } from '@/components/ui/Form'
 import Input from '@/components/ui/Input'
+import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import RichTextEditor from '@/components/shared/RichTextEditor'
 import useAdminLocales from '@/utils/hooks/useAdminLocales'
@@ -21,7 +22,10 @@ export type LocalizedFieldDescriptor = {
     help?: string
 }
 
-type TranslationsShape = Record<string, Record<string, string | null | undefined>>
+type TranslationsShape = Record<
+    string,
+    Record<string, string | null | undefined>
+>
 
 type LocalizedFieldsTabsProps = {
     fields: LocalizedFieldDescriptor[]
@@ -52,10 +56,11 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
     const { locales, localeMeta, fallbackLocale, isLoading } = useAdminLocales()
 
     const localeKeys = useMemo(() => Object.keys(locales), [locales])
-    const translations: TranslationsShape = useWatch({
-        control,
-        name: 'translations',
-    }) ?? {}
+    const translations: TranslationsShape =
+        useWatch({
+            control,
+            name: 'translations',
+        }) ?? {}
 
     if (isLoading || localeKeys.length === 0) {
         return null
@@ -70,7 +75,9 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                     const values = translations[locale] ?? {}
                     const complete =
                         requiredFields.length === 0 ||
-                        requiredFields.every((field) => Boolean(values[field]?.trim?.()))
+                        requiredFields.every((field) =>
+                            Boolean(values[field]?.trim?.()),
+                        )
 
                     return (
                         <Tabs.TabNav key={locale} value={locale}>
@@ -101,7 +108,9 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                 return (
                     <Tabs.TabContent key={locale} value={locale}>
                         {groups.map((group) => {
-                            const groupFields = fields.filter((f) => f.group === group)
+                            const groupFields = fields.filter(
+                                (f) => f.group === group,
+                            )
                             if (groupFields.length === 0) return null
 
                             return (
@@ -112,26 +121,44 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {groupFields.map((field) => {
                                             const fieldName = `translations.${locale}.${field.name}`
-                                            const fieldErrors = errors?.translations as
-                                                | Record<string, Record<string, { message?: string }>>
-                                                | undefined
+                                            const fieldErrors =
+                                                errors?.translations as
+                                                    | Record<
+                                                          string,
+                                                          Record<
+                                                              string,
+                                                              {
+                                                                  message?: string
+                                                              }
+                                                          >
+                                                      >
+                                                    | undefined
                                             const errorMessage =
-                                                fieldErrors?.[locale]?.[field.name]?.message
+                                                fieldErrors?.[locale]?.[
+                                                    field.name
+                                                ]?.message
 
                                             return (
                                                 <FormItem
                                                     key={fieldName}
                                                     label={field.label}
                                                     asterisk={
-                                                        locale === fallbackLocale &&
-                                                        requiredFields.includes(field.name)
+                                                        locale ===
+                                                            fallbackLocale &&
+                                                        requiredFields.includes(
+                                                            field.name,
+                                                        )
                                                     }
-                                                    invalid={Boolean(errorMessage)}
+                                                    invalid={Boolean(
+                                                        errorMessage,
+                                                    )}
                                                     errorMessage={errorMessage}
                                                     extra={field.help}
                                                     className={
-                                                        field.type === 'textarea' ||
-                                                        field.type === 'richtext'
+                                                        field.type ===
+                                                            'textarea' ||
+                                                        field.type ===
+                                                            'richtext'
                                                             ? 'md:col-span-2'
                                                             : undefined
                                                     }
@@ -139,30 +166,54 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                                                     <Controller
                                                         name={fieldName}
                                                         control={control}
-                                                        render={({ field: rhfField }) => {
-                                                            if (field.type === 'richtext') {
+                                                        render={({
+                                                            field: rhfField,
+                                                        }) => {
+                                                            if (
+                                                                field.type ===
+                                                                'richtext'
+                                                            ) {
                                                                 return (
-                                                                    <div dir={direction}>
-                                                                        <RichTextEditor
-                                                                            content={rhfField.value ?? ''}
-                                                                            invalid={Boolean(errorMessage)}
-                                                                            onChange={({ html }) =>
-                                                                                rhfField.onChange(html)
-                                                                            }
-                                                                        />
-                                                                    </div>
+                                                                    <LocalizedRichTextInput
+                                                                        value={
+                                                                            rhfField.value ??
+                                                                            ''
+                                                                        }
+                                                                        direction={
+                                                                            direction
+                                                                        }
+                                                                        invalid={Boolean(
+                                                                            errorMessage,
+                                                                        )}
+                                                                        onChange={
+                                                                            rhfField.onChange
+                                                                        }
+                                                                    />
                                                                 )
                                                             }
 
-                                                            if (field.type === 'textarea') {
+                                                            if (
+                                                                field.type ===
+                                                                'textarea'
+                                                            ) {
                                                                 return (
                                                                     <Input
                                                                         {...rhfField}
                                                                         textArea
-                                                                        dir={direction}
-                                                                        rows={field.rows ?? 4}
-                                                                        maxLength={field.maxLength}
-                                                                        value={rhfField.value ?? ''}
+                                                                        dir={
+                                                                            direction
+                                                                        }
+                                                                        rows={
+                                                                            field.rows ??
+                                                                            4
+                                                                        }
+                                                                        maxLength={
+                                                                            field.maxLength
+                                                                        }
+                                                                        value={
+                                                                            rhfField.value ??
+                                                                            ''
+                                                                        }
                                                                     />
                                                                 )
                                                             }
@@ -170,10 +221,22 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                                                             return (
                                                                 <Input
                                                                     {...rhfField}
-                                                                    type={field.type === 'url' ? 'url' : 'text'}
-                                                                    dir={direction}
-                                                                    maxLength={field.maxLength}
-                                                                    value={rhfField.value ?? ''}
+                                                                    type={
+                                                                        field.type ===
+                                                                        'url'
+                                                                            ? 'url'
+                                                                            : 'text'
+                                                                    }
+                                                                    dir={
+                                                                        direction
+                                                                    }
+                                                                    maxLength={
+                                                                        field.maxLength
+                                                                    }
+                                                                    value={
+                                                                        rhfField.value ??
+                                                                        ''
+                                                                    }
                                                                 />
                                                             )
                                                         }}
@@ -189,6 +252,63 @@ function LocalizedFieldsTabs(props: LocalizedFieldsTabsProps) {
                 )
             })}
         </Tabs>
+    )
+}
+
+function LocalizedRichTextInput({
+    value,
+    direction,
+    invalid,
+    onChange,
+}: {
+    value: string
+    direction: string
+    invalid: boolean
+    onChange: (value: string) => void
+}) {
+    const [mode, setMode] = useState<'visual' | 'html'>('visual')
+
+    return (
+        <div>
+            <div className="mb-2 flex justify-end gap-2" dir="ltr">
+                <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === 'visual' ? 'solid' : 'plain'}
+                    onClick={() => setMode('visual')}
+                >
+                    Visual
+                </Button>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant={mode === 'html' ? 'solid' : 'plain'}
+                    onClick={() => setMode('html')}
+                >
+                    HTML source
+                </Button>
+            </div>
+            {mode === 'html' ? (
+                <Input
+                    textArea
+                    rows={14}
+                    dir="ltr"
+                    value={value}
+                    invalid={invalid}
+                    className="font-mono text-sm"
+                    placeholder="Paste or edit HTML here..."
+                    onChange={(event) => onChange(event.target.value)}
+                />
+            ) : (
+                <div dir={direction}>
+                    <RichTextEditor
+                        content={value}
+                        invalid={invalid}
+                        onChange={({ html }) => onChange(html)}
+                    />
+                </div>
+            )}
+        </div>
     )
 }
 
