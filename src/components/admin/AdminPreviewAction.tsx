@@ -4,6 +4,7 @@ import { TbExternalLink } from 'react-icons/tb'
 type AdminPreviewActionProps = {
     slug: string
     label: string
+    path?: string
 }
 
 const PUBLIC_SITE_URL = (
@@ -11,8 +12,10 @@ const PUBLIC_SITE_URL = (
     'https://omanihub.com'
 ).replace(/\/+$/, '')
 
-const AdminPreviewAction = ({ slug, label }: AdminPreviewActionProps) => {
-    const previewUrl = `${PUBLIC_SITE_URL}/en/${encodeURIComponent(slug)}`
+const AdminPreviewAction = ({ slug, label, path }: AdminPreviewActionProps) => {
+    const previewUrl = `${PUBLIC_SITE_URL}${
+        path ?? `/en/${encodeURIComponent(slug)}`
+    }`
 
     return (
         <Tooltip title={`Preview ${label}`}>

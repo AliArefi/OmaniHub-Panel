@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
+import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
+import { getActiveLocale } from '@/utils/localization'
 import {
     apiCmsEntryAction,
     type CmsEntry,
@@ -40,6 +42,7 @@ export default function CmsManager() {
                 ? 'blocks'
                 : 'entries'
     const { can } = usePermission()
+    const locale = getActiveLocale()
     const title =
         typeKey === 'post'
             ? 'Posts / Blog'
@@ -94,6 +97,18 @@ export default function CmsManager() {
                     id: 'actions',
                     cell: ({ row }) => (
                         <div className="flex items-center gap-3">
+                            {!isTrash &&
+                                row.original.status === 'published' &&
+                                row.original.slug &&
+                                (typeKey === 'post' || typeKey === 'page') && (
+                                    <AdminPreviewAction
+                                        label={typeKey}
+                                        slug={row.original.slug}
+                                        path={`${locale === 'en' ? '/en' : ''}${
+                                            typeKey === 'post' ? '/blog' : ''
+                                        }/${encodeURIComponent(row.original.slug)}`}
+                                    />
+                                )}
                             {!isTrash && can(`cms.${resource}.edit`) && (
                                 <Tooltip title="Edit">
                                     <button
@@ -147,7 +162,7 @@ export default function CmsManager() {
                     ),
                 },
             ],
-        [can, navigate, resource, type],
+        [can, locale, navigate, resource, type, typeKey],
     )
 
     return (
