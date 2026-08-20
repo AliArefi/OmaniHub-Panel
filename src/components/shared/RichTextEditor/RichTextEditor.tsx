@@ -32,6 +32,7 @@ import {
     TbPhoto,
     TbTable,
     TbTableMinus,
+    TbUnderline,
 } from 'react-icons/tb'
 import ToolButton from './toolButtons/ToolButton'
 import type { Editor, EditorContentProps, JSONContent } from '@tiptap/react'
