@@ -116,11 +116,23 @@ export const apiUpdateCmsEntry = (id: number, data: Record<string, unknown>) =>
 export const apiCmsEntryAction = (
     id: number,
     action: 'publish' | 'unpublish' | 'trash' | 'restore' | 'delete',
-) =>
-    ApiService.fetchDataWithAxios({
+) => {
+    const allowedActions = new Set([
+        'publish',
+        'unpublish',
+        'trash',
+        'restore',
+        'delete',
+    ])
+    if (!allowedActions.has(action)) {
+        throw new Error('Invalid CMS workflow action.')
+    }
+
+    return ApiService.fetchDataWithAxios({
         url: `/admin/cms/entries/${id}/${action}`,
         method: 'post',
     })
+}
 
 export const apiUploadCmsMedia = (
     id: number,

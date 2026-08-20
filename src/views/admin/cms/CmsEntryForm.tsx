@@ -278,7 +278,7 @@ export default function CmsEntryForm() {
 
     return (
         <Container>
-            <Form onSubmit={handleSubmit(onSubmit)}>
+            <Form onSubmit={handleSubmit((values) => onSubmit(values))}>
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                     <div className="lg:col-span-8">
                         <AdaptiveCard>
@@ -407,7 +407,9 @@ export default function CmsEntryForm() {
                                 <CmsMediaManager
                                     entryId={Number(id)}
                                     entry={entryResponse?.data}
-                                    onChanged={() => mutateEntry()}
+                                    onChanged={async () => {
+                                        await mutateEntry()
+                                    }}
                                 />
                             )}
                         </AdaptiveCard>
