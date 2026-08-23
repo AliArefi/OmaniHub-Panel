@@ -23,6 +23,7 @@ export type AdminListPageProps<T extends { id: number }> = {
     bulkEndpoint?: string
     columns: (helpers: { mutate: () => void; isTrash: boolean }) => ColumnDef<T>[]
     transformRows?: (rows: T[]) => T[]
+    headerActions?: React.ReactNode
     createPath?: string
     createPermission?: string
     deletePermission?: string
@@ -50,6 +51,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         bulkEndpoint,
         columns,
         transformRows,
+        headerActions,
         createPath,
         createPermission,
         deletePermission,
@@ -174,6 +176,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <h3>{title}</h3>
                         <div className="flex items-center gap-2">
+                            {headerActions}
                             {selected.length > 0 && canDelete && (
                                 <>
                                     {isTrash && (

@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
 import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
+import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { TbCornerDownRight, TbEdit, TbTrash } from 'react-icons/tb'
+import { TbCornerDownRight, TbEdit, TbList, TbTrash, TbTree } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
@@ -100,6 +101,7 @@ const ServicesList = () => {
         mutate: () => void
     } | null>(null)
     const [deleting, setDeleting] = useState(false)
+    const [treeView, setTreeView] = useState(false)
 
     const handleDelete = async () => {
         if (!pendingDelete) return
@@ -117,46 +119,11 @@ const ServicesList = () => {
         }
     }
 
-    const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<ServiceTreeRow>[] => [
+    const defaultColumns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<ServiceTreeRow>[] => [
         {
             header: 'Name',
             accessorKey: 'name',
-            cell: (props) => {
-                const row = props.row.original
-                const depth = row.depth ?? 0
-                const name = serviceLabel(row)
-
-                return (
-                    <div
-                        className="flex min-w-[260px] items-center gap-2"
-                        style={{ paddingInlineStart: depth * 24 }}
-                    >
-                        {depth > 0 && (
-                            <TbCornerDownRight className="shrink-0 text-gray-400" />
-                        )}
-                        <div className="min-w-0">
-                            <div className="truncate font-semibold text-gray-900 dark:text-gray-100">
-                                {name}
-                            </div>
-                            {row.parentLabel && (
-                                <div className="truncate text-xs text-gray-500">
-                                    Parent: {row.parentLabel}
-                                </div>
-                            )}
-                        </div>
-                        {row.childCount ? (
-                            <Tag className="ml-auto shrink-0 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
-                                {row.childCount} child{row.childCount === 1 ? '' : 'ren'}
-                            </Tag>
-                        ) : null}
-                    </div>
-                )
-            },
-        },
-        {
-            header: 'Parent',
-            accessorKey: 'service_id',
-            cell: (props) => props.row.original.parentLabel ?? 'Root',
+            cell: (props) => props.row.original.name ?? props.row.original.title,
         },
         {
             header: 'Slug',
@@ -214,6 +181,49 @@ const ServicesList = () => {
             },
         },
     ]
+    const treeColumns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<ServiceTreeRow>[] => [
+        {
+            header: 'Name',
+            accessorKey: 'name',
+            cell: (props) => {
+                const row = props.row.original
+                const depth = row.depth ?? 0
+                const name = serviceLabel(row)
+
+                return (
+                    <div
+                        className="flex min-w-[260px] items-center gap-2"
+                        style={{ paddingInlineStart: depth * 24 }}
+                    >
+                        {depth > 0 && (
+                            <TbCornerDownRight className="shrink-0 text-gray-400" />
+                        )}
+                        <div className="min-w-0">
+                            <div className="truncate font-semibold text-gray-900 dark:text-gray-100">
+                                {name}
+                            </div>
+                            {row.parentLabel && (
+                                <div className="truncate text-xs text-gray-500">
+                                    Parent: {row.parentLabel}
+                                </div>
+                            )}
+                        </div>
+                        {row.childCount ? (
+                            <Tag className="ml-auto shrink-0 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
+                                {row.childCount} child{row.childCount === 1 ? '' : 'ren'}
+                            </Tag>
+                        ) : null}
+                    </div>
+                )
+            },
+        },
+        {
+            header: 'Parent',
+            accessorKey: 'service_id',
+            cell: (props) => props.row.original.parentLabel ?? 'Root',
+        },
+        ...defaultColumns({ mutate, isTrash }).slice(1),
+    ]
 
     return (
         <>
@@ -221,9 +231,18 @@ const ServicesList = () => {
                 trashEnabled
                 title="Services"
                 endpoint="/admin/services"
-                columns={columns}
-                transformRows={buildServiceTreeRows}
-                initialPageSize={100}
+                columns={treeView ? treeColumns : defaultColumns}
+                transformRows={treeView ? buildServiceTreeRows : undefined}
+                initialPageSize={treeView ? 100 : 20}
+                headerActions={
+                    <Button
+                        size="sm"
+                        icon={treeView ? <TbList /> : <TbTree />}
+                        onClick={() => setTreeView((enabled) => !enabled)}
+                    >
+                        {treeView ? 'Default view' : 'Tree view'}
+                    </Button>
+                }
                 createPath="/admin/services/new"
                 createPermission="services.create"
                 deletePermission="services.delete"
