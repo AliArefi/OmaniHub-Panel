@@ -5,7 +5,9 @@ import Input from '@/components/ui/Input'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { Form, FormItem } from '@/components/ui/Form'
 import classNames from '@/utils/classNames'
-import sleep from '@/utils/sleep'
+import Notification from '@/components/ui/Notification'
+import toast from '@/components/ui/toast'
+import { apiUpdateProfile, toUpdateProfileFormData } from '@/services/ProfileService'
 import isLastChild from '@/utils/isLastChild'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
@@ -65,6 +67,7 @@ const SettingsSecurity = () => {
     const {
         getValues,
         handleSubmit,
+        reset,
         formState: { errors },
         control,
     } = useForm<PasswordSchema>({
@@ -73,10 +76,29 @@ const SettingsSecurity = () => {
 
     const handlePostSubmit = async () => {
         setIsSubmitting(true)
-        await sleep(1000)
-        console.log('getValues', getValues())
-        setConfirmationOpen(false)
-        setIsSubmitting(false)
+        try {
+            const values = getValues()
+            const response = await apiUpdateProfile(
+                toUpdateProfileFormData({
+                    name: '',
+                    current_password: values.currentPassword,
+                    new_password: values.newPassword,
+                }),
+            )
+
+            if (!response.success) {
+                throw new Error(response.message || 'خطا در تغییر رمز عبور')
+            }
+
+            reset()
+            setConfirmationOpen(false)
+            toast.push(<Notification type="success">رمز عبور تغییر کرد. دوباره وارد شوید.</Notification>)
+            window.setTimeout(() => window.location.assign('/sign-in'), 600)
+        } catch (error) {
+            toast.push(<Notification type="danger">{error instanceof Error ? error.message : 'خطا در تغییر رمز عبور'}</Notification>)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const onSubmit = async () => {
