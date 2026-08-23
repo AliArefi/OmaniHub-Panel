@@ -22,6 +22,7 @@ export type AdminListPageProps<T extends { id: number }> = {
     endpoint: string
     bulkEndpoint?: string
     columns: (helpers: { mutate: () => void; isTrash: boolean }) => ColumnDef<T>[]
+    transformRows?: (rows: T[]) => T[]
     createPath?: string
     createPermission?: string
     deletePermission?: string
@@ -31,6 +32,7 @@ export type AdminListPageProps<T extends { id: number }> = {
     searchPlaceholder?: string
     statusFilters?: string[]
     trashEnabled?: boolean
+    initialPageSize?: number
 }
 
 /**
@@ -47,6 +49,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         endpoint,
         bulkEndpoint,
         columns,
+        transformRows,
         createPath,
         createPermission,
         deletePermission,
@@ -56,13 +59,14 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         searchPlaceholder = 'Search…',
         statusFilters = [],
         trashEnabled = false,
+        initialPageSize = 20,
     } = props
 
     const navigate = useNavigate()
     const { can } = usePermission()
     const [tableData, setTableData] = useState<TableQueries>({
         pageIndex: 1,
-        pageSize: 20,
+        pageSize: initialPageSize,
         query: '',
         sort: { order: '', key: '' },
     })
@@ -84,6 +88,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         tableData,
         activeFilters,
     )
+    const visibleList = transformRows ? transformRows(list) : list
 
     const canCreate = !createPermission || can(createPermission)
     const canDelete = !deletePermission || can(deletePermission)
@@ -256,14 +261,14 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                     </div>
                     <DataTable
                         columns={columns({ mutate, isTrash })}
-                        data={list}
+                        data={visibleList}
                         loading={isLoading}
-                        noData={!isLoading && list.length === 0}
+                        noData={!isLoading && visibleList.length === 0}
                         selectable={canDelete}
                         pagingData={{
                             total,
                             pageIndex: tableData.pageIndex ?? 1,
-                            pageSize: tableData.pageSize ?? 20,
+                            pageSize: tableData.pageSize ?? initialPageSize,
                         }}
                         checkboxChecked={(row) =>
                             selected.some((s) => s.id === row.id)

@@ -5,7 +5,7 @@ import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { TbEdit, TbTrash } from 'react-icons/tb'
+import { TbCornerDownRight, TbEdit, TbTrash } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
@@ -17,6 +17,79 @@ const statusColor: Record<string, string> = {
     published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100',
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100',
     pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
+}
+
+type ServiceTreeRow = AdminService & {
+    depth?: number
+    parentLabel?: string | null
+    childCount?: number
+}
+
+const serviceLabel = (service: AdminService) =>
+    service.name?.trim() || service.title?.trim() || service.slug
+
+const buildServiceTreeRows = (services: ServiceTreeRow[]): ServiceTreeRow[] => {
+    const servicesByParent = new Map<number | null, ServiceTreeRow[]>()
+    const servicesById = new Map<number, ServiceTreeRow>()
+
+    services.forEach((service) => {
+        servicesById.set(service.id, service)
+        const parentId = service.service_id ?? null
+        servicesByParent.set(parentId, [
+            ...(servicesByParent.get(parentId) ?? []),
+            service,
+        ])
+    })
+
+    const sortServices = (items: ServiceTreeRow[]) =>
+        [...items].sort((a, b) => {
+            const orderDiff = (a.order_number ?? 0) - (b.order_number ?? 0)
+            if (orderDiff !== 0) return orderDiff
+
+            return serviceLabel(a).localeCompare(serviceLabel(b))
+        })
+
+    const rows: ServiceTreeRow[] = []
+    const visited = new Set<number>()
+
+    const appendRows = (
+        parentId: number | null,
+        depth: number,
+        parentLabel: string | null,
+    ) => {
+        sortServices(servicesByParent.get(parentId) ?? []).forEach((service) => {
+            if (visited.has(service.id)) return
+
+            visited.add(service.id)
+            rows.push({
+                ...service,
+                depth,
+                parentLabel,
+                childCount: servicesByParent.get(service.id)?.length ?? 0,
+            })
+
+            appendRows(service.id, depth + 1, serviceLabel(service))
+        })
+    }
+
+    appendRows(null, 0, null)
+
+    sortServices(services.filter((service) => !visited.has(service.id))).forEach(
+        (service) => {
+            const parent = service.service_id
+                ? servicesById.get(service.service_id)
+                : null
+
+            rows.push({
+                ...service,
+                depth: 0,
+                parentLabel: parent ? serviceLabel(parent) : 'Missing parent',
+                childCount: servicesByParent.get(service.id)?.length ?? 0,
+            })
+        },
+    )
+
+    return rows
 }
 
 const ServicesList = () => {
@@ -44,11 +117,46 @@ const ServicesList = () => {
         }
     }
 
-    const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<AdminService>[] => [
+    const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<ServiceTreeRow>[] => [
         {
             header: 'Name',
             accessorKey: 'name',
-            cell: (props) => props.row.original.name ?? props.row.original.title,
+            cell: (props) => {
+                const row = props.row.original
+                const depth = row.depth ?? 0
+                const name = serviceLabel(row)
+
+                return (
+                    <div
+                        className="flex min-w-[260px] items-center gap-2"
+                        style={{ paddingInlineStart: depth * 24 }}
+                    >
+                        {depth > 0 && (
+                            <TbCornerDownRight className="shrink-0 text-gray-400" />
+                        )}
+                        <div className="min-w-0">
+                            <div className="truncate font-semibold text-gray-900 dark:text-gray-100">
+                                {name}
+                            </div>
+                            {row.parentLabel && (
+                                <div className="truncate text-xs text-gray-500">
+                                    Parent: {row.parentLabel}
+                                </div>
+                            )}
+                        </div>
+                        {row.childCount ? (
+                            <Tag className="ml-auto shrink-0 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
+                                {row.childCount} child{row.childCount === 1 ? '' : 'ren'}
+                            </Tag>
+                        ) : null}
+                    </div>
+                )
+            },
+        },
+        {
+            header: 'Parent',
+            accessorKey: 'service_id',
+            cell: (props) => props.row.original.parentLabel ?? 'Root',
         },
         {
             header: 'Slug',
@@ -109,11 +217,13 @@ const ServicesList = () => {
 
     return (
         <>
-            <AdminListPage<AdminService>
+            <AdminListPage<ServiceTreeRow>
                 trashEnabled
                 title="Services"
                 endpoint="/admin/services"
                 columns={columns}
+                transformRows={buildServiceTreeRows}
+                initialPageSize={100}
                 createPath="/admin/services/new"
                 createPermission="services.create"
                 deletePermission="services.delete"
