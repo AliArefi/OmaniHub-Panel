@@ -62,6 +62,7 @@ const SettingsProfile = () => {
     const setUser = useSessionUser((state) => state.setUser)
 
     const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [removeAvatar, setRemoveAvatar] = useState(false)
     const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string>('')
 
     const beforeUpload = (files: FileList | null) => {
@@ -98,6 +99,7 @@ const SettingsProfile = () => {
 
     useEffect(() => {
         setAvatarFile(null)
+        setRemoveAvatar(false)
         setAvatarPreviewUrl(resolveImageUrl(user?.avatar ?? ''))
         reset({
             name: user?.name ?? '',
@@ -125,6 +127,7 @@ const SettingsProfile = () => {
                     name: values.name,
                     bio: values.bio,
                     avatar: avatarFile,
+                    remove_avatar: removeAvatar,
                 }),
             )
 
@@ -174,6 +177,7 @@ const SettingsProfile = () => {
                                     if (!file) return
 
                                     setAvatarFile(file)
+                                    setRemoveAvatar(false)
                                     const nextPreview = URL.createObjectURL(
                                         file,
                                     )
@@ -203,9 +207,8 @@ const SettingsProfile = () => {
                                 type="button"
                                 onClick={() => {
                                     setAvatarFile(null)
-                                    setAvatarPreviewUrl(
-                                        resolveImageUrl(user?.avatar ?? ''),
-                                    )
+                                    setRemoveAvatar(true)
+                                    setAvatarPreviewUrl('')
                                 }}
                             >
                                 حذف

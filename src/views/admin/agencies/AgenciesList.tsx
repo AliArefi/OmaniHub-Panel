@@ -5,6 +5,7 @@ import Avatar from '@/components/ui/Avatar'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import { TbEdit, TbTrash } from 'react-icons/tb'
+import axios from 'axios'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
@@ -84,7 +85,21 @@ const AgenciesList = () => {
                                                 />,
                                             )
                                             mutate()
-                                        } catch {
+                                        } catch (error) {
+                                            if (
+                                                axios.isAxiosError(error) &&
+                                                error.response?.status === 404
+                                            ) {
+                                                mutate()
+                                                toast.push(
+                                                    <Notification
+                                                        type="success"
+                                                        title="Already deleted"
+                                                    />,
+                                                )
+                                                return
+                                            }
+
                                             toast.push(
                                                 <Notification
                                                     type="danger"

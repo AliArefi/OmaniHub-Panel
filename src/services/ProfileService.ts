@@ -9,6 +9,7 @@ export type UpdateProfileRequest = {
     name: string
     bio?: string
     avatar?: File | null
+    remove_avatar?: boolean
     current_password?: string
     new_password?: string
 }
@@ -23,6 +24,9 @@ export const toUpdateProfileFormData = (payload: UpdateProfileRequest) => {
     }
     if (payload.avatar) {
         formData.append('avatar', payload.avatar)
+    }
+    if (payload.remove_avatar) {
+        formData.append('remove_avatar', '1')
     }
     if (payload.current_password) {
         formData.append('current_password', payload.current_password)
