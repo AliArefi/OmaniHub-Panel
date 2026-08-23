@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
 import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { TbEdit, TbTrash } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -20,6 +22,27 @@ const statusColor: Record<string, string> = {
 const ServicesList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
+    const [pendingDelete, setPendingDelete] = useState<{
+        service: AdminService
+        mutate: () => void
+    } | null>(null)
+    const [deleting, setDeleting] = useState(false)
+
+    const handleDelete = async () => {
+        if (!pendingDelete) return
+
+        setDeleting(true)
+        try {
+            await apiDeleteAdminService(pendingDelete.service.slug)
+            toast.push(<Notification type="success" title="Deleted" />)
+            pendingDelete.mutate()
+        } catch {
+            toast.push(<Notification type="danger" title="Failed to delete" />)
+        } finally {
+            setDeleting(false)
+            setPendingDelete(null)
+        }
+    }
 
     const columns = ({ mutate, isTrash }: { mutate: () => void; isTrash: boolean }): ColumnDef<AdminService>[] => [
         {
@@ -70,25 +93,9 @@ const ServicesList = () => {
                                 <button
                                     type="button"
                                     className="text-lg text-red-600"
-                                    onClick={async () => {
-                                        try {
-                                            await apiDeleteAdminService(row.slug)
-                                            toast.push(
-                                                <Notification
-                                                    type="success"
-                                                    title="Deleted"
-                                                />,
-                                            )
-                                            mutate()
-                                        } catch {
-                                            toast.push(
-                                                <Notification
-                                                    type="danger"
-                                                    title="Failed to delete"
-                                                />,
-                                            )
-                                        }
-                                    }}
+                                    onClick={() =>
+                                        setPendingDelete({ service: row, mutate })
+                                    }
                                 >
                                     <TbTrash />
                                 </button>
@@ -101,18 +108,31 @@ const ServicesList = () => {
     ]
 
     return (
-        <AdminListPage<AdminService>
-            trashEnabled
-            title="Services"
-            endpoint="/admin/services"
-            columns={columns}
-            createPath="/admin/services/new"
-            createPermission="services.create"
-            deletePermission="services.delete"
-            viewPermission="services.view"
-            searchPlaceholder="Search services…"
-            statusFilters={['published', 'draft', 'pending']}
-        />
+        <>
+            <AdminListPage<AdminService>
+                trashEnabled
+                title="Services"
+                endpoint="/admin/services"
+                columns={columns}
+                createPath="/admin/services/new"
+                createPermission="services.create"
+                deletePermission="services.delete"
+                viewPermission="services.view"
+                searchPlaceholder="Search services…"
+                statusFilters={['published', 'draft', 'pending']}
+            />
+            <ConfirmDialog
+                isOpen={Boolean(pendingDelete)}
+                type="danger"
+                title="Delete service"
+                confirmButtonProps={{ loading: deleting }}
+                onClose={() => setPendingDelete(null)}
+                onCancel={() => setPendingDelete(null)}
+                onConfirm={handleDelete}
+            >
+                Delete service &quot;{pendingDelete?.service.name ?? pendingDelete?.service.title}&quot;? It can be restored from the trash.
+            </ConfirmDialog>
+        </>
     )
 }
 

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
 import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { TbEdit, TbTrash } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -20,6 +22,27 @@ const statusColor: Record<string, string> = {
 const OrganizationsList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
+    const [pendingDelete, setPendingDelete] = useState<{
+        organization: AdminOrganization
+        mutate: () => void
+    } | null>(null)
+    const [deleting, setDeleting] = useState(false)
+
+    const handleDelete = async () => {
+        if (!pendingDelete) return
+
+        setDeleting(true)
+        try {
+            await apiDeleteAdminOrganization(pendingDelete.organization.slug)
+            toast.push(<Notification type="success" title="Deleted" />)
+            pendingDelete.mutate()
+        } catch {
+            toast.push(<Notification type="danger" title="Failed to delete" />)
+        } finally {
+            setDeleting(false)
+            setPendingDelete(null)
+        }
+    }
 
     const columns = ({
         mutate,
@@ -73,27 +96,9 @@ const OrganizationsList = () => {
                                 <button
                                     type="button"
                                     className="text-lg text-red-600"
-                                    onClick={async () => {
-                                        try {
-                                            await apiDeleteAdminOrganization(
-                                                row.slug,
-                                            )
-                                            toast.push(
-                                                <Notification
-                                                    type="success"
-                                                    title="Deleted"
-                                                />,
-                                            )
-                                            mutate()
-                                        } catch {
-                                            toast.push(
-                                                <Notification
-                                                    type="danger"
-                                                    title="Failed to delete"
-                                                />,
-                                            )
-                                        }
-                                    }}
+                                    onClick={() =>
+                                        setPendingDelete({ organization: row, mutate })
+                                    }
                                 >
                                     <TbTrash />
                                 </button>
@@ -106,18 +111,31 @@ const OrganizationsList = () => {
     ]
 
     return (
-        <AdminListPage<AdminOrganization>
-            trashEnabled
-            title="Organizations"
-            endpoint="/admin/organizations"
-            columns={columns}
-            createPath="/admin/organizations/new"
-            createPermission="organizations.create"
-            deletePermission="organizations.delete"
-            viewPermission="organizations.view"
-            searchPlaceholder="Search organizations…"
-            statusFilters={['published', 'draft', 'pending']}
-        />
+        <>
+            <AdminListPage<AdminOrganization>
+                trashEnabled
+                title="Organizations"
+                endpoint="/admin/organizations"
+                columns={columns}
+                createPath="/admin/organizations/new"
+                createPermission="organizations.create"
+                deletePermission="organizations.delete"
+                viewPermission="organizations.view"
+                searchPlaceholder="Search organizations…"
+                statusFilters={['published', 'draft', 'pending']}
+            />
+            <ConfirmDialog
+                isOpen={Boolean(pendingDelete)}
+                type="danger"
+                title="Delete organization"
+                confirmButtonProps={{ loading: deleting }}
+                onClose={() => setPendingDelete(null)}
+                onCancel={() => setPendingDelete(null)}
+                onConfirm={handleDelete}
+            >
+                Delete organization &quot;{pendingDelete?.organization.title}&quot;? It can be restored from the trash.
+            </ConfirmDialog>
+        </>
     )
 }
 
