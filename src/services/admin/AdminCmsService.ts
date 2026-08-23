@@ -26,6 +26,8 @@ export type CmsEntry = {
     published_at?: string | null
     scheduled_for?: string | null
     translations?: Partial<Record<CmsLocale, CmsTranslation>>
+    categories?: Array<{ id: number; is_primary: boolean }>
+    tags?: Array<{ id: number }>
     media?: Partial<Record<CmsLocale, CmsMediaItem[]>>
 }
 
@@ -98,7 +100,13 @@ export const apiSaveCmsType = (
 export const apiCreateCmsEntry = (
     type: string,
     translations: Partial<Record<CmsLocale, CmsTranslation>>,
-    shared: { is_system?: boolean; featured?: boolean } = {},
+    shared: {
+        is_system?: boolean
+        featured?: boolean
+        category_ids?: number[]
+        primary_category_id?: number | null
+        tag_ids?: number[]
+    } = {},
 ) =>
     ApiService.fetchDataWithAxios<{ data: { id: number } }>({
         url: '/admin/cms/entries',

@@ -9,6 +9,7 @@ import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
 import CmsMediaManager from './CmsMediaManager'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
 import Switcher from '@/components/ui/Switcher'
 import Tag from '@/components/ui/Tag'
 import { Form, FormItem } from '@/components/ui/Form'
@@ -18,11 +19,13 @@ import {
     apiCmsEntryAction,
     apiCreateCmsEntry,
     apiGetCmsEntry,
+    apiGetCmsCollection,
     apiGetCmsTypes,
     apiUpdateCmsEntry,
     type CmsContentType,
     type CmsCustomField,
     type CmsLocale,
+    type CmsCollectionItem,
     type CmsTranslation,
 } from '@/services/admin/AdminCmsService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
@@ -73,8 +76,12 @@ type FlatTranslation = Record<string, unknown> & {
 type FormValues = {
     featured: boolean
     is_system: boolean
+    category_ids: number[]
+    primary_category_id: number | null
+    tag_ids: number[]
     translations: Record<CmsLocale, FlatTranslation>
 }
+type TaxonomyOption = { value: number; label: string }
 const emptyTranslation = (): FlatTranslation => ({
     title: '',
     slug: '',
@@ -105,6 +112,12 @@ export default function CmsEntryForm() {
     const isEditing = Boolean(id)
     const [submitting, setSubmitting] = useState(false)
     const { data: typesResponse } = useSWR('cms-types', apiGetCmsTypes)
+    const { data: categoriesResponse } = useSWR('cms-categories', () =>
+        apiGetCmsCollection('categories'),
+    )
+    const { data: tagsResponse } = useSWR('cms-tags', () =>
+        apiGetCmsCollection('tags'),
+    )
     const {
         data: entryResponse,
         isLoading,
@@ -131,6 +144,9 @@ export default function CmsEntryForm() {
         defaultValues: {
             featured: false,
             is_system: false,
+            category_ids: [],
+            primary_category_id: null,
+            tag_ids: [],
             translations: { ar: emptyTranslation(), en: emptyTranslation() },
         },
     })
@@ -140,6 +156,13 @@ export default function CmsEntryForm() {
         reset({
             featured: entryResponse.data.featured,
             is_system: entryResponse.data.is_system,
+            category_ids:
+                entryResponse.data.categories?.map(({ id }) => id) ?? [],
+            primary_category_id:
+                entryResponse.data.categories?.find(
+                    (category) => category.is_primary,
+                )?.id ?? null,
+            tag_ids: entryResponse.data.tags?.map(({ id }) => id) ?? [],
             translations: {
                 ar: flattenTranslation(entryResponse.data.translations?.ar),
                 en: flattenTranslation(entryResponse.data.translations?.en),
@@ -165,11 +188,25 @@ export default function CmsEntryForm() {
                 },
             ]),
         ) as Record<CmsLocale, FlatTranslation>
-        reset({ featured: false, is_system: false, translations })
+        reset({
+            featured: false,
+            is_system: false,
+            category_ids: [],
+            primary_category_id: null,
+            tag_ids: [],
+            translations,
+        })
     }, [contentType, customFields, isEditing, reset])
 
     const serialize = (values: FormValues) => ({
         featured: values.featured,
+        category_ids: values.category_ids,
+        primary_category_id: values.category_ids.includes(
+            values.primary_category_id ?? -1,
+        )
+            ? values.primary_category_id
+            : null,
+        tag_ids: values.tag_ids,
         ...(typeKey === 'page' ? { is_system: values.is_system } : {}),
         translations: Object.fromEntries(
             LOCALES.map((locale) => {
@@ -221,8 +258,16 @@ export default function CmsEntryForm() {
                         ? {
                               is_system: values.is_system,
                               featured: values.featured,
+                              category_ids: payload.category_ids,
+                              primary_category_id: payload.primary_category_id,
+                              tag_ids: payload.tag_ids,
                           }
-                        : { featured: values.featured },
+                        : {
+                              featured: values.featured,
+                              category_ids: payload.category_ids,
+                              primary_category_id: payload.primary_category_id,
+                              tag_ids: payload.tag_ids,
+                          },
                 )
                 entryId = created.data.id
             }
@@ -306,6 +351,15 @@ export default function CmsEntryForm() {
                                 control={control}
                                 errors={errors}
                             />
+                            {typeKey === 'post' && (
+                                <PostTaxonomyFields
+                                    control={control}
+                                    categories={taxonomyOptions(
+                                        categoriesResponse?.data,
+                                    )}
+                                    tags={taxonomyOptions(tagsResponse?.data)}
+                                />
+                            )}
                             {customFields.length > 0 && (
                                 <CustomFields
                                     fields={customFields}
@@ -417,6 +471,106 @@ export default function CmsEntryForm() {
                 </div>
             </Form>
         </Container>
+    )
+}
+
+function taxonomyOptions(
+    items: CmsCollectionItem[] | { data: CmsCollectionItem[] } | undefined,
+): TaxonomyOption[] {
+    const collection = Array.isArray(items) ? items : (items?.data ?? [])
+
+    return collection.map((item) => ({
+        value: item.id,
+        label:
+            item.translations?.ar?.name ??
+            item.translations?.en?.name ??
+            `#${item.id}`,
+    }))
+}
+
+function PostTaxonomyFields({
+    control,
+    categories,
+    tags,
+}: {
+    control: ReturnType<typeof useForm<FormValues>>['control']
+    categories: TaxonomyOption[]
+    tags: TaxonomyOption[]
+}) {
+    return (
+        <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <h5 className="mb-4">Categories and tags</h5>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormItem label="Categories" className="md:col-span-2">
+                    <Controller
+                        name="category_ids"
+                        control={control}
+                        render={({ field }) => (
+                            <Select<TaxonomyOption, true>
+                                isMulti
+                                options={categories}
+                                placeholder="Select categories"
+                                value={categories.filter((option) =>
+                                    field.value.includes(option.value),
+                                )}
+                                onChange={(options) =>
+                                    field.onChange(
+                                        (options ?? []).map(
+                                            (option) => option.value,
+                                        ),
+                                    )
+                                }
+                            />
+                        )}
+                    />
+                </FormItem>
+                <FormItem label="Primary category">
+                    <Controller
+                        name="primary_category_id"
+                        control={control}
+                        render={({ field }) => (
+                            <Select<TaxonomyOption>
+                                isClearable
+                                options={categories}
+                                placeholder="Select primary category"
+                                value={
+                                    categories.find(
+                                        (option) =>
+                                            option.value === field.value,
+                                    ) ?? null
+                                }
+                                onChange={(option) =>
+                                    field.onChange(option?.value ?? null)
+                                }
+                            />
+                        )}
+                    />
+                </FormItem>
+                <FormItem label="Tags">
+                    <Controller
+                        name="tag_ids"
+                        control={control}
+                        render={({ field }) => (
+                            <Select<TaxonomyOption, true>
+                                isMulti
+                                options={tags}
+                                placeholder="Select tags"
+                                value={tags.filter((option) =>
+                                    field.value.includes(option.value),
+                                )}
+                                onChange={(options) =>
+                                    field.onChange(
+                                        (options ?? []).map(
+                                            (option) => option.value,
+                                        ),
+                                    )
+                                }
+                            />
+                        )}
+                    />
+                </FormItem>
+            </div>
+        </div>
     )
 }
 
