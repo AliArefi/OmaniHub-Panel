@@ -13,11 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import { useTranslation } from '@/store/useTranslation'
-import {
-    apiCreateNewAgency,
-    apiUploadMyAgencyMedia,
-    getServices,
-} from '@/services/CenterService'
+import { apiCreateNewAgency, getServices } from '@/services/CenterService'
 import { Services } from '@/@types/center'
 import { HojraInfo } from '@/context/createStoreContext'
 import { RichTextEditor } from '@/components/shared'
@@ -56,7 +52,6 @@ export const FormGeneralSection = () => {
     const [servicesList, setServicesList] = useState<Services[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [publicImage, setPublicImage] = useState<File | null>(null)
     const { t } = useTranslation()
     const navigate = useNavigate()
 
@@ -114,25 +109,6 @@ export const FormGeneralSection = () => {
 
             if (!resp?.success) {
                 throw new Error(resp?.message || 'تعذر إنشاء المركز')
-            }
-
-            if (publicImage) {
-                const media = new FormData()
-                media.append('collection', 'agency_public_images')
-                media.append('file', publicImage)
-
-                try {
-                    const upload = await apiUploadMyAgencyMedia(resp.data.slug, media)
-                    if (!upload?.success) {
-                        throw new Error(upload?.message || 'تعذر رفع صورة الصفحة العامة')
-                    }
-                } catch {
-                    toast.push(
-                        <Notification type="warning">
-                            تم إنشاء المركز، ولكن تعذر رفع صورة الصفحة العامة.
-                        </Notification>,
-                    )
-                }
             }
 
             toast.push(
@@ -269,16 +245,6 @@ export const FormGeneralSection = () => {
                                     }
                                 />
                             )}
-                        />
-                    </FormItem>
-
-                    <FormItem label="صورة الصفحة العامة" className="mb-8">
-                        <Input
-                            type="file"
-                            accept="image/png,image/jpeg,image/webp,image/avif"
-                            onChange={(event) =>
-                                setPublicImage(event.target.files?.[0] || null)
-                            }
                         />
                     </FormItem>
 

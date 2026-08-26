@@ -39,6 +39,7 @@ export type MyAgencyDetails = {
     title: string
     logo: string | null
     banner: string | null
+    public_image?: AgencyMediaItem | null
     about_text: string | null
     about_us: string | null
     service: {
@@ -223,7 +224,6 @@ export type AgencyMediaItem = {
 
 export type MyAgencyMediaResponse = {
     featured_media: AgencyMediaItem | null
-    public_images: AgencyMediaItem[]
     gallery_images: AgencyMediaItem[]
     gallery_videos: AgencyMediaItem[]
     documents: AgencyMediaItem[]

@@ -25,7 +25,6 @@ import type {
 } from '@/services/admin/AdminAgencyMediaService'
 
 const COLLECTION_OPTIONS: { value: AdminAgencyMediaCollection; label: string }[] = [
-    { value: 'agency_public_images', label: 'Public page image' },
     { value: 'agency_gallery_images', label: 'Gallery images' },
     { value: 'agency_gallery_videos', label: 'Gallery videos' },
     { value: 'agency_documents', label: 'Documents' },

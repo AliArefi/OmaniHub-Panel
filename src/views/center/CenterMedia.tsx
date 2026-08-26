@@ -23,13 +23,11 @@ import { useParams } from 'react-router'
 import { prepareValidatedFile } from './utils/fileUpload'
 
 type MediaCollection =
-    | 'agency_public_images'
     | 'agency_gallery_images'
     | 'agency_gallery_videos'
     | 'agency_documents'
 
 const acceptByCollection: Record<MediaCollection, string> = {
-    agency_public_images: 'image/*',
     agency_gallery_images: 'image/*',
     agency_gallery_videos: 'video/*',
     agency_documents:
@@ -40,7 +38,6 @@ const fileCategoryByCollection: Record<
     MediaCollection,
     'image' | 'video' | 'document'
 > = {
-    agency_public_images: 'image',
     agency_gallery_images: 'image',
     agency_gallery_videos: 'video',
     agency_documents: 'document',
@@ -354,22 +351,6 @@ export default function CenterMedia() {
                                         size="sm"
                                         variant={
                                             selectedCollection ===
-                                            'agency_public_images'
-                                                ? 'solid'
-                                                : 'default'
-                                        }
-                                        onClick={() =>
-                                            setSelectedCollection(
-                                                'agency_public_images',
-                                            )
-                                        }
-                                    >
-                                        Public page image
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant={
-                                            selectedCollection ===
                                             'agency_gallery_images'
                                                 ? 'solid'
                                                 : 'default'
@@ -417,6 +398,7 @@ export default function CenterMedia() {
                                 </div>
 
                                 <Upload
+                                    showList
                                     accept={acceptByCollection[selectedCollection]}
                                     uploadLimit={1}
                                     fileList={selectedFiles}
@@ -447,7 +429,6 @@ export default function CenterMedia() {
 
                                         setSelectedFiles([file])
                                     }}
-                                    showList
                                 />
 
                                 <div className="flex justify-end">
@@ -459,22 +440,6 @@ export default function CenterMedia() {
                                         Upload
                                     </Button>
                                 </div>
-                            </div>
-                        </Card>
-
-                        <Card
-                            header={{
-                                content: 'Public Page Image',
-                                bordered: false,
-                            }}
-                        >
-                            <div className="space-y-3">
-                                {(payload?.public_images || []).map(renderItem)}
-                                {(payload?.public_images || []).length === 0 ? (
-                                    <div className="text-sm text-gray-500">
-                                        No public page image.
-                                    </div>
-                                ) : null}
                             </div>
                         </Card>
 
@@ -579,8 +544,8 @@ export default function CenterMedia() {
 
             <Dialog
                 isOpen={editOpen}
-                onRequestClose={() => setEditOpen(false)}
                 contentClassName="pb-0"
+                onRequestClose={() => setEditOpen(false)}
             >
                 <div className="p-4">
                     <h4 className="mb-4">Edit Media</h4>

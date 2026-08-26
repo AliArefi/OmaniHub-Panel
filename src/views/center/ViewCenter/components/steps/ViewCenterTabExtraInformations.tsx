@@ -23,6 +23,7 @@ import {
     apiGetCities,
     apiGetMyAgency,
     apiUpdateInfoMyAgency,
+    apiUploadMyAgencyMedia,
 } from '@/services/CenterService'
 import { Cities } from '@/@types/center'
 import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
@@ -94,6 +95,8 @@ export const ViewCenterTabExtraInformations = () => {
     const [error, setError] = useState<string | null>(null)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
     const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+    const [publicImagePreview, setPublicImagePreview] = useState<string | null>(null)
+    const [publicImageFile, setPublicImageFile] = useState<File | null>(null)
     const [phoneValue, setPhoneValue] = useState<PhoneNumberValue>({
         countryCode: DEFAULT_COUNTRY_CODE,
         localNumber: '',
@@ -101,6 +104,7 @@ export const ViewCenterTabExtraInformations = () => {
 
     const logoInputRef = useRef<HTMLInputElement | null>(null)
     const bannerInputRef = useRef<HTMLInputElement | null>(null)
+    const publicImageInputRef = useRef<HTMLInputElement | null>(null)
 
     const revokeIfBlobUrl = (url: string | null) => {
         if (!url) return
@@ -200,6 +204,7 @@ export const ViewCenterTabExtraInformations = () => {
 
                     setLogoPreview(agency.logo || null)
                     setBannerPreview(agency.banner || null)
+                    setPublicImagePreview(agency.public_image?.url || null)
 
                     setValue('city_id', agency.city?.id)
                     setValue('latitude', agency.latitude || '')
@@ -300,6 +305,17 @@ export const ViewCenterTabExtraInformations = () => {
                 throw new Error(resp?.message || 'خطأ في حفظ المعلومات')
             }
 
+            if (publicImageFile) {
+                const media = new FormData()
+                media.append('collection', 'agency_public_images')
+                media.append('file', publicImageFile)
+
+                const upload = await apiUploadMyAgencyMedia(slug, media)
+                if (!upload?.success) {
+                    throw new Error(upload?.message || 'خطأ في رفع صورة الصفحة العامة')
+                }
+            }
+
             toast.push(
                 <Notification type="success">
                     تم تحديث المعلومات بنجاح
@@ -320,15 +336,20 @@ export const ViewCenterTabExtraInformations = () => {
 
             const nextLogoPreview = agency.logo || null
             const nextBannerPreview = agency.banner || null
+            const nextPublicImagePreview = agency.public_image?.url || null
 
             setLogoPreview(nextLogoPreview)
             setBannerPreview(nextBannerPreview)
+            revokeIfBlobUrl(publicImagePreview)
+            setPublicImagePreview(nextPublicImagePreview)
+            setPublicImageFile(null)
 
             setValue('logo', null, { shouldDirty: false })
             setValue('banner', null, { shouldDirty: false })
 
             if (logoInputRef.current) logoInputRef.current.value = ''
             if (bannerInputRef.current) bannerInputRef.current.value = ''
+            if (publicImageInputRef.current) publicImageInputRef.current.value = ''
 
             setExtraInformationDraft({
                 values: {
@@ -572,6 +593,64 @@ export const ViewCenterTabExtraInformations = () => {
                         />
                     </FormItem>
 
+                    <FormItem label="صورة الصفحة العامة" className="mb-6">
+                        <div className="space-y-3">
+                            {publicImagePreview ? (
+                                <img
+                                    src={publicImagePreview}
+                                    alt="Public page image"
+                                    className="w-full max-w-2xl h-48 object-cover rounded-lg border-2 border-gray-200"
+                                />
+                            ) : (
+                                <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
+                                    لم يتم اختيار صورة الصفحة العامة
+                                </div>
+                            )}
+
+                            <input
+                                ref={publicImageInputRef}
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/avif"
+                                className="hidden"
+                                onChange={(event) => {
+                                    const inputFile = event.target.files?.[0]
+                                    if (!inputFile) return
+
+                                    const { file, error: fileError } =
+                                        prepareValidatedFile(inputFile, {
+                                            category: 'image',
+                                        })
+                                    if (fileError || !file) {
+                                        toast.push(
+                                            <Notification type="danger">
+                                                {fileError}
+                                            </Notification>,
+                                        )
+                                        event.target.value = ''
+                                        return
+                                    }
+
+                                    revokeIfBlobUrl(publicImagePreview)
+                                    setPublicImageFile(file)
+                                    setPublicImagePreview(URL.createObjectURL(file))
+                                }}
+                            />
+
+                            <Button
+                                size="sm"
+                                variant="solid"
+                                type="button"
+                                onClick={() =>
+                                    publicImageInputRef.current?.click()
+                                }
+                            >
+                                {publicImagePreview
+                                    ? 'تغيير صورة الصفحة العامة'
+                                    : 'اختيار صورة الصفحة العامة'}
+                            </Button>
+                        </div>
+                    </FormItem>
+
                     {/* Map */}
                     <div className="mb-8">
                         <FormItem label="الموقع على الخريطة">
@@ -659,13 +738,13 @@ export const ViewCenterTabExtraInformations = () => {
                             render={({ field }) => (
                                 <PhoneNumberInput
                                     value={phoneValue}
+                                    invalid={Boolean(errors.phone)}
                                     onChange={(nextValue) => {
                                         setPhoneValue(nextValue)
                                         field.onChange(
                                             stringifyPhoneValue(nextValue),
                                         )
                                     }}
-                                    invalid={Boolean(errors.phone)}
                                 />
                             )}
                         />
