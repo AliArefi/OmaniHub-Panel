@@ -223,6 +223,7 @@ export type AgencyMediaItem = {
 
 export type MyAgencyMediaResponse = {
     featured_media: AgencyMediaItem | null
+    public_images: AgencyMediaItem[]
     gallery_images: AgencyMediaItem[]
     gallery_videos: AgencyMediaItem[]
     documents: AgencyMediaItem[]
