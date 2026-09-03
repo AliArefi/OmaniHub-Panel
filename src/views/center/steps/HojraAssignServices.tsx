@@ -458,13 +458,13 @@ export const HojraAssignServices = ({
                             <Select<SelectOption>
                                 value={newMemberServiceId ? serviceOptions.find((service) => service.value === newMemberServiceId) ?? null : null}
                                 options={serviceOptions}
-                                onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
                                 placeholder={t('center.members.service')}
+                                onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
                             />
                         </FormItem>
 
                         <div className="flex gap-2">
-                            <Button variant="solid" onClick={handleCreateMember} loading={isCreatingMember}>
+                            <Button variant="solid" loading={isCreatingMember} onClick={handleCreateMember}>
                                 {t('center.members.save')}
                             </Button>
                             <Button
@@ -540,11 +540,12 @@ export const HojraAssignServices = ({
                         </FormItem>
 
                         <div className="flex gap-2">
-                            <Button variant="solid" onClick={saveMemberEdits} loading={isUpdatingMember}>
+                            <Button variant="solid" loading={isUpdatingMember} onClick={saveMemberEdits}>
                                 {t('center.members.saveChanges')}
                             </Button>
                             <Button
                                 variant="plain"
+                                disabled={isUpdatingMember}
                                 onClick={() => {
                                     setEditingMemberId(null)
                                     setEditMemberName('')
@@ -552,7 +553,6 @@ export const HojraAssignServices = ({
                                     setEditMemberImageFile(null)
                                     setEditMemberImagePreview(null)
                                 }}
-                                disabled={isUpdatingMember}
                             >
                                 {t('center.members.cancel')}
                             </Button>
@@ -675,7 +675,7 @@ export const HojraAssignServices = ({
                 <Button variant="plain" onClick={() => changeState(4)}>
                     {t('center.wizard.back')}
                 </Button>
-                <Button variant="solid" onClick={handleNext} loading={isSavingSchedules}>
+                <Button variant="solid" loading={isSavingSchedules} onClick={handleNext}>
                     {t('center.wizard.next')}
                 </Button>
             </div>

@@ -61,7 +61,7 @@ const UserForm = () => {
                 bio: existing.data.bio ?? '',
                 password: '',
                 password_confirmation: '',
-                roleIds: [],
+                roleIds: existing.data.role_ids ?? [],
             })
         }
     }, [existing, reset])
@@ -81,7 +81,7 @@ const UserForm = () => {
                           }
                         : {}),
                 })
-                if (can('roles.edit') && values.roleIds.length > 0) {
+                if (can('roles.edit')) {
                     await apiUpdateAdminUserRoles(Number(id), values.roleIds)
                 }
             } else {
@@ -91,6 +91,7 @@ const UserForm = () => {
                     bio: values.bio,
                     password: values.password,
                     password_confirmation: values.password_confirmation,
+                    ...(can('roles.edit') ? { role_ids: values.roleIds } : {}),
                 })
             }
 
@@ -175,7 +176,7 @@ const UserForm = () => {
                                 )}
                             />
                         </FormItem>
-                        {isEditing && can('roles.edit') && (
+                        {can('roles.edit') && (
                             <FormItem label="Roles" className="md:col-span-2">
                                 <Controller
                                     name="roleIds"

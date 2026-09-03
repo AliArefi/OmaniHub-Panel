@@ -91,8 +91,8 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                     <div className="flex flex-col gap-3">
                         {!imagePreview ? (
                             <div
-                                onClick={() => fileInputRef.current?.click()}
                                 className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary-deep hover:bg-gray-50 transition-all"
+                                onClick={() => fileInputRef.current?.click()}
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -157,8 +157,8 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                 <FormItem label="اسم العضو">
                     <Input
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
                         placeholder="اسم العضو"
+                        onChange={(e) => setName(e.target.value)}
                     />
                 </FormItem>
 
@@ -166,17 +166,17 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                 <FormItem label="وصف موجز">
                     <Input
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
                         placeholder="مثلاً: مختصة في العناية بالبشرة"
+                        onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormItem>
 
                 {/* دکمه افزودن */}
                 <FormItem>
                     <Button
+                        block
                         variant="default"
                         type="button"
-                        block
                         disabled={!isFormComplete()}
                         onClick={handleAddMember}
                     >

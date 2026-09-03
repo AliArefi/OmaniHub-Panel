@@ -108,9 +108,9 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                     <FormItem label={t('center.gallery.alt')} className="mb-4">
                         <Input
                             value={alt}
-                            onChange={(e) => setAlt(e.target.value)}
                             placeholder={t('center.gallery.altPlaceholder')}
                             disabled={loading}
+                            onChange={(e) => setAlt(e.target.value)}
                         />
                     </FormItem>
 
@@ -118,6 +118,7 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                         <Input
                             type="file"
                             accept="image/*"
+                            disabled={loading}
                             onChange={(e) => {
                                 const target = e.target as HTMLInputElement
                                 const inputFile = target.files?.[0]
@@ -144,7 +145,6 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
 
                                 setFile(nextFile)
                             }}
-                            disabled={loading}
                         />
                     </FormItem>
 
@@ -174,7 +174,7 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                                     </div>
                                     <div className="p-3">
                                         <div className="text-xs text-gray-500 mb-2">ALT: {item.alt || '-'}</div>
-                                        <Button size="sm" variant="plain" onClick={() => onRemove(item.id)} disabled={loading}>
+                                        <Button size="sm" variant="plain" disabled={loading} onClick={() => onRemove(item.id)}>
                                             {t('center.gallery.delete')}
                                         </Button>
                                     </div>

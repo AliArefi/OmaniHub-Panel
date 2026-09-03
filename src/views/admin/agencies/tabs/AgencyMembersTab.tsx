@@ -193,8 +193,8 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                             render={({ field: { onChange } }) => (
                                 <ImageUploadField
                                     existingUrl={editing?.image}
-                                    onChange={onChange}
                                     shape="circle"
+                                    onChange={onChange}
                                 />
                             )}
                         />

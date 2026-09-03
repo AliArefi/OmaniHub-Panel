@@ -11,7 +11,6 @@ export type CmsTranslation = {
         title?: string
         description?: string
         canonical?: string
-        robots?: string
     }
 }
 export type CmsEntry = {

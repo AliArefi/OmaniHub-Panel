@@ -78,7 +78,6 @@ export type AuthUser = {
     has_active_store?: boolean
     has_active_agency?: boolean
     created_at?: string | null
-    is_admin?: boolean
     roles?: string[]
     permissions?: string[]
     bio?: string | null
@@ -140,7 +139,6 @@ export type User = {
     has_active_agency?: boolean
     created_at?: string | null
     authority?: string[]
-    is_admin?: boolean
     roles?: string[]
     permissions?: string[]
     bio?: string | null

@@ -74,8 +74,8 @@ function AgencyBookingsTab({ agencySlug }: { agencySlug: string }) {
                     <Input
                         placeholder="Search name / mobile / id"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
                         className="w-56"
+                        onChange={(e) => setQuery(e.target.value)}
                     />
                     <div className="w-40">
                         <Select
@@ -210,7 +210,7 @@ function BookingDetailDialog({
     }
 
     return (
-        <Dialog isOpen onClose={onClose} width={640}>
+        <Dialog isOpen width={640} onClose={onClose}>
             {!reservation ? (
                 <div className="py-8 text-center text-gray-400">Loading…</div>
             ) : (
@@ -281,8 +281,8 @@ function BookingDetailDialog({
                         <div className="flex items-center gap-2">
                             <Input
                                 value={messageBody}
-                                onChange={(e) => setMessageBody(e.target.value)}
                                 placeholder="Type a message…"
+                                onChange={(e) => setMessageBody(e.target.value)}
                             />
                             <Button
                                 icon={<TbSend />}

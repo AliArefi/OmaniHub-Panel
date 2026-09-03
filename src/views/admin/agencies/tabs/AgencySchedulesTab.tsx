@@ -189,8 +189,8 @@ function AgencySchedulesTab({ agencySlug }: { agencySlug: string }) {
                     <Input
                         type="date"
                         value={previewDate}
-                        onChange={(e) => setPreviewDate(e.target.value)}
                         className="w-full md:w-48"
+                        onChange={(e) => setPreviewDate(e.target.value)}
                     />
                 </div>
 

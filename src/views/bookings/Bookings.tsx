@@ -268,11 +268,11 @@ export default function Bookings() {
                                                             size="xs"
                                                             variant="solid"
                                                             icon={<HiOutlineEye />}
+                                                            className="cursor-pointer"
                                                             onClick={() => {
                                                                 setSelectedBooking(booking)
                                                                 setShowDetailsModal(true)
                                                             }}
-                                                            className="cursor-pointer"
                                                         >
                                                             عرض
                                                         </Button>
@@ -374,11 +374,11 @@ export default function Bookings() {
                                                                 size="xs"
                                                                 variant="solid"
                                                                 icon={<HiOutlineEye />}
+                                                                className="cursor-pointer"
                                                                 onClick={() => {
                                                                     setSelectedBooking(booking)
                                                                     setShowDetailsModal(true)
                                                                 }}
-                                                                className="cursor-pointer"
                                                             >
                                                                 عرض
                                                             </Button>
@@ -398,12 +398,12 @@ export default function Bookings() {
             {selectedBooking ? (
                 <BookingDetailsModal
                     isOpen={showDetailsModal}
+                    booking={selectedBooking}
+                    canQuote={tab === 'agency'}
                     onClose={() => {
                         setShowDetailsModal(false)
                         setSelectedBooking(null)
                     }}
-                    booking={selectedBooking}
-                    canQuote={tab === 'agency'}
                     onBookingUpdated={(updatedBooking) => {
                         setBookings((current) =>
                             current.map((item) =>

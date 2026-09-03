@@ -23,7 +23,7 @@ export default function BookingDetailsModal({
     }
 
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="max-w-2xl">
+        <Dialog isOpen={isOpen} className="max-w-2xl" onClose={onClose}>
             <div
                 className="fixed inset-0 bg-black/60 z-[9999]"
                 onClick={onClose}
@@ -35,8 +35,8 @@ export default function BookingDetailsModal({
                         تفاصيل الحجز
                     </h3>
                     <button
-                        onClick={onClose}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                        onClick={onClose}
                     >
                         <HiX className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                     </button>

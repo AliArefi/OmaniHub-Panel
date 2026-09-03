@@ -572,18 +572,18 @@ export const ViewCenterTabAssignServices = () => {
                                         : null
                                 }
                                 options={serviceOptions}
+                                placeholder={t('center.members.service')}
                                 onChange={(option) =>
                                     setNewMemberServiceId(option?.value ?? null)
                                 }
-                                placeholder={t('center.members.service')}
                             />
                         </FormItem>
 
                         <div className="flex gap-2">
                             <Button
                                 variant="solid"
-                                onClick={handleCreateMember}
                                 loading={isCreatingMember}
+                                onClick={handleCreateMember}
                             >
                                 {t('center.members.save')}
                             </Button>
@@ -710,13 +710,14 @@ export const ViewCenterTabAssignServices = () => {
                         <div className="flex gap-2">
                             <Button
                                 variant="solid"
-                                onClick={saveMemberEdits}
                                 loading={isUpdatingMember}
+                                onClick={saveMemberEdits}
                             >
                                 {t('center.members.saveChanges')}
                             </Button>
                             <Button
                                 variant="plain"
+                                disabled={isUpdatingMember}
                                 onClick={() => {
                                     setEditingMemberId(null)
                                     setEditMemberName('')
@@ -724,7 +725,6 @@ export const ViewCenterTabAssignServices = () => {
                                     setEditMemberImageFile(null)
                                     setEditMemberImagePreview(null)
                                 }}
-                                disabled={isUpdatingMember}
                             >
                                 {t('center.members.cancel')}
                             </Button>
@@ -939,8 +939,8 @@ export const ViewCenterTabAssignServices = () => {
                 <div className="flex justify-end mt-5">
                     <Button
                         variant="solid"
-                        onClick={handleNext}
                         loading={isSavingSchedules}
+                        onClick={handleNext}
                     >
                         تعدیل
                     </Button>

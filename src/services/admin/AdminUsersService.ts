@@ -21,6 +21,7 @@ export function apiCreateAdminUser(payload: {
     bio?: string
     password: string
     password_confirmation: string
+    role_ids?: number[]
 }) {
     return ApiService.fetchDataWithAxios<{ data: AdminUser }>({
         url: '/admin/users',
@@ -62,13 +63,5 @@ export function apiUpdateAdminUserRoles(id: number, roleIds: number[]) {
         url: `/admin/users/${id}/roles`,
         method: 'put',
         data: { roles: roleIds },
-    })
-}
-
-export function apiUpdateAdminUserAdminStatus(id: number, isAdmin: boolean) {
-    return ApiService.fetchDataWithAxios<{ data: AdminUser }>({
-        url: `/admin/users/${id}/admin-status`,
-        method: 'patch',
-        data: { is_admin: isAdmin },
     })
 }

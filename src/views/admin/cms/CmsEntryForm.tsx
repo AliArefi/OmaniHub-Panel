@@ -60,7 +60,6 @@ const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
         group: 'seo',
         type: 'url',
     },
-    { name: 'seo_robots', label: 'Robots', group: 'seo' },
 ]
 
 type FlatTranslation = Record<string, unknown> & {
@@ -71,7 +70,6 @@ type FlatTranslation = Record<string, unknown> & {
     seo_title: string
     seo_description: string
     seo_canonical: string
-    seo_robots: string
 }
 type FormValues = {
     featured: boolean
@@ -90,7 +88,6 @@ const emptyTranslation = (): FlatTranslation => ({
     seo_title: '',
     seo_description: '',
     seo_canonical: '',
-    seo_robots: 'index,follow',
 })
 
 function flattenTranslation(value?: CmsTranslation): FlatTranslation {
@@ -100,7 +97,6 @@ function flattenTranslation(value?: CmsTranslation): FlatTranslation {
         seo_title: value?.seo?.title ?? '',
         seo_description: value?.seo?.description ?? '',
         seo_canonical: value?.seo?.canonical ?? '',
-        seo_robots: value?.seo?.robots ?? 'index,follow',
         ...(value?.custom_fields ?? {}),
     }
 }
@@ -229,7 +225,6 @@ export default function CmsEntryForm() {
                             title: value.seo_title,
                             description: value.seo_description,
                             canonical: value.seo_canonical,
-                            robots: value.seo_robots,
                         },
                     },
                 ]

@@ -283,9 +283,9 @@ export default function ManualReservationModal({
     return (
         <Dialog
             isOpen={isOpen}
-            onClose={onClose}
             className="max-w-3xl"
             contentClassName="m-0"
+            onClose={onClose}
         >
             <div
                 className="fixed inset-0 bg-black/60 z-[9999]"
@@ -305,9 +305,9 @@ export default function ManualReservationModal({
                     </div>
                     <button
                         type="button"
-                        onClick={onClose}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                         aria-label="Close"
+                        onClick={onClose}
                     >
                         <HiX className="h-5 w-5" />
                     </button>
@@ -385,13 +385,13 @@ export default function ManualReservationModal({
                             </span>
                             <Input
                                 value={form.customer_mobile}
+                                inputMode="tel"
                                 onChange={(event) =>
                                     updateField(
                                         'customer_mobile',
                                         event.target.value,
                                     )
                                 }
-                                inputMode="tel"
                             />
                         </label>
 
@@ -414,13 +414,13 @@ export default function ManualReservationModal({
                             </span>
                             <select
                                 value={form.status}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                 onChange={(event) =>
                                     updateField(
                                         'status',
                                         event.target.value as Booking['status'],
                                     )
                                 }
-                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             >
                                 <option value="pending">قيد الانتظار</option>
                                 <option value="confirmed">تم التأكيد</option>
@@ -463,6 +463,8 @@ export default function ManualReservationModal({
                             </span>
                             <Input
                                 value={form.price}
+                                inputMode="decimal"
+                                placeholder="Optional"
                                 onChange={(event) =>
                                     updateField(
                                         'price',
@@ -472,8 +474,6 @@ export default function ManualReservationModal({
                                         ),
                                     )
                                 }
-                                inputMode="decimal"
-                                placeholder="Optional"
                             />
                         </label>
 
@@ -499,8 +499,8 @@ export default function ManualReservationModal({
                                 variant="plain"
                                 icon={<HiOutlineTrash />}
                                 loading={deleting}
-                                onClick={handleDelete}
                                 className="text-red-600 hover:text-red-700"
+                                onClick={handleDelete}
                             >
                                 حذف
                             </Button>

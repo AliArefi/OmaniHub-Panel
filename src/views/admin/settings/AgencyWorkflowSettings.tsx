@@ -48,7 +48,7 @@ const AgencyWorkflowSettings = () => {
         <AdaptiveCard>
             <h4 className="mb-6">Agency workflow</h4>
             <label className="flex items-center gap-3">
-                <Switcher checked={value} onChange={setValue} disabled={!canEdit} />
+                <Switcher checked={value} disabled={!canEdit} onChange={setValue} />
                 Require re-review when an agency owner updates their listing
             </label>
             {canEdit && (

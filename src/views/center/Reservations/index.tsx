@@ -197,19 +197,19 @@ export default function Reservations() {
                                                 size="xs"
                                                 variant="solid"
                                                 icon={<HiOutlineEye />}
+                                                className="cursor-pointer"
                                                 onClick={() =>
                                                     handleViewDetails(booking)
                                                 }
-                                                className="cursor-pointer"
                                             >
                                                 عرض
                                             </Button>
                                             <Button
+                                                disabled
                                                 size="xs"
                                                 variant="default"
                                                 icon={<HiOutlineChatAlt2 />}
                                                 className="cursor-pointer"
-                                                disabled
                                             >
                                                 محادثة
                                             </Button>
@@ -224,13 +224,13 @@ export default function Reservations() {
 
             {selectedBooking && (
                 <BookingDetailsModal
+                    canQuote
                     isOpen={showDetailsModal}
+                    booking={selectedBooking}
                     onClose={() => {
                         setShowDetailsModal(false)
                         setSelectedBooking(null)
                     }}
-                    booking={selectedBooking}
-                    canQuote
                     onBookingUpdated={(updatedBooking) => {
                         setBookings((current) =>
                             current.map((item) =>

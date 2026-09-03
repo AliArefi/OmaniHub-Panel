@@ -46,8 +46,6 @@ export type AdminOrganization = {
     canonical: string | null
     og_title: string | null
     og_description: string | null
-    meta_robots: boolean
-    include_in_sitemap: boolean
     agencies_count?: number
     owner?: { id: number; name: string; email: string }
     city?: { id: number; name: string }
@@ -83,11 +81,9 @@ export type AdminAgency = {
     about_text: string | null
     about_us: string | null
     meta_description: string | null
-    meta_robots: boolean
     top_seller: boolean
     show_in_marketplace: boolean
     fully_verfied: boolean
-    include_in_sitemap: boolean
     services_count?: number | null
     comments_count?: number | null
     organization?: { id: number; title: string }
@@ -115,9 +111,9 @@ export type AdminUser = {
     mobile: string | null
     avatar: string | null
     bio: string | null
-    is_admin: boolean
     email_verified_at: string | null
-    roles?: string[]
+    roles: string[]
+    role_ids: number[]
     auth_summary?: AdminAuthSummary
     created_at: string | null
     updated_at: string | null

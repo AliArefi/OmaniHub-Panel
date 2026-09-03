@@ -660,13 +660,13 @@ export const HojraExtraInformations = ({
                             render={({ field }) => (
                                 <PhoneNumberInput
                                     value={phoneValue}
+                                    invalid={Boolean(errors.phone)}
                                     onChange={(nextValue) => {
                                         setPhoneValue(nextValue)
                                         field.onChange(
                                             stringifyPhoneValue(nextValue),
                                         )
                                     }}
-                                    invalid={Boolean(errors.phone)}
                                 />
                             )}
                         />

@@ -382,13 +382,13 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
 
             {selectedBooking ? (
                 <BookingDetailsModal
+                    canQuote
                     isOpen={showDetailsModal}
+                    booking={selectedBooking}
                     onClose={() => {
                         setShowDetailsModal(false)
                         setSelectedBooking(null)
                     }}
-                    booking={selectedBooking}
-                    canQuote
                     onBookingUpdated={(updatedBooking) => {
                         setDayReservations((current) =>
                             current.map((item) =>
@@ -405,14 +405,14 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
             {agency ? (
                 <ManualReservationModal
                     isOpen={manualModalOpen}
-                    onClose={() => {
-                        setManualModalOpen(false)
-                        setEditingReservation(null)
-                    }}
                     agencyId={agency.id}
                     agencySlug={agency.slug}
                     selectedDate={selectedDate}
                     reservation={editingReservation}
+                    onClose={() => {
+                        setManualModalOpen(false)
+                        setEditingReservation(null)
+                    }}
                     onSaved={async (reservation) => {
                         setSelectedDate(reservation.date)
                         await refreshCalendarData(reservation.date)

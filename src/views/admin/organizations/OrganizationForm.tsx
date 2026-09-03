@@ -7,7 +7,6 @@ import Container from '@/components/shared/Container'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
-import Switcher from '@/components/ui/Switcher'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -53,8 +52,6 @@ type OrganizationFormValues = {
     phone: string
     website: string
     status: string
-    meta_robots: boolean
-    include_in_sitemap: boolean
     translations: Record<string, Record<string, string>>
 }
 
@@ -77,8 +74,6 @@ const OrganizationForm = () => {
             phone: '',
             website: '',
             status: 'pending',
-            meta_robots: true,
-            include_in_sitemap: false,
             translations: {},
         },
     })
@@ -93,8 +88,6 @@ const OrganizationForm = () => {
                 phone: org.phone ?? '',
                 website: org.website ?? '',
                 status: org.status,
-                meta_robots: org.meta_robots,
-                include_in_sitemap: org.include_in_sitemap,
                 translations: org.translations as Record<string, Record<string, string>>,
             })
         }
@@ -110,8 +103,6 @@ const OrganizationForm = () => {
                 phone: values.phone,
                 website: values.website,
                 status: values.status,
-                meta_robots: values.meta_robots ? 'on' : '',
-                include_in_sitemap: values.include_in_sitemap ? 'on' : '',
                 translations: values.translations,
             }
 
@@ -182,24 +173,6 @@ const OrganizationForm = () => {
                                 control={control}
                                 render={({ field }) => (
                                     <Input type="url" {...field} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Robots indexable">
-                            <Controller
-                                name="meta_robots"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Include in sitemap">
-                            <Controller
-                                name="include_in_sitemap"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
                                 )}
                             />
                         </FormItem>

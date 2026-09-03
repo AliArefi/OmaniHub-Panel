@@ -24,7 +24,7 @@ export default function Home() {
                         نحو إبداعٍ مؤثر، نتائج قابلة للقیاس، ونموٍ مستدام لعلامتك التجارية.
                     </p>
                     <div className="mt-2 flex items-center justify-end">
-                        <Button size="sm" onClick={handleCreate} variant="solid">إنشاء مركز خدمة</Button>
+                        <Button size="sm" variant="solid" onClick={handleCreate}>إنشاء مركز خدمة</Button>
                     </div>
                 </Card>
             </div>

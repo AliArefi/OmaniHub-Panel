@@ -193,7 +193,7 @@ export default function Chat() {
                 // ignore deep-link failures
             }
         })()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [searchParams])
 
     useEffect(() => {
@@ -448,11 +448,11 @@ export default function Chat() {
                                     <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3">
                                         <Input
                                             value={composer}
+                                            placeholder="اكتب رسالة..."
+                                            disabled={sending}
                                             onChange={(e) =>
                                                 setComposer(e.target.value)
                                             }
-                                            placeholder="اكتب رسالة..."
-                                            disabled={sending}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault()

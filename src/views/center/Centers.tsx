@@ -306,13 +306,13 @@ export default function Centers() {
             <ConfirmDialog
                 type="danger"
                 isOpen={Boolean(confirmDeleteSlug)}
-                onClose={() => setConfirmDeleteSlug(null)}
                 title="تأكيد الحذف"
                 confirmText="حذف"
                 cancelText="إلغاء"
                 confirmButtonProps={{
                     loading: deletingSlug === confirmDeleteSlug,
                 }}
+                onClose={() => setConfirmDeleteSlug(null)}
                 onCancel={() => setConfirmDeleteSlug(null)}
                 onConfirm={() => {
                     if (!confirmDeleteSlug) return

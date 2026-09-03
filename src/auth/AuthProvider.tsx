@@ -23,13 +23,12 @@ import type { NavigateFunction } from 'react-router'
 type AuthProviderProps = { children: ReactNode }
 
 // AuthUser.roles maps to the app-wide `authority` concept (used by
-// useAuthority/AuthorityGuard/AuthorityCheck); permissions/is_admin are kept
-// alongside for the finer-grained usePermission() checks admin screens need.
+// useAuthority/AuthorityGuard/AuthorityCheck); permissions are kept alongside
+// for the finer-grained usePermission() checks admin screens need.
 const toSessionUser = (payload: User): User => ({
     ...payload,
     authority: payload.roles ?? [],
     permissions: payload.permissions ?? [],
-    is_admin: Boolean(payload.is_admin),
 })
 
 export type IsolatedNavigatorRef = {
@@ -68,7 +67,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     // choice always wins — including on user-facing (non-admin) pages.
     const seedAdminUiIfNeeded = useCallback(
         (sessionUser: User) => {
-            if (sessionUser.is_admin && !adminUiSeeded) {
+            if ((sessionUser.roles?.length ?? 0) > 0 && !adminUiSeeded) {
                 setLang('en')
                 setDirection('ltr')
                 setAdminUiSeeded(true)

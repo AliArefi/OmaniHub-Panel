@@ -232,8 +232,8 @@ const ServiceForm = () => {
                                 render={({ field: { onChange } }) => (
                                     <ImageUploadField
                                         existingUrl={existing?.data.icon}
-                                        onChange={onChange}
                                         size={64}
+                                        onChange={onChange}
                                     />
                                 )}
                             />
@@ -245,8 +245,8 @@ const ServiceForm = () => {
                                 render={({ field: { onChange } }) => (
                                     <ImageUploadField
                                         existingUrl={existing?.data.image}
-                                        onChange={onChange}
                                         size={64}
+                                        onChange={onChange}
                                     />
                                 )}
                             />

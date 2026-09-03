@@ -89,7 +89,7 @@ const NotificationSettings = () => {
                             name="enabled"
                             control={control}
                             render={({ field: { value, onChange } }) => (
-                                <Switcher checked={value} onChange={onChange} disabled={!canEdit} />
+                                <Switcher checked={value} disabled={!canEdit} onChange={onChange} />
                             )}
                         />
                     </FormItem>
@@ -133,8 +133,8 @@ const NotificationSettings = () => {
                                                 <label className="flex items-center gap-2">
                                                     <Switcher
                                                         checked={Boolean(value)}
-                                                        onChange={onChange}
                                                         disabled={!canEdit}
+                                                        onChange={onChange}
                                                     />
                                                     {target}
                                                 </label>

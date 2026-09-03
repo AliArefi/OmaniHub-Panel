@@ -99,7 +99,7 @@ const OtpSettings = () => {
                             name="enabled"
                             control={control}
                             render={({ field: { value, onChange } }) => (
-                                <Switcher checked={Boolean(value)} onChange={onChange} disabled={!canEdit} />
+                                <Switcher checked={Boolean(value)} disabled={!canEdit} onChange={onChange} />
                             )}
                         />
                     </FormItem>
@@ -111,8 +111,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={DRIVER_OPTIONS}
                                     value={selectField(DRIVER_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -179,8 +179,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={FLOW_OPTIONS}
                                     value={selectField(FLOW_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -193,8 +193,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={FLOW_OPTIONS}
                                     value={selectField(FLOW_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -207,8 +207,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={IDENTIFIER_OPTIONS}
                                     value={selectField(IDENTIFIER_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -221,8 +221,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={CHANNEL_OPTIONS}
                                     value={selectField(CHANNEL_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -235,8 +235,8 @@ const OtpSettings = () => {
                                 <Select
                                     options={CHANNEL_OPTIONS}
                                     value={selectField(CHANNEL_OPTIONS, field.value)}
-                                    onChange={(o) => field.onChange(o?.value)}
                                     isDisabled={!canEdit}
+                                    onChange={(o) => field.onChange(o?.value)}
                                 />
                             )}
                         />
@@ -246,7 +246,7 @@ const OtpSettings = () => {
                             name="require_verified_user_profile"
                             control={control}
                             render={({ field: { value, onChange } }) => (
-                                <Switcher checked={Boolean(value)} onChange={onChange} disabled={!canEdit} />
+                                <Switcher checked={Boolean(value)} disabled={!canEdit} onChange={onChange} />
                             )}
                         />
                     </FormItem>
@@ -255,7 +255,7 @@ const OtpSettings = () => {
                             name="mfa_enabled"
                             control={control}
                             render={({ field: { value, onChange } }) => (
-                                <Switcher checked={Boolean(value)} onChange={onChange} disabled={!canEdit} />
+                                <Switcher checked={Boolean(value)} disabled={!canEdit} onChange={onChange} />
                             )}
                         />
                     </FormItem>

@@ -95,7 +95,7 @@ export default function BookingDetailsModal({
     }
 
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="max-w-2xl">
+        <Dialog isOpen={isOpen} className="max-w-2xl" onClose={onClose}>
             <div
                 className="fixed inset-0 bg-black/60 z-[9999]"
                 onClick={onClose}
@@ -110,9 +110,9 @@ export default function BookingDetailsModal({
                         تفاصيل الحجز
                     </h3>
                     <button
-                        onClick={onClose}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                         aria-label="إغلاق"
+                        onClick={onClose}
                     >
                         <HiX className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                     </button>
@@ -277,6 +277,8 @@ export default function BookingDetailsModal({
                                     </div>
                                     <Input
                                         value={quotePrice}
+                                        placeholder="17.50"
+                                        inputMode="decimal"
                                         onChange={(event) =>
                                             setQuotePrice(
                                                 event.target.value.replace(
@@ -285,8 +287,6 @@ export default function BookingDetailsModal({
                                                 ),
                                             )
                                         }
-                                        placeholder="17.50"
-                                        inputMode="decimal"
                                     />
                                 </div>
                                 <div>
@@ -295,13 +295,13 @@ export default function BookingDetailsModal({
                                     </div>
                                     <select
                                         value={quoteStatus}
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                         onChange={(event) =>
                                             setQuoteStatus(
                                                 event.target
                                                     .value as Booking['status'],
                                             )
                                         }
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                     >
                                         <option value="pending">قيد الانتظار</option>
                                         <option value="confirmed">مؤكد</option>

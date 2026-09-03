@@ -2,10 +2,9 @@ import Alert from '@/components/ui/Alert'
 import OtpVerificationForm from './components/OtpVerificationForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
-import { apiResendOtp } from '@/services/AuthService'
+import { apiResendOtp , apiAuthConfig } from '@/services/AuthService'
 import { Navigate } from 'react-router'
 import { useEffect, useState } from 'react'
-import { apiAuthConfig } from '@/services/AuthService'
 
 const otpDeliveryText = (deliveryChannel?: string) => {
     if (deliveryChannel === 'whatsapp') return 'يرجى إدخال رمز التحقق المرسل عبر واتساب.'
@@ -72,7 +71,7 @@ export const OtpVerificationBase = () => {
     }
 
     if (!pending?.challenge_id) {
-        return <Navigate to="/sign-in" replace />
+        return <Navigate replace to="/sign-in" />
     }
 
     const deliveryChannel =

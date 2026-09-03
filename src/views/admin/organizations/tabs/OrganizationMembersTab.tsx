@@ -177,8 +177,8 @@ function OrganizationMembersTab({ organizationSlug }: { organizationSlug: string
                             render={({ field: { onChange } }) => (
                                 <ImageUploadField
                                     existingUrl={editing?.image}
-                                    onChange={onChange}
                                     shape="circle"
+                                    onChange={onChange}
                                 />
                             )}
                         />

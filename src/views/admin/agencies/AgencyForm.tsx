@@ -63,8 +63,6 @@ type AgencyFormValues = {
     top_seller: boolean
     show_in_marketplace: boolean
     fully_verfied: boolean
-    meta_robots: boolean
-    include_in_sitemap: boolean
     logo: File | null
     banner: File | null
     translations: Record<string, Record<string, string>>
@@ -97,8 +95,6 @@ const AgencyForm = () => {
             top_seller: false,
             show_in_marketplace: true,
             fully_verfied: false,
-            meta_robots: true,
-            include_in_sitemap: true,
             logo: null,
             banner: null,
             translations: {},
@@ -119,8 +115,6 @@ const AgencyForm = () => {
                 top_seller: agency.top_seller,
                 show_in_marketplace: agency.show_in_marketplace,
                 fully_verfied: agency.fully_verfied,
-                meta_robots: agency.meta_robots,
-                include_in_sitemap: agency.include_in_sitemap,
                 logo: null,
                 banner: null,
                 translations: agency.translations as Record<string, Record<string, string>>,
@@ -147,11 +141,6 @@ const AgencyForm = () => {
                 values.show_in_marketplace ? 'on' : '',
             )
             formData.append('fully_verfied', values.fully_verfied ? 'on' : '')
-            formData.append('meta_robots', values.meta_robots ? 'on' : '')
-            formData.append(
-                'include_in_sitemap',
-                values.include_in_sitemap ? 'on' : '',
-            )
             if (values.logo) formData.append('logo', values.logo)
             if (values.banner) formData.append('banner', values.banner)
 
@@ -267,8 +256,8 @@ const AgencyForm = () => {
                                 render={({ field: { onChange } }) => (
                                     <ImageUploadField
                                         existingUrl={existing?.data.logo}
-                                        onChange={onChange}
                                         shape="circle"
+                                        onChange={onChange}
                                     />
                                 )}
                             />
@@ -280,8 +269,8 @@ const AgencyForm = () => {
                                 render={({ field: { onChange } }) => (
                                     <ImageUploadField
                                         existingUrl={existing?.data.banner}
-                                        onChange={onChange}
                                         size={120}
+                                        onChange={onChange}
                                     />
                                 )}
                             />
@@ -307,15 +296,6 @@ const AgencyForm = () => {
                         <FormItem label="Fully verified">
                             <Controller
                                 name="fully_verfied"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Include in sitemap">
-                            <Controller
-                                name="include_in_sitemap"
                                 control={control}
                                 render={({ field: { value, onChange } }) => (
                                     <Switcher checked={value} onChange={onChange} />

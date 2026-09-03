@@ -143,10 +143,10 @@ const PerLocaleSettingsForm = (props: PerLocaleSettingsFormProps) => {
                                         return (
                                             <ImageUploadField
                                                 existingUrl={existingUrl}
+                                                disabled={!canEdit}
                                                 onChange={(file) =>
                                                     rhfField.onChange(file)
                                                 }
-                                                disabled={!canEdit}
                                             />
                                         )
                                     }
@@ -172,8 +172,8 @@ const PerLocaleSettingsForm = (props: PerLocaleSettingsFormProps) => {
                                                     ? rhfField.value
                                                     : ''
                                             }
-                                            onChange={rhfField.onChange}
                                             disabled={!canEdit}
+                                            onChange={rhfField.onChange}
                                         />
                                     )
                                 }}

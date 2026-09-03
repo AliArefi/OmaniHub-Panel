@@ -2,14 +2,11 @@ import { useNavigate } from 'react-router'
 import AdminListPage from '@/components/admin/AdminListPage'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
-import { TbEdit, TbTrash, TbShieldCheck } from 'react-icons/tb'
+import { TbEdit, TbTrash } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
-import {
-    apiDeleteAdminUser,
-    apiUpdateAdminUserAdminStatus,
-} from '@/services/admin/AdminUsersService'
+import { apiDeleteAdminUser } from '@/services/admin/AdminUsersService'
 import type { AdminUser } from '@/@types/admin'
 import type { ColumnDef } from '@/components/shared/DataTable'
 
@@ -21,16 +18,26 @@ const UsersList = () => {
         { header: 'Name', accessorKey: 'name' },
         { header: 'Email', accessorKey: 'email' },
         {
-            header: 'Admin',
-            accessorKey: 'is_admin',
-            cell: (props) =>
-                props.row.original.is_admin ? (
-                    <Tag className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-100">
-                        Admin
-                    </Tag>
+            header: 'Roles',
+            accessorKey: 'roles',
+            cell: (props) => {
+                const roles = props.row.original.roles
+
+                return roles.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                        {roles.map((role) => (
+                            <Tag
+                                key={role}
+                                className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-100"
+                            >
+                                {role}
+                            </Tag>
+                        ))}
+                    </div>
                 ) : (
-                    '—'
-                ),
+                    <span className="text-gray-500">No admin role</span>
+                )
+            },
         },
         {
             header: 'Verified',
@@ -63,44 +70,6 @@ const UsersList = () => {
                                     }
                                 >
                                     <TbEdit />
-                                </button>
-                            </Tooltip>
-                        )}
-                        {can('admins') && (
-                            <Tooltip
-                                title={
-                                    row.is_admin
-                                        ? 'Revoke admin access'
-                                        : 'Grant admin access'
-                                }
-                            >
-                                <button
-                                    type="button"
-                                    className="text-lg"
-                                    onClick={async () => {
-                                        try {
-                                            await apiUpdateAdminUserAdminStatus(
-                                                row.id,
-                                                !row.is_admin,
-                                            )
-                                            toast.push(
-                                                <Notification
-                                                    type="success"
-                                                    title="Updated"
-                                                />,
-                                            )
-                                            mutate()
-                                        } catch {
-                                            toast.push(
-                                                <Notification
-                                                    type="danger"
-                                                    title="Failed to update"
-                                                />,
-                                            )
-                                        }
-                                    }}
-                                >
-                                    <TbShieldCheck />
                                 </button>
                             </Tooltip>
                         )}
