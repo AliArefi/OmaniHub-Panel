@@ -245,3 +245,130 @@ export const apiModerateCmsComment = (id: number, approved: boolean) =>
         method: 'post',
         data: { approved },
     })
+
+export type CmsPostComment = {
+    id: number
+    reviewer_name?: string | null
+    comment: string
+    locale: CmsLocale
+    status: boolean
+    user?: { id: number; name: string } | null
+}
+
+export type CmsPostRating = {
+    id: number
+    rating: number
+    locale: CmsLocale
+    user?: { id: number; name: string } | null
+    admin?: { id: number; name: string } | null
+}
+
+export type CmsPostFaq = {
+    id: number
+    question: string
+    answer: string
+    locale: CmsLocale
+    is_active: boolean
+    sort_order: number
+}
+
+export const apiGetCmsPostComments = (entryId: number) =>
+    ApiService.fetchDataWithAxios<{ data: CmsPostComment[] }>({
+        url: `/admin/cms/entries/${entryId}/comments`,
+    })
+
+export const apiCreateCmsPostComment = (
+    entryId: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/comments`,
+        method: 'post',
+        data,
+    })
+
+export const apiUpdateCmsPostComment = (
+    entryId: number,
+    id: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/comments/${id}/update`,
+        method: 'post',
+        data,
+    })
+
+export const apiDeleteCmsPostComment = (entryId: number, id: number) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/comments/${id}/delete`,
+        method: 'post',
+    })
+
+export const apiGetCmsPostRatings = (entryId: number) =>
+    ApiService.fetchDataWithAxios<{
+        data: CmsPostRating[]
+        summary: { average: number; count: number }
+    }>({
+        url: `/admin/cms/entries/${entryId}/ratings`,
+    })
+
+export const apiCreateCmsPostRating = (
+    entryId: number,
+    rating: number,
+    locale: CmsLocale,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/ratings`,
+        method: 'post',
+        data: { rating, locale },
+    })
+
+export const apiUpdateCmsPostRating = (
+    entryId: number,
+    id: number,
+    rating: number,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/ratings/${id}/update`,
+        method: 'post',
+        data: { rating },
+    })
+
+export const apiDeleteCmsPostRating = (entryId: number, id: number) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/ratings/${id}/delete`,
+        method: 'post',
+    })
+
+export const apiGetCmsPostFaqs = (entryId: number, locale: CmsLocale) =>
+    ApiService.fetchDataWithAxios<{ data: CmsPostFaq[] }>({
+        url: `/admin/cms/entries/${entryId}/faqs`,
+        params: { locale },
+    })
+
+export const apiCreateCmsPostFaq = (
+    entryId: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/faqs`,
+        method: 'post',
+        data,
+    })
+
+export const apiUpdateCmsPostFaq = (
+    entryId: number,
+    id: number,
+    data: Record<string, unknown>,
+) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/faqs/${id}/update`,
+        method: 'post',
+        data,
+    })
+
+export const apiDeleteCmsPostFaq = (entryId: number, id: number) =>
+    ApiService.fetchDataWithAxios({
+        url: `/admin/cms/entries/${entryId}/faqs/${id}/delete`,
+        method: 'post',
+    })

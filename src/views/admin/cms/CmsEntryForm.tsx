@@ -7,6 +7,7 @@ import Container from '@/components/shared/Container'
 import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
 import CmsMediaManager from './CmsMediaManager'
+import CmsPostEngagementManager from './CmsPostEngagementManager'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
@@ -464,6 +465,9 @@ export default function CmsEntryForm() {
                         </AdaptiveCard>
                     </div>
                 </div>
+                {typeKey === 'post' && id && (
+                    <CmsPostEngagementManager entryId={Number(id)} />
+                )}
             </Form>
         </Container>
     )
