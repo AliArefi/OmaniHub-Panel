@@ -122,7 +122,9 @@ const ServiceForm = () => {
             formData.append('order_number', String(values.order_number))
             formData.append('featured', values.featured ? 'on' : '')
             if (values.service_id) {
-                formData.append('service_id', String(values.service_id))
+                formData.append('service_id', String(values.service_id));
+            }else {
+                formData.append('service_id', '');
             }
             if (values.icon) formData.append('icon', values.icon)
             if (values.image) formData.append('image', values.image)
