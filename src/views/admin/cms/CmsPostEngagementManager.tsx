@@ -80,6 +80,19 @@ export default function CmsPostEngagementManager({
             await action()
             await reload()
             toast.push(<Notification type="success" title="Saved" />)
+        } catch (error) {
+            const message =
+                (
+                    error as {
+                        response?: { data?: { message?: string } }
+                    }
+                ).response?.data?.message ??
+                'The request could not be completed. Please try again.'
+            toast.push(
+                <Notification type="danger" title="Request failed">
+                    {message}
+                </Notification>,
+            )
         } finally {
             setBusy(false)
         }
@@ -245,6 +258,7 @@ export default function CmsPostEngagementManager({
                             <Button
                                 variant="solid"
                                 loading={busy}
+                                disabled={rating < 1 || rating > 5}
                                 onClick={() =>
                                     void run(() =>
                                         apiCreateCmsPostRating(
