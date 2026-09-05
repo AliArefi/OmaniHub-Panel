@@ -324,7 +324,11 @@ export default function CmsEntryForm() {
                 <Tabs.TabList>
                     <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
                     {typeKey === 'post' && id && (
-                        <Tabs.TabNav value="engagement">Engagement</Tabs.TabNav>
+                        <>
+                            <Tabs.TabNav value="comments">Comments</Tabs.TabNav>
+                            <Tabs.TabNav value="ratings">Ratings</Tabs.TabNav>
+                            <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
+                        </>
                     )}
                 </Tabs.TabList>
                 <Tabs.TabContent value="overview">
@@ -493,9 +497,26 @@ export default function CmsEntryForm() {
                     </Form>
                 </Tabs.TabContent>
                 {typeKey === 'post' && id && (
-                    <Tabs.TabContent value="engagement">
-                        <CmsPostEngagementManager entryId={Number(id)} />
-                    </Tabs.TabContent>
+                    <>
+                        <Tabs.TabContent value="comments">
+                            <CmsPostEngagementManager
+                                entryId={Number(id)}
+                                section="comments"
+                            />
+                        </Tabs.TabContent>
+                        <Tabs.TabContent value="ratings">
+                            <CmsPostEngagementManager
+                                entryId={Number(id)}
+                                section="ratings"
+                            />
+                        </Tabs.TabContent>
+                        <Tabs.TabContent value="faqs">
+                            <CmsPostEngagementManager
+                                entryId={Number(id)}
+                                section="faqs"
+                            />
+                        </Tabs.TabContent>
+                    </>
                 )}
             </Tabs>
         </Container>
