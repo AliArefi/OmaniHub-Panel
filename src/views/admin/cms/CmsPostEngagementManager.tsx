@@ -81,7 +81,7 @@ export default function CmsPostEngagementManager({
     }
 
     return (
-        <div className="mt-6 space-y-6">
+        <div className="space-y-6">
             <AdaptiveCard>
                 <div className="mb-4 flex items-center justify-between">
                     <div>

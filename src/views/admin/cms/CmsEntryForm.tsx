@@ -13,6 +13,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Switcher from '@/components/ui/Switcher'
 import Tag from '@/components/ui/Tag'
+import { Tabs } from '@/components/ui/Tabs'
 import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -319,156 +320,184 @@ export default function CmsEntryForm() {
 
     return (
         <Container>
-            <Form onSubmit={handleSubmit((values) => onSubmit(values))}>
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-                    <div className="lg:col-span-8">
-                        <AdaptiveCard>
-                            <div className="mb-6 flex items-center justify-between">
-                                <h3>
-                                    {isEditing ? 'Edit' : 'New'}{' '}
-                                    {contentType?.translations?.en?.name ??
-                                        typeKey}
-                                </h3>
-                                {entryResponse?.data.is_system && (
-                                    <Tag>Protected system entry</Tag>
-                                )}
-                            </div>
-                            <LocalizedFieldsTabs
-                                fields={LOCALIZED_FIELDS}
-                                requiredFields={[
-                                    'title',
-                                    'slug',
-                                    ...(contentType?.settings?.supports?.includes(
-                                        'editor',
-                                    )
-                                        ? ['content_html']
-                                        : []),
-                                ]}
-                                control={control}
-                                errors={errors}
-                            />
-                            {typeKey === 'post' && (
-                                <PostTaxonomyFields
-                                    control={control}
-                                    categories={taxonomyOptions(
-                                        categoriesResponse?.data,
-                                    )}
-                                    tags={taxonomyOptions(tagsResponse?.data)}
-                                />
-                            )}
-                            {customFields.length > 0 && (
-                                <CustomFields
-                                    fields={customFields}
-                                    type={contentType}
-                                    control={control}
-                                />
-                            )}
-                        </AdaptiveCard>
-                    </div>
-                    <div className="space-y-6 lg:col-span-4">
-                        <AdaptiveCard>
-                            <h5 className="mb-4">Publishing</h5>
-                            <FormItem label="Featured">
-                                <Controller
-                                    name="featured"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Switcher
-                                            checked={field.value}
-                                            onChange={field.onChange}
+            <Tabs defaultValue="overview">
+                <Tabs.TabList>
+                    <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
+                    {typeKey === 'post' && id && (
+                        <Tabs.TabNav value="engagement">Engagement</Tabs.TabNav>
+                    )}
+                </Tabs.TabList>
+                <Tabs.TabContent value="overview">
+                    <Form onSubmit={handleSubmit((values) => onSubmit(values))}>
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                            <div className="lg:col-span-8">
+                                <AdaptiveCard>
+                                    <div className="mb-6 flex items-center justify-between">
+                                        <h3>
+                                            {isEditing ? 'Edit' : 'New'}{' '}
+                                            {contentType?.translations?.en
+                                                ?.name ?? typeKey}
+                                        </h3>
+                                        {entryResponse?.data.is_system && (
+                                            <Tag>Protected system entry</Tag>
+                                        )}
+                                    </div>
+                                    <LocalizedFieldsTabs
+                                        fields={LOCALIZED_FIELDS}
+                                        requiredFields={[
+                                            'title',
+                                            'slug',
+                                            ...(contentType?.settings?.supports?.includes(
+                                                'editor',
+                                            )
+                                                ? ['content_html']
+                                                : []),
+                                        ]}
+                                        control={control}
+                                        errors={errors}
+                                    />
+                                    {typeKey === 'post' && (
+                                        <PostTaxonomyFields
+                                            control={control}
+                                            categories={taxonomyOptions(
+                                                categoriesResponse?.data,
+                                            )}
+                                            tags={taxonomyOptions(
+                                                tagsResponse?.data,
+                                            )}
                                         />
                                     )}
-                                />
-                            </FormItem>
-                            {typeKey === 'page' && (
-                                <FormItem
-                                    label="System page"
-                                    extra="System pages are protected from trash and permanent deletion."
-                                >
-                                    <Controller
-                                        name="is_system"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Switcher
-                                                checked={field.value}
-                                                onChange={field.onChange}
+                                    {customFields.length > 0 && (
+                                        <CustomFields
+                                            fields={customFields}
+                                            type={contentType}
+                                            control={control}
+                                        />
+                                    )}
+                                </AdaptiveCard>
+                            </div>
+                            <div className="space-y-6 lg:col-span-4">
+                                <AdaptiveCard>
+                                    <h5 className="mb-4">Publishing</h5>
+                                    <FormItem label="Featured">
+                                        <Controller
+                                            name="featured"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Switcher
+                                                    checked={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            )}
+                                        />
+                                    </FormItem>
+                                    {typeKey === 'page' && (
+                                        <FormItem
+                                            label="System page"
+                                            extra="System pages are protected from trash and permanent deletion."
+                                        >
+                                            <Controller
+                                                name="is_system"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Switcher
+                                                        checked={field.value}
+                                                        onChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                )}
                                             />
-                                        )}
-                                    />
-                                </FormItem>
-                            )}
-                            {entryResponse?.data && (
-                                <div className="mb-4 flex items-center justify-between">
-                                    <span>Status</span>
-                                    <Tag>{entryResponse.data.status}</Tag>
-                                </div>
-                            )}
-                            <div className="flex flex-wrap gap-2">
-                                <Button
-                                    type="submit"
-                                    variant="solid"
-                                    loading={submitting}
-                                >
-                                    Save
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="plain"
-                                    onClick={() =>
-                                        navigate(`/admin/cms/${type}`)
-                                    }
-                                >
-                                    Cancel
-                                </Button>
-                                {entryResponse?.data.status !== 'published' && (
-                                    <Button
-                                        type="button"
-                                        loading={submitting}
-                                        onClick={handleSubmit((values) =>
-                                            onSubmit(values, 'publish'),
-                                        )}
-                                    >
-                                        Publish
-                                    </Button>
-                                )}
-                                {id &&
-                                    entryResponse?.data.status ===
-                                        'published' && (
+                                        </FormItem>
+                                    )}
+                                    {entryResponse?.data && (
+                                        <div className="mb-4 flex items-center justify-between">
+                                            <span>Status</span>
+                                            <Tag>
+                                                {entryResponse.data.status}
+                                            </Tag>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            type="submit"
+                                            variant="solid"
+                                            loading={submitting}
+                                        >
+                                            Save
+                                        </Button>
                                         <Button
                                             type="button"
-                                            loading={submitting}
-                                            onClick={handleSubmit((values) =>
-                                                onSubmit(values, 'unpublish'),
-                                            )}
+                                            variant="plain"
+                                            onClick={() =>
+                                                navigate(`/admin/cms/${type}`)
+                                            }
                                         >
-                                            Unpublish
+                                            Cancel
                                         </Button>
+                                        {entryResponse?.data.status !==
+                                            'published' && (
+                                            <Button
+                                                type="button"
+                                                loading={submitting}
+                                                onClick={handleSubmit(
+                                                    (values) =>
+                                                        onSubmit(
+                                                            values,
+                                                            'publish',
+                                                        ),
+                                                )}
+                                            >
+                                                Publish
+                                            </Button>
+                                        )}
+                                        {id &&
+                                            entryResponse?.data.status ===
+                                                'published' && (
+                                                <Button
+                                                    type="button"
+                                                    loading={submitting}
+                                                    onClick={handleSubmit(
+                                                        (values) =>
+                                                            onSubmit(
+                                                                values,
+                                                                'unpublish',
+                                                            ),
+                                                    )}
+                                                >
+                                                    Unpublish
+                                                </Button>
+                                            )}
+                                    </div>
+                                </AdaptiveCard>
+                                <AdaptiveCard>
+                                    <h5 className="mb-4">Locale media</h5>
+                                    {!id && (
+                                        <p className="text-sm text-gray-500">
+                                            Save the entry before uploading
+                                            media.
+                                        </p>
                                     )}
+                                    {id && (
+                                        <CmsMediaManager
+                                            entryId={Number(id)}
+                                            entry={entryResponse?.data}
+                                            onChanged={async () => {
+                                                await mutateEntry()
+                                            }}
+                                        />
+                                    )}
+                                </AdaptiveCard>
                             </div>
-                        </AdaptiveCard>
-                        <AdaptiveCard>
-                            <h5 className="mb-4">Locale media</h5>
-                            {!id && (
-                                <p className="text-sm text-gray-500">
-                                    Save the entry before uploading media.
-                                </p>
-                            )}
-                            {id && (
-                                <CmsMediaManager
-                                    entryId={Number(id)}
-                                    entry={entryResponse?.data}
-                                    onChanged={async () => {
-                                        await mutateEntry()
-                                    }}
-                                />
-                            )}
-                        </AdaptiveCard>
-                    </div>
-                </div>
+                        </div>
+                    </Form>
+                </Tabs.TabContent>
                 {typeKey === 'post' && id && (
-                    <CmsPostEngagementManager entryId={Number(id)} />
+                    <Tabs.TabContent value="engagement">
+                        <CmsPostEngagementManager entryId={Number(id)} />
+                    </Tabs.TabContent>
                 )}
-            </Form>
+            </Tabs>
         </Container>
     )
 }
