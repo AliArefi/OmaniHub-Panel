@@ -28,6 +28,7 @@ import {
 import { Cities } from '@/@types/center'
 import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
 import { prepareValidatedFile } from '../utils/fileUpload'
+import { AdditionalInfo, AdditionalInfoEditor, DEFAULT_ADDITIONAL_INFO, DEFAULT_SCHEDULE, OpeningHoursEditor, WeeklySchedule } from './components/WorkingHoursEditor'
 
 const validationSchema = z.object({
     logo: z.union([z.instanceof(File), z.null()]).optional(),
@@ -81,6 +82,12 @@ const parsePhoneValue = (
 const stringifyPhoneValue = (value: PhoneNumberValue) =>
     `${value.countryCode}${value.localNumber}`.trim()
 
+const SectionTitle = ({ title }: { title: string }) => (
+    <h3 className="text-sm font-semibold text-gray-800 mt-10 mb-6 pb-2 border-b border-gray-200">
+        {title}
+    </h3>
+)
+
 export const ViewCenterTabExtraInformations = () => {
     const { t } = useTranslation()
     const {
@@ -105,6 +112,10 @@ export const ViewCenterTabExtraInformations = () => {
     const logoInputRef = useRef<HTMLInputElement | null>(null)
     const bannerInputRef = useRef<HTMLInputElement | null>(null)
     const publicImageInputRef = useRef<HTMLInputElement | null>(null)
+
+    const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule>(DEFAULT_SCHEDULE)
+    const [additionalInfo, setAdditionalInfo] = useState<AdditionalInfo>(DEFAULT_ADDITIONAL_INFO)
+
 
     const revokeIfBlobUrl = (url: string | null) => {
         if (!url) return
@@ -177,8 +188,8 @@ export const ViewCenterTabExtraInformations = () => {
                     Boolean(extraInformationDraft?.bannerPreview) ||
                     Boolean(
                         extraInformationDraft?.values &&
-                            Object.keys(extraInformationDraft.values).length >
-                                0,
+                        Object.keys(extraInformationDraft.values).length >
+                        0,
                     )
 
                 if (hasDraft) {
@@ -393,106 +404,172 @@ export const ViewCenterTabExtraInformations = () => {
         <div>
             <Card>
                 <Form size="md" onSubmit={handleSubmit(onSubmit)}>
-                    {/* Logo */}
-                    <FormItem label="الشعار (Logo)" className="mb-6">
-                        <Controller
-                            name="logo"
-                            control={control}
-                            render={({ field }) => (
-                                <div className="space-y-3">
-                                    {logoPreview ? (
-                                        <img
-                                            src={logoPreview}
-                                            alt="Logo"
-                                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
-                                        />
-                                    ) : (
-                                        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                                            لم يتم اختيار صورة الشعار
-                                        </div>
-                                    )}
+                    {/* ===================== الصور والوسائط ===================== */}
+                    <SectionTitle title="الصور والوسائط" />
 
-                                    <input
-                                        ref={logoInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const inputFile =
-                                                e.target.files?.[0]
-                                            if (!inputFile) return
-                                            const { file, error: fileError } =
-                                                prepareValidatedFile(
-                                                    inputFile,
-                                                    {
-                                                        category: 'image',
-                                                    },
-                                                )
-                                            if (fileError || !file) {
-                                                toast.push(
-                                                    <Notification type="danger">
-                                                        {fileError}
-                                                    </Notification>,
-                                                )
-                                                e.target.value = ''
-                                                return
-                                            }
-                                            field.onChange(file)
-                                            const nextPreview =
-                                                URL.createObjectURL(file)
-                                            revokeIfBlobUrl(logoPreview)
-                                            setLogoPreview(nextPreview)
-                                            updateExtraInformationDraft({
-                                                logoPreview: nextPreview,
-                                            })
-                                        }}
-                                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Logo */}
+                        <FormItem label="الشعار (Logo)">
+                            <Controller
+                                name="logo"
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="space-y-3">
+                                        {logoPreview ? (
+                                            <img
+                                                src={logoPreview}
+                                                alt="Logo"
+                                                className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
+                                                لم يتم اختيار صورة الشعار
+                                            </div>
+                                        )}
 
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="sm"
-                                            variant="solid"
-                                            type="button"
-                                            onClick={() =>
-                                                logoInputRef.current?.click()
-                                            }
-                                        >
-                                            {logoPreview
-                                                ? 'تغيير الشعار'
-                                                : 'انتخاب الشعار'}
-                                        </Button>
-
-                                        {logoPreview && (
-                                            <Button
-                                                size="sm"
-                                                variant="plain"
-                                                type="button"
-                                                onClick={() => {
-                                                    revokeIfBlobUrl(logoPreview)
-                                                    setLogoPreview(null)
-                                                    field.onChange(null)
-                                                    updateExtraInformationDraft(
+                                        <input
+                                            ref={logoInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const inputFile =
+                                                    e.target.files?.[0]
+                                                if (!inputFile) return
+                                                const { file, error: fileError } =
+                                                    prepareValidatedFile(
+                                                        inputFile,
                                                         {
-                                                            logoPreview: null,
+                                                            category: 'image',
                                                         },
                                                     )
-                                                    if (logoInputRef.current) {
-                                                        logoInputRef.current.value =
-                                                            ''
-                                                    }
-                                                }}
+                                                if (fileError || !file) {
+                                                    toast.push(
+                                                        <Notification type="danger">
+                                                            {fileError}
+                                                        </Notification>,
+                                                    )
+                                                    e.target.value = ''
+                                                    return
+                                                }
+                                                field.onChange(file)
+                                                const nextPreview =
+                                                    URL.createObjectURL(file)
+                                                revokeIfBlobUrl(logoPreview)
+                                                setLogoPreview(nextPreview)
+                                                updateExtraInformationDraft({
+                                                    logoPreview: nextPreview,
+                                                })
+                                            }}
+                                        />
+
+                                        <div className="flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="solid"
+                                                type="button"
+                                                onClick={() =>
+                                                    logoInputRef.current?.click()
+                                                }
                                             >
-                                                حذف
+                                                {logoPreview
+                                                    ? 'تغيير الشعار'
+                                                    : 'انتخاب الشعار'}
                                             </Button>
-                                        )}
+
+                                            {logoPreview && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="plain"
+                                                    type="button"
+                                                    onClick={() => {
+                                                        revokeIfBlobUrl(logoPreview)
+                                                        setLogoPreview(null)
+                                                        field.onChange(null)
+                                                        updateExtraInformationDraft(
+                                                            {
+                                                                logoPreview: null,
+                                                            },
+                                                        )
+                                                        if (logoInputRef.current) {
+                                                            logoInputRef.current.value =
+                                                                ''
+                                                        }
+                                                    }}
+                                                >
+                                                    حذف
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                        />
-                    </FormItem>
+                                )}
+                            />
+                        </FormItem>
+
+                        {/* Public page image */}
+                        <FormItem label="صورة الصفحة العامة">
+                            <div className="space-y-3">
+                                {publicImagePreview ? (
+                                    <img
+                                        src={publicImagePreview}
+                                        alt="Public page image"
+                                        className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                                    />
+                                ) : (
+                                    <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
+                                        لم يتم اختيار صورة الصفحة العامة
+                                    </div>
+                                )}
+
+                                <input
+                                    ref={publicImageInputRef}
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp,image/avif"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                        const inputFile = event.target.files?.[0]
+                                        if (!inputFile) return
+
+                                        const { file, error: fileError } =
+                                            prepareValidatedFile(inputFile, {
+                                                category: 'image',
+                                            })
+                                        if (fileError || !file) {
+                                            toast.push(
+                                                <Notification type="danger">
+                                                    {fileError}
+                                                </Notification>,
+                                            )
+                                            event.target.value = ''
+                                            return
+                                        }
+
+                                        revokeIfBlobUrl(publicImagePreview)
+                                        setPublicImageFile(file)
+                                        setPublicImagePreview(
+                                            URL.createObjectURL(file),
+                                        )
+                                    }}
+                                />
+
+                                <Button
+                                    size="sm"
+                                    variant="solid"
+                                    type="button"
+                                    onClick={() =>
+                                        publicImageInputRef.current?.click()
+                                    }
+                                >
+                                    {publicImagePreview
+                                        ? 'تغيير صورة الصفحة العامة'
+                                        : 'اختيار صورة الصفحة العامة'}
+                                </Button>
+                            </div>
+                        </FormItem>
+                    </div>
 
                     {/* Banner */}
-                    <FormItem label="البانر (Banner)" className="mb-6">
+                    <FormItem label="البانر (Banner)" className="mt-6">
                         <Controller
                             name="banner"
                             control={control}
@@ -593,63 +670,8 @@ export const ViewCenterTabExtraInformations = () => {
                         />
                     </FormItem>
 
-                    <FormItem label="صورة الصفحة العامة" className="mb-6">
-                        <div className="space-y-3">
-                            {publicImagePreview ? (
-                                <img
-                                    src={publicImagePreview}
-                                    alt="Public page image"
-                                    className="w-full max-w-2xl h-48 object-cover rounded-lg border-2 border-gray-200"
-                                />
-                            ) : (
-                                <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
-                                    لم يتم اختيار صورة الصفحة العامة
-                                </div>
-                            )}
-
-                            <input
-                                ref={publicImageInputRef}
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp,image/avif"
-                                className="hidden"
-                                onChange={(event) => {
-                                    const inputFile = event.target.files?.[0]
-                                    if (!inputFile) return
-
-                                    const { file, error: fileError } =
-                                        prepareValidatedFile(inputFile, {
-                                            category: 'image',
-                                        })
-                                    if (fileError || !file) {
-                                        toast.push(
-                                            <Notification type="danger">
-                                                {fileError}
-                                            </Notification>,
-                                        )
-                                        event.target.value = ''
-                                        return
-                                    }
-
-                                    revokeIfBlobUrl(publicImagePreview)
-                                    setPublicImageFile(file)
-                                    setPublicImagePreview(URL.createObjectURL(file))
-                                }}
-                            />
-
-                            <Button
-                                size="sm"
-                                variant="solid"
-                                type="button"
-                                onClick={() =>
-                                    publicImageInputRef.current?.click()
-                                }
-                            >
-                                {publicImagePreview
-                                    ? 'تغيير صورة الصفحة العامة'
-                                    : 'اختيار صورة الصفحة العامة'}
-                            </Button>
-                        </div>
-                    </FormItem>
+                    {/* ===================== الموقع الجغرافي ===================== */}
+                    <SectionTitle title="الموقع الجغرافي" />
 
                     {/* Map */}
                     <div className="mb-8">
@@ -731,42 +753,6 @@ export const ViewCenterTabExtraInformations = () => {
                         />
                     </FormItem>
 
-                    <FormItem label="رقم الهاتف" className="mb-6">
-                        <Controller
-                            name="phone"
-                            control={control}
-                            render={({ field }) => (
-                                <PhoneNumberInput
-                                    value={phoneValue}
-                                    invalid={Boolean(errors.phone)}
-                                    onChange={(nextValue) => {
-                                        setPhoneValue(nextValue)
-                                        field.onChange(
-                                            stringifyPhoneValue(nextValue),
-                                        )
-                                    }}
-                                />
-                            )}
-                        />
-                    </FormItem>
-
-                    <FormItem label="الموقع الإلكتروني" className="mb-6">
-                        <Controller
-                            name="website"
-                            control={control}
-                            render={({ field }) => (
-                                <div dir="ltr">
-                                    <Input
-                                        type="text"
-                                        placeholder="https://example.com"
-                                        className="text-left"
-                                        {...field}
-                                    />
-                                </div>
-                            )}
-                        />
-                    </FormItem>
-
                     <FormItem label="العنوان" className="mb-6">
                         <Controller
                             name="address"
@@ -781,7 +767,48 @@ export const ViewCenterTabExtraInformations = () => {
                         />
                     </FormItem>
 
+                    {/* ===================== معلومات التواصل ===================== */}
+                    <SectionTitle title="معلومات التواصل" />
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormItem label="رقم الهاتف">
+                            <Controller
+                                name="phone"
+                                control={control}
+                                render={({ field }) => (
+                                    <PhoneNumberInput
+                                        value={phoneValue}
+                                        invalid={Boolean(errors.phone)}
+                                        onChange={(nextValue) => {
+                                            setPhoneValue(nextValue)
+                                            field.onChange(
+                                                stringifyPhoneValue(nextValue),
+                                            )
+                                        }}
+                                    />
+                                )}
+                            />
+                        </FormItem>
+
+                        <FormItem label="الموقع الإلكتروني">
+                            <Controller
+                                name="website"
+                                control={control}
+                                render={({ field }) => (
+                                    <div dir="ltr">
+                                        <Input
+                                            type="text"
+                                            placeholder="https://example.com"
+                                            className="text-left"
+                                            {...field}
+                                        />
+                                    </div>
+                                )}
+                            />
+                        </FormItem>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <FormItem label="Instagram">
                             <Controller
                                 name="instagram"
@@ -846,6 +873,24 @@ export const ViewCenterTabExtraInformations = () => {
                             />
                         </FormItem>
                     </div>
+
+                    {/* ===================== ساعات العمل ===================== */}
+                    <SectionTitle title="ساعات العمل" />
+                    <FormItem className="mb-6">
+                        <OpeningHoursEditor value={weeklySchedule} onChange={setWeeklySchedule} />
+                    </FormItem>
+
+                    {/* ===================== معلومات إضافية ===================== */}
+                    <SectionTitle title="معلومات إضافية" />
+                    <FormItem className="mb-6">
+                        <AdditionalInfoEditor value={additionalInfo} onChange={setAdditionalInfo} />
+                    </FormItem>
+
+
+
+
+                    {/* ===================== سئو ===================== */}
+                    <SectionTitle title="تحسين محركات البحث (SEO)" />
 
                     <FormItem
                         label="العنوان الرئيسي (H1)"
