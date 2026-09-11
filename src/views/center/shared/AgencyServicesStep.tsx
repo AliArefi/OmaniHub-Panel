@@ -31,6 +31,7 @@ import {
     durationUnitOptions,
     type DurationUnit,
 } from './duration'
+import { createDefaultWeekSchedule } from '../ViewCenter/components/utils/schedule'
 
 type PricingType = 'fixed' | 'coordination' | 'member_based'
 type DurationUnitOption = { value: DurationUnit; label: string }
@@ -38,6 +39,7 @@ type ViewMode = 'picker' | 'legacy'
 
 type DemoDraft = {
     enabled: boolean
+    memberIds: number[]
     duration: string
     durationUnit: DurationUnit
     pricingType: PricingType
@@ -99,6 +101,9 @@ export const AgencyServicesStep = ({
         addService,
         removeService,
         replaceServices,
+        teamMembers,
+        assignments,
+        setAssignments,
         newHojraData,
         hojraInfo,
     } = useCreateStore()
@@ -186,6 +191,14 @@ export const AgencyServicesStep = ({
                     enabled: existingService
                         ? true
                         : previousDraft?.enabled ?? false,
+                    memberIds: existingService
+                        ? assignments
+                              .filter(
+                                  (assignment) =>
+                                      assignment.serviceId === existingService.id,
+                              )
+                              .map((assignment) => assignment.memberId)
+                        : previousDraft?.memberIds ?? [],
                     duration: existingService
                         ? String(existingService.duration)
                         : previousDraft?.duration ?? '',
@@ -208,7 +221,7 @@ export const AgencyServicesStep = ({
 
             return nextDrafts
         })
-    }, [serviceCatalog, services])
+    }, [assignments, serviceCatalog, services])
 
     const levels = useMemo(
         () => serviceLevels.filter((level) => level.length > 0),
@@ -353,6 +366,19 @@ export const AgencyServicesStep = ({
         [demoDrafts, serviceCatalog],
     )
 
+    const hasUnassignedMembers = useMemo(() => {
+        if (teamMembers.length === 0) return false
+
+        const assignedMemberIds = new Set(
+            serviceCatalog.flatMap((catalogItem) => {
+                const draft = demoDrafts[catalogItem.serviceId]
+                return draft?.enabled ? draft.memberIds : []
+            }),
+        )
+
+        return teamMembers.some((member) => !assignedMemberIds.has(member.id))
+    }, [demoDrafts, serviceCatalog, teamMembers])
+
     const isLegacyDuplicate = (serviceId: number): boolean =>
         services.some((service) => service.serviceId === serviceId)
 
@@ -372,6 +398,7 @@ export const AgencyServicesStep = ({
             [serviceId]: updater(
                 previousDrafts[serviceId] ?? {
                     enabled: false,
+                    memberIds: [],
                     duration: '',
                     durationUnit: 'minute',
                     pricingType: 'fixed',
@@ -527,6 +554,15 @@ export const AgencyServicesStep = ({
             return
         }
 
+        if (hasUnassignedMembers) {
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.assignEveryMember')}
+                </Notification>,
+            )
+            return
+        }
+
         for (const catalogItem of serviceCatalog) {
             const draft = demoDrafts[catalogItem.serviceId]
             if (!draft) {
@@ -555,6 +591,7 @@ export const AgencyServicesStep = ({
                 services: serviceCatalog.map((catalogItem) => {
                     const draft = demoDrafts[catalogItem.serviceId] ?? {
                         enabled: false,
+                        memberIds: [],
                         duration: '',
                         durationUnit: 'minute' as const,
                         pricingType: 'fixed' as const,
@@ -580,11 +617,36 @@ export const AgencyServicesStep = ({
                                 ? Number(draft.price)
                                 : null,
                         body: body || undefined,
+                        member_ids: draft.enabled ? draft.memberIds : [],
                     }
                 }),
             })
 
-            replaceServices(response.data.map(mapAgencyServiceToStoreItem))
+            const nextServices = response.data.map(mapAgencyServiceToStoreItem)
+            replaceServices(nextServices)
+            setAssignments((currentAssignments) =>
+                nextServices.flatMap((service) => {
+                    const memberIds = demoDrafts[service.serviceId]?.memberIds ?? []
+
+                    return memberIds.map((memberId) => {
+                        const existing = currentAssignments.find(
+                            (assignment) =>
+                                assignment.serviceId === service.id &&
+                                assignment.memberId === memberId,
+                        )
+                        const member = teamMembers.find((item) => item.id === memberId)
+
+                        return existing ?? {
+                            id: Number(`${service.id}${memberId}`),
+                            serviceId: service.id,
+                            serviceLabel: service.serviceLabel,
+                            memberId,
+                            memberName: member?.name ?? '',
+                            weeklySchedule: createDefaultWeekSchedule(),
+                        }
+                    })
+                }),
+            )
 
             toast.push(
                 <Notification type="success">
@@ -645,6 +707,7 @@ export const AgencyServicesStep = ({
                                 const draft =
                                     demoDrafts[catalogItem.serviceId] ?? {
                                         enabled: false,
+                                        memberIds: [],
                                         duration: '',
                                         pricingType: 'fixed' as const,
                                         price: '',
@@ -846,6 +909,40 @@ export const AgencyServicesStep = ({
                                                         />
                                                     </FormItem>
 
+                                                    <FormItem
+                                                        label={t('center.services.labels.members')}
+                                                    >
+                                                        <Select<SelectOption>
+                                                            isMulti
+                                                            options={teamMembers.map((member) => ({
+                                                                value: member.id,
+                                                                label: member.name,
+                                                            }))}
+                                                            value={teamMembers
+                                                                .filter((member) =>
+                                                                    draft.memberIds.includes(member.id),
+                                                                )
+                                                                .map((member) => ({
+                                                                    value: member.id,
+                                                                    label: member.name,
+                                                                }))}
+                                                            placeholder={t(
+                                                                'center.services.placeholders.members',
+                                                            )}
+                                                            onChange={(options) =>
+                                                                setDemoDraft(
+                                                                    catalogItem.serviceId,
+                                                                    (currentDraft) => ({
+                                                                        ...currentDraft,
+                                                                        memberIds: options.map(
+                                                                            (option) => option.value,
+                                                                        ),
+                                                                    }),
+                                                                )
+                                                            }
+                                                        />
+                                                    </FormItem>
+
                                                     {infoText && (
                                                         <div className="rounded-lg border border-primary/15 bg-primary/5 p-3 text-sm text-gray-700">
                                                             {infoText}
@@ -866,7 +963,8 @@ export const AgencyServicesStep = ({
                                 disabled={
                                     isDemoSaving ||
                                     serviceCatalog.length === 0 ||
-                                    hasDemoValidationErrors
+                                    hasDemoValidationErrors ||
+                                    hasUnassignedMembers
                                 }
                                 onClick={handleDemoSave}
                             >

@@ -105,6 +105,7 @@ export type SyncDemoAgencyServicesRequest = {
         price?: number | null
         body?: string
         agency_service_category_id?: number | null
+        member_ids?: number[]
     }>
 }
 

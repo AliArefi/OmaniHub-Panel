@@ -62,6 +62,7 @@
     "validation": {
       "enterMemberName": "Please enter a member name.",
       "selectService": "Please select a service.",
+      "assignEveryMember": "Assign every team member to at least one enabled service.",
       "selectImage": "Please select an image.",
       "selectMemberAndService": "Select a member and a service.",
       "alreadyAssigned": "This member is already assigned to this service.",
@@ -93,6 +94,7 @@
         "pricingType": "Pricing type",
         "price": "Price",
         "description": "Description",
+        "members": "Team members",
         "mainService": "Main service",
         "subServiceLevel": "Sub service level {{level}}"
       },
@@ -100,7 +102,8 @@
         "chooseService": "Choose a service",
         "duration": "45",
         "price": "25",
-        "description": "Optional description"
+        "description": "Optional description",
+        "members": "Choose team members"
       },
       "loading": {
         "available": "Loading available services...",

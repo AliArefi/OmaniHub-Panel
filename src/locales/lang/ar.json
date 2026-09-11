@@ -44,6 +44,7 @@
     "validation": {
       "enterMemberName": "يرجى إدخال اسم العضو",
       "selectService": "يرجى اختيار الخدمة",
+      "assignEveryMember": "يجب تعيين كل عضو في الفريق إلى خدمة مفعلة واحدة على الأقل",
       "selectImage": "يرجى اختيار صورة",
       "selectMemberAndService": "يرجى اختيار العضو والخدمة",
       "alreadyAssigned": "هذا العضو مخصص لهذه الخدمة مسبقًا",
@@ -82,6 +83,7 @@
         "pricingType": "نوع التسعير",
         "price": "السعر",
         "description": "الوصف",
+        "members": "أعضاء الفريق",
         "mainService": "الخدمة الرئيسية",
         "subServiceLevel": "مستوى خدمة فرعي {{level}}"
       },
@@ -89,7 +91,8 @@
         "chooseService": "اختر خدمة",
         "duration": "45",
         "price": "25",
-        "description": "وصف اختياري"
+        "description": "وصف اختياري",
+        "members": "اختر أعضاء الفريق"
       },
       "loading": {
         "available": "جارٍ تحميل الخدمات المتاحة...",
