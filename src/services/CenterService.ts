@@ -36,7 +36,10 @@ export async function apiGetMyAgency(agencySlug: string) {
 }
 
 export async function apiDeleteMyAgency(agencySlug: string) {
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `${endpointConfig.getMyAgencies}/${encodeURIComponent(agencySlug)}`,
         method: 'delete',
     })
@@ -129,7 +132,10 @@ export async function apiUpdateAgencyService(
     agencyServiceId: number,
     data: Partial<CreateAgencyServiceRequest>,
 ) {
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `/my-services/${agencyServiceId}`,
         method: 'put',
         data,
@@ -137,7 +143,10 @@ export async function apiUpdateAgencyService(
 }
 
 export async function apiDeleteAgencyService(agencyServiceId: number) {
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `/my-services/${agencyServiceId}`,
         method: 'delete',
     })
@@ -151,6 +160,9 @@ export async function apiCreateMemberAgency(
     formData.append('name', data.name)
     formData.append('position', data.position)
     formData.append('image', data.image)
+    data.agency_service_ids.forEach((serviceId) =>
+        formData.append('agency_service_ids[]', String(serviceId)),
+    )
 
     return ApiService.fetchDataWithAxios<CreateNewMemberAgencyResponse>({
         url: `/my-services/${agencyServiceId}/members`,
@@ -172,6 +184,7 @@ export async function apiUpdateServiceMember(
         name: string
         position: string
         image: File
+        agency_service_ids: number[]
     }>,
 ) {
     const formData = new FormData()
@@ -179,8 +192,14 @@ export async function apiUpdateServiceMember(
     if (typeof data.position === 'string')
         formData.append('position', data.position)
     if (data.image instanceof File) formData.append('image', data.image)
+    data.agency_service_ids?.forEach((serviceId) =>
+        formData.append('agency_service_ids[]', String(serviceId)),
+    )
 
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `/my-services/${agencyServiceId}/members/${memberId}`,
         method: 'put',
         data: formData,
@@ -191,7 +210,10 @@ export async function apiDeleteServiceMember(
     agencyServiceId: number,
     memberId: number,
 ) {
-    return ApiService.fetchDataWithAxios<{ success: boolean; message?: string }>({
+    return ApiService.fetchDataWithAxios<{
+        success: boolean
+        message?: string
+    }>({
         url: `/my-services/${agencyServiceId}/members/${memberId}`,
         method: 'delete',
     })
@@ -214,7 +236,9 @@ export async function apiGetGallery() {
     })
 }
 
-export async function AddGalleryItemMyAgencies(data: RequestMyAgencyGallery | FormData) {
+export async function AddGalleryItemMyAgencies(
+    data: RequestMyAgencyGallery | FormData,
+) {
     return ApiService.fetchDataWithAxios<unknown>({
         url: endpointConfig.getGallery,
         method: 'post',
@@ -265,7 +289,10 @@ export async function apiUpdateMyAgencyMedia(
     })
 }
 
-export async function apiDeleteMyAgencyMedia(agencySlug: string, mediaId: number) {
+export async function apiDeleteMyAgencyMedia(
+    agencySlug: string,
+    mediaId: number,
+) {
     return ApiService.fetchDataWithAxios<{
         success: boolean
         message?: string

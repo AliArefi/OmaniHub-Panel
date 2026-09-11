@@ -27,7 +27,7 @@ import type { AdminAgencyMember } from '@/services/admin/AdminAgencyMembersServi
 type FormValues = {
     name: string
     position: string
-    agency_service_id: number | null
+    agency_service_ids: number[]
     image: File | null
     is_active: boolean
     allow_inactive_bookable_capabilities: boolean
@@ -36,7 +36,7 @@ type FormValues = {
 const emptyValues: FormValues = {
     name: '',
     position: '',
-    agency_service_id: null,
+    agency_service_ids: [],
     image: null,
     is_active: true,
     allow_inactive_bookable_capabilities: false,
@@ -51,7 +51,8 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
     const canEdit = can('agencies.edit')
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editing, setEditing] = useState<AdminAgencyMember | null>(null)
-    const [pendingDelete, setPendingDelete] = useState<AdminAgencyMember | null>(null)
+    const [pendingDelete, setPendingDelete] =
+        useState<AdminAgencyMember | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
     const { data, mutate, isLoading } = useSWR(
@@ -63,7 +64,9 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
         () => apiGetAdminAgencyServices(agencySlug),
     )
 
-    const { control, handleSubmit, reset } = useForm<FormValues>({ defaultValues: emptyValues })
+    const { control, handleSubmit, reset } = useForm<FormValues>({
+        defaultValues: emptyValues,
+    })
 
     const members = data?.data ?? []
     const serviceOptions = (servicesData?.data ?? []).map((s) => ({
@@ -82,22 +85,25 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
         reset({
             name: member.name,
             position: member.position,
-            agency_service_id: member.agency_service_id,
+            agency_service_ids: member.agency_service_ids,
             image: null,
             is_active: member.is_active,
-            allow_inactive_bookable_capabilities: member.allow_inactive_bookable_capabilities,
+            allow_inactive_bookable_capabilities:
+                member.allow_inactive_bookable_capabilities,
         })
         setDialogOpen(true)
     }
 
     const onSubmit = async (values: FormValues) => {
-        if (!values.agency_service_id) return
+        if (values.agency_service_ids.length === 0) return
         setSubmitting(true)
         try {
             const formData = new FormData()
             formData.append('name', values.name)
             formData.append('position', values.position)
-            formData.append('agency_service_id', String(values.agency_service_id))
+            values.agency_service_ids.forEach((serviceId) =>
+                formData.append('agency_service_ids[]', String(serviceId)),
+            )
             formData.append('is_active', values.is_active ? '1' : '0')
             formData.append(
                 'allow_inactive_bookable_capabilities',
@@ -106,7 +112,11 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
             if (values.image) formData.append('image', values.image)
 
             if (editing) {
-                await apiUpdateAdminAgencyMember(agencySlug, editing.id, formData)
+                await apiUpdateAdminAgencyMember(
+                    agencySlug,
+                    editing.id,
+                    formData,
+                )
             } else {
                 await apiCreateAdminAgencyMember(agencySlug, formData)
             }
@@ -149,7 +159,9 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
             </div>
 
             {!isLoading && members.length === 0 && (
-                <div className="text-center text-gray-400 py-8">No members yet.</div>
+                <div className="text-center text-gray-400 py-8">
+                    No members yet.
+                </div>
             )}
 
             <div className="flex flex-col gap-2">
@@ -161,17 +173,25 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                         <div className="flex items-center gap-3">
                             <Avatar src={member.image} />
                             <div>
-                                <div className="font-semibold">{member.name}</div>
+                                <div className="font-semibold">
+                                    {member.name}
+                                </div>
                                 <div className="text-xs text-gray-500">
                                     {member.position} ·{' '}
-                                    {member.agency_service?.title ?? '—'} ·{' '}
-                                    {member.is_active ? 'Active' : 'Inactive'}
+                                    {member.agency_services
+                                        .map((service) => service.title)
+                                        .join(', ') || '—'}{' '}
+                                    · {member.is_active ? 'Active' : 'Inactive'}
                                 </div>
                             </div>
                         </div>
                         {canEdit && (
                             <div className="flex items-center gap-2 shrink-0">
-                                <Button size="xs" icon={<TbEdit />} onClick={() => openEdit(member)} />
+                                <Button
+                                    size="xs"
+                                    icon={<TbEdit />}
+                                    onClick={() => openEdit(member)}
+                                />
                                 <Button
                                     size="xs"
                                     icon={<TbTrash />}
@@ -184,7 +204,9 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
             </div>
 
             <Dialog isOpen={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <h4 className="mb-4">{editing ? 'Edit member' : 'New member'}</h4>
+                <h4 className="mb-4">
+                    {editing ? 'Edit member' : 'New member'}
+                </h4>
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <FormItem label="Photo">
                         <Controller
@@ -213,15 +235,24 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                             render={({ field }) => <Input {...field} />}
                         />
                     </FormItem>
-                    <FormItem label="Assigned service">
+                    <FormItem label="Assigned services">
                         <Controller
-                            name="agency_service_id"
+                            name="agency_service_ids"
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    isMulti
                                     options={serviceOptions}
-                                    value={serviceOptions.find((o) => o.value === field.value)}
-                                    onChange={(option) => field.onChange(option?.value ?? null)}
+                                    value={serviceOptions.filter((option) =>
+                                        field.value.includes(option.value),
+                                    )}
+                                    onChange={(options) =>
+                                        field.onChange(
+                                            options.map(
+                                                (option) => option.value,
+                                            ),
+                                        )
+                                    }
                                 />
                             )}
                         />
@@ -232,7 +263,10 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                                 name="is_active"
                                 control={control}
                                 render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
+                                    <Switcher
+                                        checked={value}
+                                        onChange={onChange}
+                                    />
                                 )}
                             />
                         </FormItem>
@@ -241,16 +275,27 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                                 name="allow_inactive_bookable_capabilities"
                                 control={control}
                                 render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
+                                    <Switcher
+                                        checked={value}
+                                        onChange={onChange}
+                                    />
                                 )}
                             />
                         </FormItem>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button type="button" variant="plain" onClick={() => setDialogOpen(false)}>
+                        <Button
+                            type="button"
+                            variant="plain"
+                            onClick={() => setDialogOpen(false)}
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" variant="solid" loading={submitting}>
+                        <Button
+                            type="submit"
+                            variant="solid"
+                            loading={submitting}
+                        >
                             Save
                         </Button>
                     </div>

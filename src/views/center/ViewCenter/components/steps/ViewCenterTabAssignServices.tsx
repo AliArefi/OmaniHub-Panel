@@ -70,9 +70,7 @@ export const ViewCenterTabAssignServices = () => {
     const [newMemberImagePreview, setNewMemberImagePreview] = useState<
         string | null
     >(null)
-    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(
-        null,
-    )
+    const [newMemberServiceIds, setNewMemberServiceIds] = useState<number[]>([])
     const [isCreatingMember, setIsCreatingMember] = useState(false)
 
     const [editingScheduleForAssignment, setEditingScheduleForAssignment] =
@@ -91,6 +89,9 @@ export const ViewCenterTabAssignServices = () => {
     const [editMemberImagePreview, setEditMemberImagePreview] = useState<
         string | null
     >(null)
+    const [editMemberServiceIds, setEditMemberServiceIds] = useState<number[]>(
+        [],
+    )
     const [isUpdatingMember, setIsUpdatingMember] = useState(false)
 
     const showFileError = (message: string) => {
@@ -156,7 +157,7 @@ export const ViewCenterTabAssignServices = () => {
             )
             return
         }
-        if (!newMemberServiceId) {
+        if (newMemberServiceIds.length === 0) {
             toast.push(
                 <Notification type="warning">
                     {t('center.validation.selectService')}
@@ -180,8 +181,9 @@ export const ViewCenterTabAssignServices = () => {
                     name: newMemberName.trim(),
                     position: newMemberPosition,
                     image: newMemberImageFile,
+                    agency_service_ids: newMemberServiceIds,
                 },
-                newMemberServiceId,
+                newMemberServiceIds[0],
             )
 
             if (!response?.data?.id) {
@@ -193,24 +195,25 @@ export const ViewCenterTabAssignServices = () => {
                 name: newMemberName.trim(),
                 position: newMemberPosition || 'Team Member',
                 image: newMemberImagePreview,
+                agencyServiceIds: newMemberServiceIds,
             }
 
             addTeamMember(createdMember)
 
-            const selectedService = services.find(
-                (service) => service.id === newMemberServiceId,
+            const selectedServices = services.filter((service) =>
+                newMemberServiceIds.includes(service.id),
             )
-            if (selectedService) {
+            if (selectedServices.length > 0) {
                 setAssignments((currentAssignments) => [
                     ...currentAssignments,
-                    {
+                    ...selectedServices.map((selectedService) => ({
                         id: Number(`${selectedService.id}${createdMember.id}`),
                         serviceId: selectedService.id,
                         serviceLabel: selectedService.serviceLabel,
                         memberId: createdMember.id,
                         memberName: createdMember.name,
                         weeklySchedule: createDefaultWeekSchedule(),
-                    },
+                    })),
                 ])
             }
 
@@ -218,7 +221,7 @@ export const ViewCenterTabAssignServices = () => {
             setNewMemberPosition('')
             setNewMemberImageFile(null)
             setNewMemberImagePreview(null)
-            setNewMemberServiceId(null)
+            setNewMemberServiceIds([])
             setShowNewMemberForm(false)
 
             toast.push(
@@ -273,6 +276,11 @@ export const ViewCenterTabAssignServices = () => {
         setEditMemberPosition(member.position ?? '')
         setEditMemberImageFile(null)
         setEditMemberImagePreview(member.image ?? null)
+        setEditMemberServiceIds(
+            assignments
+                .filter((item) => item.memberId === memberId)
+                .map((item) => item.serviceId),
+        )
     }
 
     const saveMemberEdits = async () => {
@@ -289,9 +297,24 @@ export const ViewCenterTabAssignServices = () => {
             return
         }
 
-        const payload: { name?: string; position?: string; image?: File } = {
+        if (editMemberServiceIds.length === 0) {
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectService')}
+                </Notification>,
+            )
+            return
+        }
+
+        const payload: {
+            name?: string
+            position?: string
+            image?: File
+            agency_service_ids: number[]
+        } = {
             name: editMemberName.trim(),
             position: editMemberPosition,
+            agency_service_ids: editMemberServiceIds,
         }
         if (editMemberImageFile) payload.image = editMemberImageFile
 
@@ -316,16 +339,37 @@ export const ViewCenterTabAssignServices = () => {
                 ),
             )
 
-            setAssignments((currentAssignments) =>
-                currentAssignments.map((assignment) =>
-                    assignment.memberId === editingMemberId
-                        ? {
-                              ...assignment,
-                              memberName: payload.name ?? assignment.memberName,
-                          }
-                        : assignment,
+            setAssignments((currentAssignments) => [
+                ...currentAssignments.filter(
+                    (assignment) => assignment.memberId !== editingMemberId,
                 ),
-            )
+                ...services
+                    .filter((service) =>
+                        editMemberServiceIds.includes(service.id),
+                    )
+                    .map((service) => {
+                        const existing = currentAssignments.find(
+                            (assignment) =>
+                                assignment.memberId === editingMemberId &&
+                                assignment.serviceId === service.id,
+                        )
+
+                        return existing
+                            ? {
+                                  ...existing,
+                                  memberName:
+                                      payload.name ?? existing.memberName,
+                              }
+                            : {
+                                  id: Number(`${service.id}${editingMemberId}`),
+                                  serviceId: service.id,
+                                  serviceLabel: service.serviceLabel,
+                                  memberId: editingMemberId,
+                                  memberName: payload.name ?? '',
+                                  weeklySchedule: createDefaultWeekSchedule(),
+                              }
+                    }),
+            ])
 
             toast.push(
                 <Notification type="success">
@@ -561,20 +605,17 @@ export const ViewCenterTabAssignServices = () => {
                         </FormItem>
 
                         <FormItem label={t('center.members.service')}>
-                            <Select<SelectOption>
-                                value={
-                                    newMemberServiceId
-                                        ? (serviceOptions.find(
-                                              (service) =>
-                                                  service.value ===
-                                                  newMemberServiceId,
-                                          ) ?? null)
-                                        : null
-                                }
+                            <Select
+                                isMulti
+                                value={serviceOptions.filter((service) =>
+                                    newMemberServiceIds.includes(service.value),
+                                )}
                                 options={serviceOptions}
                                 placeholder={t('center.members.service')}
-                                onChange={(option) =>
-                                    setNewMemberServiceId(option?.value ?? null)
+                                onChange={(options) =>
+                                    setNewMemberServiceIds(
+                                        options.map((option) => option.value),
+                                    )
                                 }
                             />
                         </FormItem>
@@ -595,7 +636,7 @@ export const ViewCenterTabAssignServices = () => {
                                     setNewMemberPosition('')
                                     setNewMemberImageFile(null)
                                     setNewMemberImagePreview(null)
-                                    setNewMemberServiceId(null)
+                                    setNewMemberServiceIds([])
                                 }}
                             >
                                 {t('center.members.cancel')}
@@ -705,6 +746,23 @@ export const ViewCenterTabAssignServices = () => {
                                     className="mt-2 w-20 h-20 object-cover rounded"
                                 />
                             )}
+                        </FormItem>
+
+                        <FormItem label={t('center.members.service')}>
+                            <Select
+                                isMulti
+                                value={serviceOptions.filter((service) =>
+                                    editMemberServiceIds.includes(
+                                        service.value,
+                                    ),
+                                )}
+                                options={serviceOptions}
+                                onChange={(options) =>
+                                    setEditMemberServiceIds(
+                                        options.map((option) => option.value),
+                                    )
+                                }
+                            />
                         </FormItem>
 
                         <div className="flex gap-2">

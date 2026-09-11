@@ -63,7 +63,7 @@ export type MyAgencyDetails = {
 }
 
 export type MyAgencyService = {
-    id: number 
+    id: number
     title: string
     slug: string
     pricing_type: 'fixed' | 'coordination' | 'member_based'
@@ -127,6 +127,7 @@ export type CreateMemberAgencyRequest = {
     name: string
     position: string
     image: File
+    agency_service_ids: number[]
 }
 
 export type CreateNewMemberAgencyResponse = {
@@ -142,6 +143,7 @@ export type TeamMemberApiResponse = {
     name: string
     position: string
     image: string | null
+    agency_service_ids: number[]
 }
 
 export type MemberWorkingHoursRequest = {

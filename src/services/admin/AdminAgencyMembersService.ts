@@ -6,9 +6,11 @@ export type AdminAgencyMember = {
     position: string
     image: string
     agency_service_id: number
+    agency_service_ids: number[]
     is_active: boolean
     allow_inactive_bookable_capabilities: boolean
     agency_service?: { id: number; title: string }
+    agency_services: Array<{ id: number; title: string }>
 }
 
 function url(agencySlug: string, memberId?: number) {
@@ -22,7 +24,10 @@ export function apiGetAdminAgencyMembers(agencySlug: string) {
     })
 }
 
-export function apiCreateAdminAgencyMember(agencySlug: string, formData: FormData) {
+export function apiCreateAdminAgencyMember(
+    agencySlug: string,
+    formData: FormData,
+) {
     return ApiService.fetchDataWithAxios<{ data: AdminAgencyMember }>({
         url: url(agencySlug),
         method: 'post',
@@ -44,7 +49,10 @@ export function apiUpdateAdminAgencyMember(
     })
 }
 
-export function apiDeleteAdminAgencyMember(agencySlug: string, memberId: number) {
+export function apiDeleteAdminAgencyMember(
+    agencySlug: string,
+    memberId: number,
+) {
     return ApiService.fetchDataWithAxios<{ success: boolean }>({
         url: url(agencySlug, memberId),
         method: 'delete',

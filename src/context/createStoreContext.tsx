@@ -28,6 +28,7 @@ export interface TeamMember {
     name: string
     position: string
     image: string | null
+    agencyServiceIds?: number[]
 }
 
 export interface TimeSlot {
@@ -36,7 +37,14 @@ export interface TimeSlot {
 }
 
 export interface DaySchedule {
-    day: 'saturday' | 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
+    day:
+        | 'saturday'
+        | 'sunday'
+        | 'monday'
+        | 'tuesday'
+        | 'wednesday'
+        | 'thursday'
+        | 'friday'
     dayLabel: string
     isOpen: boolean
     startTime: string
@@ -156,7 +164,9 @@ export const CreateStoreProvider = ({
         slug: initialNewHojraData?.slug ?? '',
     })
 
-    const [services, setServices] = useState<ServiceItem[]>(initialServices ?? [])
+    const [services, setServices] = useState<ServiceItem[]>(
+        initialServices ?? [],
+    )
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>(
         initialTeamMembers ?? [],
     )
@@ -180,10 +190,14 @@ export const CreateStoreProvider = ({
     }
 
     const replaceServices = (nextServices: ServiceItem[]) => {
-        const nextServiceIds = new Set(nextServices.map((service) => service.id))
+        const nextServiceIds = new Set(
+            nextServices.map((service) => service.id),
+        )
         setServices(nextServices)
         setAssignments((prev) =>
-            prev.filter((assignment) => nextServiceIds.has(assignment.serviceId)),
+            prev.filter((assignment) =>
+                nextServiceIds.has(assignment.serviceId),
+            ),
         )
     }
 
@@ -210,14 +224,14 @@ export const CreateStoreProvider = ({
     ) => {
         setAssignments((prev) =>
             prev.map((a) =>
-                a.id === assignmentId
-                    ? { ...a, weeklySchedule }
-                    : a,
+                a.id === assignmentId ? { ...a, weeklySchedule } : a,
             ),
         )
     }
 
-    const updateExtraInformationDraft = (draft: Partial<ExtraInformationDraft>) => {
+    const updateExtraInformationDraft = (
+        draft: Partial<ExtraInformationDraft>,
+    ) => {
         setExtraInformationDraft((prev) => ({
             ...prev,
             ...draft,

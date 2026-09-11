@@ -68,20 +68,34 @@ export const HojraAssignServices = ({
     const [showNewMemberForm, setShowNewMemberForm] = useState(false)
     const [newMemberName, setNewMemberName] = useState('')
     const [newMemberPosition, setNewMemberPosition] = useState('')
-    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(null)
-    const [newMemberImagePreview, setNewMemberImagePreview] = useState<string | null>(null)
-    const [newMemberServiceId, setNewMemberServiceId] = useState<number | null>(null)
+    const [newMemberImageFile, setNewMemberImageFile] = useState<File | null>(
+        null,
+    )
+    const [newMemberImagePreview, setNewMemberImagePreview] = useState<
+        string | null
+    >(null)
+    const [newMemberServiceIds, setNewMemberServiceIds] = useState<number[]>([])
     const [isCreatingMember, setIsCreatingMember] = useState(false)
 
-    const [editingScheduleForAssignment, setEditingScheduleForAssignment] = useState<number | null>(null)
+    const [editingScheduleForAssignment, setEditingScheduleForAssignment] =
+        useState<number | null>(null)
     const [isSavingSchedules, setIsSavingSchedules] = useState(false)
-    const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(null)
+    const [isDeletingMemberId, setIsDeletingMemberId] = useState<number | null>(
+        null,
+    )
 
     const [editingMemberId, setEditingMemberId] = useState<number | null>(null)
     const [editMemberName, setEditMemberName] = useState('')
     const [editMemberPosition, setEditMemberPosition] = useState('')
-    const [editMemberImageFile, setEditMemberImageFile] = useState<File | null>(null)
-    const [editMemberImagePreview, setEditMemberImagePreview] = useState<string | null>(null)
+    const [editMemberImageFile, setEditMemberImageFile] = useState<File | null>(
+        null,
+    )
+    const [editMemberImagePreview, setEditMemberImagePreview] = useState<
+        string | null
+    >(null)
+    const [editMemberServiceIds, setEditMemberServiceIds] = useState<number[]>(
+        [],
+    )
     const [isUpdatingMember, setIsUpdatingMember] = useState(false)
 
     const showFileError = (message: string) => {
@@ -89,7 +103,9 @@ export const HojraAssignServices = ({
     }
 
     const getMemberAgencyServiceId = (memberId: number): number | null => {
-        const assignment = assignments.find((item) => item.memberId === memberId)
+        const assignment = assignments.find(
+            (item) => item.memberId === memberId,
+        )
         return assignment ? assignment.serviceId : null
     }
 
@@ -111,7 +127,8 @@ export const HojraAssignServices = ({
 
         setNewMemberImageFile(file)
         const reader = new FileReader()
-        reader.onloadend = () => setNewMemberImagePreview(reader.result as string)
+        reader.onloadend = () =>
+            setNewMemberImagePreview(reader.result as string)
         reader.readAsDataURL(file)
     }
 
@@ -130,21 +147,34 @@ export const HojraAssignServices = ({
 
         setEditMemberImageFile(file)
         const reader = new FileReader()
-        reader.onloadend = () => setEditMemberImagePreview(reader.result as string)
+        reader.onloadend = () =>
+            setEditMemberImagePreview(reader.result as string)
         reader.readAsDataURL(file)
     }
 
     const handleCreateMember = async () => {
         if (!newMemberName.trim()) {
-            toast.push(<Notification type="warning">{t('center.validation.enterMemberName')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.enterMemberName')}
+                </Notification>,
+            )
             return
         }
-        if (!newMemberServiceId) {
-            toast.push(<Notification type="warning">{t('center.validation.selectService')}</Notification>)
+        if (newMemberServiceIds.length === 0) {
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectService')}
+                </Notification>,
+            )
             return
         }
         if (!newMemberImageFile) {
-            toast.push(<Notification type="warning">{t('center.validation.selectImage')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectImage')}
+                </Notification>,
+            )
             return
         }
 
@@ -155,8 +185,9 @@ export const HojraAssignServices = ({
                     name: newMemberName.trim(),
                     position: newMemberPosition,
                     image: newMemberImageFile,
+                    agency_service_ids: newMemberServiceIds,
                 },
-                newMemberServiceId,
+                newMemberServiceIds[0],
             )
 
             if (!response?.data?.id) {
@@ -168,22 +199,25 @@ export const HojraAssignServices = ({
                 name: newMemberName.trim(),
                 position: newMemberPosition || 'Team Member',
                 image: newMemberImagePreview,
+                agencyServiceIds: newMemberServiceIds,
             }
 
             addTeamMember(createdMember)
 
-            const selectedService = services.find((service) => service.id === newMemberServiceId)
-            if (selectedService) {
+            const selectedServices = services.filter((service) =>
+                newMemberServiceIds.includes(service.id),
+            )
+            if (selectedServices.length > 0) {
                 setAssignments((currentAssignments) => [
                     ...currentAssignments,
-                    {
+                    ...selectedServices.map((selectedService) => ({
                         id: Number(`${selectedService.id}${createdMember.id}`),
                         serviceId: selectedService.id,
                         serviceLabel: selectedService.serviceLabel,
                         memberId: createdMember.id,
                         memberName: createdMember.name,
                         weeklySchedule: createDefaultWeekSchedule(),
-                    },
+                    })),
                 ])
             }
 
@@ -191,12 +225,19 @@ export const HojraAssignServices = ({
             setNewMemberPosition('')
             setNewMemberImageFile(null)
             setNewMemberImagePreview(null)
-            setNewMemberServiceId(null)
+            setNewMemberServiceIds([])
             setShowNewMemberForm(false)
 
-            toast.push(<Notification type="success">{t('center.success.memberCreated')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.memberCreated')}
+                </Notification>,
+            )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.createMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.createMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsCreatingMember(false)
@@ -214,9 +255,16 @@ export const HojraAssignServices = ({
         try {
             await apiDeleteServiceMember(agencyServiceId, memberId)
             removeTeamMember(memberId)
-            toast.push(<Notification type="success">{t('center.success.memberDeleted')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.memberDeleted')}
+                </Notification>,
+            )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.deleteMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.deleteMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsDeletingMemberId(null)
@@ -232,6 +280,11 @@ export const HojraAssignServices = ({
         setEditMemberPosition(member.position ?? '')
         setEditMemberImageFile(null)
         setEditMemberImagePreview(member.image ?? null)
+        setEditMemberServiceIds(
+            assignments
+                .filter((item) => item.memberId === memberId)
+                .map((item) => item.serviceId),
+        )
     }
 
     const saveMemberEdits = async () => {
@@ -240,19 +293,42 @@ export const HojraAssignServices = ({
         if (!agencyServiceId) return
 
         if (!editMemberName.trim()) {
-            toast.push(<Notification type="warning">{t('center.validation.memberNameRequired')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.memberNameRequired')}
+                </Notification>,
+            )
             return
         }
 
-        const payload: { name?: string; position?: string; image?: File } = {
+        if (editMemberServiceIds.length === 0) {
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.selectService')}
+                </Notification>,
+            )
+            return
+        }
+
+        const payload: {
+            name?: string
+            position?: string
+            image?: File
+            agency_service_ids: number[]
+        } = {
             name: editMemberName.trim(),
             position: editMemberPosition,
+            agency_service_ids: editMemberServiceIds,
         }
         if (editMemberImageFile) payload.image = editMemberImageFile
 
         setIsUpdatingMember(true)
         try {
-            await apiUpdateServiceMember(agencyServiceId, editingMemberId, payload)
+            await apiUpdateServiceMember(
+                agencyServiceId,
+                editingMemberId,
+                payload,
+            )
 
             setTeamMembers((currentMembers) =>
                 currentMembers.map((member) =>
@@ -267,21 +343,48 @@ export const HojraAssignServices = ({
                 ),
             )
 
-            setAssignments((currentAssignments) =>
-                currentAssignments.map((assignment) =>
-                    assignment.memberId === editingMemberId
-                        ? {
-                              ...assignment,
-                              memberName: payload.name ?? assignment.memberName,
-                          }
-                        : assignment,
+            setAssignments((currentAssignments) => [
+                ...currentAssignments.filter(
+                    (assignment) => assignment.memberId !== editingMemberId,
                 ),
-            )
+                ...services
+                    .filter((service) =>
+                        editMemberServiceIds.includes(service.id),
+                    )
+                    .map((service) => {
+                        const existing = currentAssignments.find(
+                            (assignment) =>
+                                assignment.memberId === editingMemberId &&
+                                assignment.serviceId === service.id,
+                        )
+                        return existing
+                            ? {
+                                  ...existing,
+                                  memberName:
+                                      payload.name ?? existing.memberName,
+                              }
+                            : {
+                                  id: Number(`${service.id}${editingMemberId}`),
+                                  serviceId: service.id,
+                                  serviceLabel: service.serviceLabel,
+                                  memberId: editingMemberId,
+                                  memberName: payload.name ?? '',
+                                  weeklySchedule: createDefaultWeekSchedule(),
+                              }
+                    }),
+            ])
 
-            toast.push(<Notification type="success">{t('center.members.saveChanges')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.members.saveChanges')}
+                </Notification>,
+            )
             setEditingMemberId(null)
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.updateMemberFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.updateMemberFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsUpdatingMember(false)
@@ -295,11 +398,17 @@ export const HojraAssignServices = ({
         const assignment = assignments.find((item) => item.id === assignmentId)
         if (!assignment) return
 
-        const nextSchedule = updater(assignment.weeklySchedule.map(normalizeDaySchedule)).map(mergeDaySlots)
+        const nextSchedule = updater(
+            assignment.weeklySchedule.map(normalizeDaySchedule),
+        ).map(mergeDaySlots)
         updateAssignmentSchedule(assignmentId, nextSchedule)
     }
 
-    const handleDayToggle = (assignmentId: number, dayIndex: number, checked: boolean) => {
+    const handleDayToggle = (
+        assignmentId: number,
+        dayIndex: number,
+        checked: boolean,
+    ) => {
         updateSchedule(assignmentId, (weeklySchedule) => {
             const nextSchedule = [...weeklySchedule]
             const currentDay = nextSchedule[dayIndex]
@@ -351,16 +460,23 @@ export const HojraAssignServices = ({
         })
     }
 
-    const removeSlot = (assignmentId: number, dayIndex: number, slotIndex: number) => {
+    const removeSlot = (
+        assignmentId: number,
+        dayIndex: number,
+        slotIndex: number,
+    ) => {
         updateSchedule(assignmentId, (weeklySchedule) => {
             const nextSchedule = [...weeklySchedule]
             const currentDay = nextSchedule[dayIndex]
-            const nextSlots = currentDay.slots.filter((_, index) => index !== slotIndex)
+            const nextSlots = currentDay.slots.filter(
+                (_, index) => index !== slotIndex,
+            )
 
             nextSchedule[dayIndex] = normalizeDaySchedule({
                 ...currentDay,
                 isOpen: nextSlots.length > 0,
-                slots: nextSlots.length > 0 ? nextSlots : [createEmptyTimeSlot()],
+                slots:
+                    nextSlots.length > 0 ? nextSlots : [createEmptyTimeSlot()],
             })
 
             if (nextSlots.length === 0) {
@@ -374,7 +490,9 @@ export const HojraAssignServices = ({
     const persistSchedules = async () => {
         const requests = assignments.map(async (assignment) => {
             const days = assignment.weeklySchedule.map((daySchedule) => {
-                const normalizedDay = mergeDaySlots(normalizeDaySchedule(daySchedule))
+                const normalizedDay = mergeDaySlots(
+                    normalizeDaySchedule(daySchedule),
+                )
 
                 if (!normalizedDay.isOpen) {
                     return {
@@ -403,23 +521,35 @@ export const HojraAssignServices = ({
 
     const hasAnySchedule = assignments.some((assignment) =>
         assignment.weeklySchedule.some(
-            (daySchedule) => daySchedule.isOpen && (daySchedule.slots?.length ?? 0) > 0,
+            (daySchedule) =>
+                daySchedule.isOpen && (daySchedule.slots?.length ?? 0) > 0,
         ),
     )
 
     const handleNext = async () => {
         if (!hasAnySchedule) {
-            toast.push(<Notification type="warning">{t('center.validation.enableWorkingDay')}</Notification>)
+            toast.push(
+                <Notification type="warning">
+                    {t('center.validation.enableWorkingDay')}
+                </Notification>,
+            )
             return
         }
 
         setIsSavingSchedules(true)
         try {
             await persistSchedules()
-            toast.push(<Notification type="success">{t('center.success.schedulesSaved')}</Notification>)
+            toast.push(
+                <Notification type="success">
+                    {t('center.success.schedulesSaved')}
+                </Notification>,
+            )
             changeState(6)
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : t('center.errors.saveSchedulesFailed')
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : t('center.errors.saveSchedulesFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setIsSavingSchedules(false)
@@ -429,10 +559,16 @@ export const HojraAssignServices = ({
     return (
         <div className="space-y-6">
             <Card>
-                <h3 className="text-lg font-semibold mb-4">{t('center.members.title')}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                    {t('center.members.title')}
+                </h3>
 
                 {!showNewMemberForm && (
-                    <Button variant="solid" icon={<HiOutlinePlus />} onClick={() => setShowNewMemberForm(true)}>
+                    <Button
+                        variant="solid"
+                        icon={<HiOutlinePlus />}
+                        onClick={() => setShowNewMemberForm(true)}
+                    >
                         {t('center.members.add')}
                     </Button>
                 )}
@@ -440,31 +576,60 @@ export const HojraAssignServices = ({
                 {showNewMemberForm && (
                     <div className="mt-4 p-4 border rounded-lg space-y-4">
                         <FormItem label={t('center.members.name')}>
-                            <Input value={newMemberName} onChange={(event) => setNewMemberName(event.target.value)} />
+                            <Input
+                                value={newMemberName}
+                                onChange={(event) =>
+                                    setNewMemberName(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={newMemberPosition} onChange={(event) => setNewMemberPosition(event.target.value)} />
+                            <Input
+                                value={newMemberPosition}
+                                onChange={(event) =>
+                                    setNewMemberPosition(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
-                            <Input type="file" accept="image/*" onChange={handleImageUpload} />
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
                             {newMemberImagePreview && (
-                                <img src={newMemberImagePreview} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
+                                <img
+                                    src={newMemberImagePreview}
+                                    alt="Preview"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
                             )}
                         </FormItem>
 
                         <FormItem label={t('center.members.service')}>
-                            <Select<SelectOption>
-                                value={newMemberServiceId ? serviceOptions.find((service) => service.value === newMemberServiceId) ?? null : null}
+                            <Select
+                                isMulti
+                                value={serviceOptions.filter((service) =>
+                                    newMemberServiceIds.includes(service.value),
+                                )}
                                 options={serviceOptions}
                                 placeholder={t('center.members.service')}
-                                onChange={(option) => setNewMemberServiceId(option?.value ?? null)}
+                                onChange={(options) =>
+                                    setNewMemberServiceIds(
+                                        options.map((option) => option.value),
+                                    )
+                                }
                             />
                         </FormItem>
 
                         <div className="flex gap-2">
-                            <Button variant="solid" loading={isCreatingMember} onClick={handleCreateMember}>
+                            <Button
+                                variant="solid"
+                                loading={isCreatingMember}
+                                onClick={handleCreateMember}
+                            >
                                 {t('center.members.save')}
                             </Button>
                             <Button
@@ -475,7 +640,7 @@ export const HojraAssignServices = ({
                                     setNewMemberPosition('')
                                     setNewMemberImageFile(null)
                                     setNewMemberImagePreview(null)
-                                    setNewMemberServiceId(null)
+                                    setNewMemberServiceIds([])
                                 }}
                             >
                                 {t('center.members.cancel')}
@@ -486,32 +651,60 @@ export const HojraAssignServices = ({
 
                 {teamMembers.length > 0 && (
                     <div className="mt-6 space-y-3">
-                        <h4 className="font-medium">{t('center.members.title')}</h4>
+                        <h4 className="font-medium">
+                            {t('center.members.title')}
+                        </h4>
                         {teamMembers.map((member) => {
-                            const assignment = getAssignmentByMemberId(member.id)
+                            const assignment = getAssignmentByMemberId(
+                                member.id,
+                            )
 
                             return (
-                                <div key={member.id} className="flex items-center justify-between p-3 border rounded">
+                                <div
+                                    key={member.id}
+                                    className="flex items-center justify-between p-3 border rounded"
+                                >
                                     <div className="flex items-center gap-3">
                                         {member.image && (
-                                            <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                                            <img
+                                                src={member.image}
+                                                alt={member.name}
+                                                className="w-10 h-10 rounded-full object-cover"
+                                            />
                                         )}
                                         <div>
-                                            <div className="font-medium">{member.name}</div>
-                                            <div className="text-sm text-gray-500">{member.position}</div>
+                                            <div className="font-medium">
+                                                {member.name}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {member.position}
+                                            </div>
                                             {assignment && (
-                                                <div className="text-xs text-gray-500">{assignment.serviceLabel}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {assignment.serviceLabel}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button size="sm" variant="plain" icon={<HiOutlinePencil />} onClick={() => beginEditMember(member.id)} />
+                                        <Button
+                                            size="sm"
+                                            variant="plain"
+                                            icon={<HiOutlinePencil />}
+                                            onClick={() =>
+                                                beginEditMember(member.id)
+                                            }
+                                        />
                                         <Button
                                             size="sm"
                                             variant="plain"
                                             icon={<HiOutlineTrash />}
-                                            loading={isDeletingMemberId === member.id}
-                                            onClick={() => handleDeleteMember(member.id)}
+                                            loading={
+                                                isDeletingMemberId === member.id
+                                            }
+                                            onClick={() =>
+                                                handleDeleteMember(member.id)
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -522,25 +715,66 @@ export const HojraAssignServices = ({
 
                 {editingMemberId && (
                     <div className="mt-6 p-4 border rounded-lg space-y-4">
-                        <h4 className="font-medium">{t('center.members.editTitle')}</h4>
+                        <h4 className="font-medium">
+                            {t('center.members.editTitle')}
+                        </h4>
 
                         <FormItem label={t('center.members.name')}>
-                            <Input value={editMemberName} onChange={(event) => setEditMemberName(event.target.value)} />
+                            <Input
+                                value={editMemberName}
+                                onChange={(event) =>
+                                    setEditMemberName(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.position')}>
-                            <Input value={editMemberPosition} onChange={(event) => setEditMemberPosition(event.target.value)} />
+                            <Input
+                                value={editMemberPosition}
+                                onChange={(event) =>
+                                    setEditMemberPosition(event.target.value)
+                                }
+                            />
                         </FormItem>
 
                         <FormItem label={t('center.members.image')}>
-                            <Input type="file" accept="image/*" onChange={handleEditImageUpload} />
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleEditImageUpload}
+                            />
                             {editMemberImagePreview && (
-                                <img src={editMemberImagePreview} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
+                                <img
+                                    src={editMemberImagePreview}
+                                    alt="Preview"
+                                    className="mt-2 w-20 h-20 object-cover rounded"
+                                />
                             )}
                         </FormItem>
 
+                        <FormItem label={t('center.members.service')}>
+                            <Select
+                                isMulti
+                                value={serviceOptions.filter((service) =>
+                                    editMemberServiceIds.includes(
+                                        service.value,
+                                    ),
+                                )}
+                                options={serviceOptions}
+                                onChange={(options) =>
+                                    setEditMemberServiceIds(
+                                        options.map((option) => option.value),
+                                    )
+                                }
+                            />
+                        </FormItem>
+
                         <div className="flex gap-2">
-                            <Button variant="solid" loading={isUpdatingMember} onClick={saveMemberEdits}>
+                            <Button
+                                variant="solid"
+                                loading={isUpdatingMember}
+                                onClick={saveMemberEdits}
+                            >
                                 {t('center.members.saveChanges')}
                             </Button>
                             <Button
@@ -563,106 +797,197 @@ export const HojraAssignServices = ({
 
             {assignments.length > 0 && (
                 <Card>
-                    <h3 className="text-lg font-semibold mb-4">{t('center.assignments.weeklySchedule')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">
+                        {t('center.assignments.weeklySchedule')}
+                    </h3>
 
                     <div className="space-y-4">
                         {assignments.map((assignment) => (
-                            <div key={assignment.id} className="border rounded-lg p-4">
+                            <div
+                                key={assignment.id}
+                                className="border rounded-lg p-4"
+                            >
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <div className="font-medium">{assignment.memberName}</div>
-                                        <div className="text-sm text-gray-500">{assignment.serviceLabel}</div>
+                                        <div className="font-medium">
+                                            {assignment.memberName}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {assignment.serviceLabel}
+                                        </div>
                                     </div>
                                     <Button
                                         size="sm"
                                         variant="solid"
                                         onClick={() =>
                                             setEditingScheduleForAssignment(
-                                                editingScheduleForAssignment === assignment.id ? null : assignment.id,
+                                                editingScheduleForAssignment ===
+                                                    assignment.id
+                                                    ? null
+                                                    : assignment.id,
                                             )
                                         }
                                     >
-                                        {editingScheduleForAssignment === assignment.id
-                                            ? t('center.assignments.closeSchedule')
-                                            : t('center.assignments.editSchedule')}
+                                        {editingScheduleForAssignment ===
+                                        assignment.id
+                                            ? t(
+                                                  'center.assignments.closeSchedule',
+                                              )
+                                            : t(
+                                                  'center.assignments.editSchedule',
+                                              )}
                                     </Button>
                                 </div>
 
-                                {editingScheduleForAssignment === assignment.id && (
+                                {editingScheduleForAssignment ===
+                                    assignment.id && (
                                     <div className="space-y-4 mt-4 pt-4 border-t">
-                                        {assignment.weeklySchedule.map((daySchedule, dayIndex) => (
-                                            <div key={daySchedule.day} className="rounded-lg border p-3 space-y-3">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="text-sm font-medium">{daySchedule.dayLabel}</div>
-                                                    <Switcher
-                                                        checked={daySchedule.isOpen}
-                                                        onChange={(checked) =>
-                                                            handleDayToggle(assignment.id, dayIndex, checked)
-                                                        }
-                                                    />
-                                                </div>
-
-                                                {daySchedule.isOpen && (
-                                                    <div className="space-y-3">
-                                                        {daySchedule.slots.map((slot, slotIndex) => (
-                                                            <div
-                                                                key={`${daySchedule.day}-${slotIndex}`}
-                                                                className="flex flex-wrap items-center gap-2"
-                                                            >
-                                                                <Select<{ value: string; label: string }>
-                                                                    size="sm"
-                                                                    className="w-32"
-                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.startTime) ?? null}
-                                                                    options={timeOptions}
-                                                                    onChange={(option) =>
-                                                                        handleSlotChange(
-                                                                            assignment.id,
-                                                                            dayIndex,
-                                                                            slotIndex,
-                                                                            'startTime',
-                                                                            option?.value ?? '09:00',
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <span className="text-gray-500">{t('center.assignments.to')}</span>
-                                                                <Select<{ value: string; label: string }>
-                                                                    size="sm"
-                                                                    className="w-32"
-                                                                    value={timeOptions.find((timeOption) => timeOption.value === slot.endTime) ?? null}
-                                                                    options={timeOptions}
-                                                                    onChange={(option) =>
-                                                                        handleSlotChange(
-                                                                            assignment.id,
-                                                                            dayIndex,
-                                                                            slotIndex,
-                                                                            'endTime',
-                                                                            option?.value ?? '17:00',
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="plain"
-                                                                    icon={<HiOutlineTrash />}
-                                                                    onClick={() =>
-                                                                        removeSlot(assignment.id, dayIndex, slotIndex)
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        ))}
-
-                                                        <Button
-                                                            size="sm"
-                                                            variant="default"
-                                                            icon={<HiOutlinePlus />}
-                                                            onClick={() => addSlot(assignment.id, dayIndex)}
-                                                        >
-                                                            إضافة فترة
-                                                        </Button>
+                                        {assignment.weeklySchedule.map(
+                                            (daySchedule, dayIndex) => (
+                                                <div
+                                                    key={daySchedule.day}
+                                                    className="rounded-lg border p-3 space-y-3"
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="text-sm font-medium">
+                                                            {
+                                                                daySchedule.dayLabel
+                                                            }
+                                                        </div>
+                                                        <Switcher
+                                                            checked={
+                                                                daySchedule.isOpen
+                                                            }
+                                                            onChange={(
+                                                                checked,
+                                                            ) =>
+                                                                handleDayToggle(
+                                                                    assignment.id,
+                                                                    dayIndex,
+                                                                    checked,
+                                                                )
+                                                            }
+                                                        />
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+
+                                                    {daySchedule.isOpen && (
+                                                        <div className="space-y-3">
+                                                            {daySchedule.slots.map(
+                                                                (
+                                                                    slot,
+                                                                    slotIndex,
+                                                                ) => (
+                                                                    <div
+                                                                        key={`${daySchedule.day}-${slotIndex}`}
+                                                                        className="flex flex-wrap items-center gap-2"
+                                                                    >
+                                                                        <Select<{
+                                                                            value: string
+                                                                            label: string
+                                                                        }>
+                                                                            size="sm"
+                                                                            className="w-32"
+                                                                            value={
+                                                                                timeOptions.find(
+                                                                                    (
+                                                                                        timeOption,
+                                                                                    ) =>
+                                                                                        timeOption.value ===
+                                                                                        slot.startTime,
+                                                                                ) ??
+                                                                                null
+                                                                            }
+                                                                            options={
+                                                                                timeOptions
+                                                                            }
+                                                                            onChange={(
+                                                                                option,
+                                                                            ) =>
+                                                                                handleSlotChange(
+                                                                                    assignment.id,
+                                                                                    dayIndex,
+                                                                                    slotIndex,
+                                                                                    'startTime',
+                                                                                    option?.value ??
+                                                                                        '09:00',
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                        <span className="text-gray-500">
+                                                                            {t(
+                                                                                'center.assignments.to',
+                                                                            )}
+                                                                        </span>
+                                                                        <Select<{
+                                                                            value: string
+                                                                            label: string
+                                                                        }>
+                                                                            size="sm"
+                                                                            className="w-32"
+                                                                            value={
+                                                                                timeOptions.find(
+                                                                                    (
+                                                                                        timeOption,
+                                                                                    ) =>
+                                                                                        timeOption.value ===
+                                                                                        slot.endTime,
+                                                                                ) ??
+                                                                                null
+                                                                            }
+                                                                            options={
+                                                                                timeOptions
+                                                                            }
+                                                                            onChange={(
+                                                                                option,
+                                                                            ) =>
+                                                                                handleSlotChange(
+                                                                                    assignment.id,
+                                                                                    dayIndex,
+                                                                                    slotIndex,
+                                                                                    'endTime',
+                                                                                    option?.value ??
+                                                                                        '17:00',
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="plain"
+                                                                            icon={
+                                                                                <HiOutlineTrash />
+                                                                            }
+                                                                            onClick={() =>
+                                                                                removeSlot(
+                                                                                    assignment.id,
+                                                                                    dayIndex,
+                                                                                    slotIndex,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                ),
+                                                            )}
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="default"
+                                                                icon={
+                                                                    <HiOutlinePlus />
+                                                                }
+                                                                onClick={() =>
+                                                                    addSlot(
+                                                                        assignment.id,
+                                                                        dayIndex,
+                                                                    )
+                                                                }
+                                                            >
+                                                                إضافة فترة
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ),
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -675,12 +1000,14 @@ export const HojraAssignServices = ({
                 <Button variant="plain" onClick={() => changeState(4)}>
                     {t('center.wizard.back')}
                 </Button>
-                <Button variant="solid" loading={isSavingSchedules} onClick={handleNext}>
+                <Button
+                    variant="solid"
+                    loading={isSavingSchedules}
+                    onClick={handleNext}
+                >
                     {t('center.wizard.next')}
                 </Button>
             </div>
         </div>
     )
 }
-
-

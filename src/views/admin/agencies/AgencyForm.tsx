@@ -20,7 +20,6 @@ import AgencyServiceCategoriesTab from './tabs/AgencyServiceCategoriesTab'
 import AgencyMediaTab from './tabs/AgencyMediaTab'
 import AgencyServicesTab from './tabs/AgencyServicesTab'
 import AgencyMembersTab from './tabs/AgencyMembersTab'
-import AgencyCapabilitiesTab from './tabs/AgencyCapabilitiesTab'
 import AgencySchedulesTab from './tabs/AgencySchedulesTab'
 import AgencyBookingsTab from './tabs/AgencyBookingsTab'
 import AgencyReviewsTab from './tabs/AgencyReviewsTab'
@@ -46,10 +45,20 @@ const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
     { name: 'about_us', label: 'About us', group: 'content', type: 'richtext' },
     { name: 'h1', label: 'H1', group: 'seo' },
     { name: 'meta_title', label: 'Meta title', group: 'seo' },
-    { name: 'meta_description', label: 'Meta description', group: 'seo', type: 'textarea' },
+    {
+        name: 'meta_description',
+        label: 'Meta description',
+        group: 'seo',
+        type: 'textarea',
+    },
     { name: 'canonical', label: 'Canonical URL', group: 'seo', type: 'url' },
     { name: 'og_title', label: 'OG title', group: 'seo' },
-    { name: 'og_description', label: 'OG description', group: 'seo', type: 'textarea' },
+    {
+        name: 'og_description',
+        label: 'OG description',
+        group: 'seo',
+        type: 'textarea',
+    },
 ]
 
 type AgencyFormValues = {
@@ -117,7 +126,10 @@ const AgencyForm = () => {
                 fully_verfied: agency.fully_verfied,
                 logo: null,
                 banner: null,
-                translations: agency.translations as Record<string, Record<string, string>>,
+                translations: agency.translations as Record<
+                    string,
+                    Record<string, string>
+                >,
             })
         }
     }, [existing, reset])
@@ -144,9 +156,14 @@ const AgencyForm = () => {
             if (values.logo) formData.append('logo', values.logo)
             if (values.banner) formData.append('banner', values.banner)
 
-            for (const [locale, fields] of Object.entries(values.translations ?? {})) {
+            for (const [locale, fields] of Object.entries(
+                values.translations ?? {},
+            )) {
                 for (const [field, value] of Object.entries(fields ?? {})) {
-                    formData.append(`translations[${locale}][${field}]`, value ?? '')
+                    formData.append(
+                        `translations[${locale}][${field}]`,
+                        value ?? '',
+                    )
                 }
             }
 
@@ -165,8 +182,8 @@ const AgencyForm = () => {
         } catch {
             toast.push(
                 <Notification type="danger" title="Failed to save">
-                    Please check the form for errors — logo/banner are
-                    required when creating a new agency.
+                    Please check the form for errors — logo/banner are required
+                    when creating a new agency.
                 </Notification>,
             )
         } finally {
@@ -180,150 +197,150 @@ const AgencyForm = () => {
     }))
 
     const overviewForm = (
-            <AdaptiveCard>
-                <h3 className="mb-6">{isEditing ? 'Edit Agency' : 'New Agency'}</h3>
-                <Form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <FormItem label="Slug">
-                            <Controller
-                                name="slug"
-                                control={control}
-                                render={({ field }) => <Input {...field} />}
-                            />
-                        </FormItem>
-                        <FormItem label="Status">
-                            <Controller
-                                name="status"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        options={STATUS_OPTIONS}
-                                        value={STATUS_OPTIONS.find(
-                                            (o) => o.value === field.value,
-                                        )}
-                                        onChange={(option) =>
-                                            field.onChange(option?.value)
-                                        }
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Phone">
-                            <Controller
-                                name="phone"
-                                control={control}
-                                render={({ field }) => <Input {...field} />}
-                            />
-                        </FormItem>
-                        <FormItem label="WhatsApp">
-                            <Controller
-                                name="whatsapp"
-                                control={control}
-                                render={({ field }) => <Input {...field} />}
-                            />
-                        </FormItem>
-                        <FormItem label="Website">
-                            <Controller
-                                name="website"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input type="url" {...field} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Service category">
-                            <Controller
-                                name="service_id"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        isClearable
-                                        options={options}
-                                        value={options.find(
-                                            (o) => o.value === field.value,
-                                        )}
-                                        onChange={(option) =>
-                                            field.onChange(option?.value ?? null)
-                                        }
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Logo">
-                            <Controller
-                                name="logo"
-                                control={control}
-                                render={({ field: { onChange } }) => (
-                                    <ImageUploadField
-                                        existingUrl={existing?.data.logo}
-                                        shape="circle"
-                                        onChange={onChange}
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Banner">
-                            <Controller
-                                name="banner"
-                                control={control}
-                                render={({ field: { onChange } }) => (
-                                    <ImageUploadField
-                                        existingUrl={existing?.data.banner}
-                                        size={120}
-                                        onChange={onChange}
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Top seller">
-                            <Controller
-                                name="top_seller"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Show in marketplace">
-                            <Controller
-                                name="show_in_marketplace"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Fully verified">
-                            <Controller
-                                name="fully_verfied"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                    </div>
+        <AdaptiveCard>
+            <h3 className="mb-6">{isEditing ? 'Edit Agency' : 'New Agency'}</h3>
+            <Form onSubmit={handleSubmit(onSubmit)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <FormItem label="Slug">
+                        <Controller
+                            name="slug"
+                            control={control}
+                            render={({ field }) => <Input {...field} />}
+                        />
+                    </FormItem>
+                    <FormItem label="Status">
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    options={STATUS_OPTIONS}
+                                    value={STATUS_OPTIONS.find(
+                                        (o) => o.value === field.value,
+                                    )}
+                                    onChange={(option) =>
+                                        field.onChange(option?.value)
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Phone">
+                        <Controller
+                            name="phone"
+                            control={control}
+                            render={({ field }) => <Input {...field} />}
+                        />
+                    </FormItem>
+                    <FormItem label="WhatsApp">
+                        <Controller
+                            name="whatsapp"
+                            control={control}
+                            render={({ field }) => <Input {...field} />}
+                        />
+                    </FormItem>
+                    <FormItem label="Website">
+                        <Controller
+                            name="website"
+                            control={control}
+                            render={({ field }) => (
+                                <Input type="url" {...field} />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Service category">
+                        <Controller
+                            name="service_id"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    isClearable
+                                    options={options}
+                                    value={options.find(
+                                        (o) => o.value === field.value,
+                                    )}
+                                    onChange={(option) =>
+                                        field.onChange(option?.value ?? null)
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Logo">
+                        <Controller
+                            name="logo"
+                            control={control}
+                            render={({ field: { onChange } }) => (
+                                <ImageUploadField
+                                    existingUrl={existing?.data.logo}
+                                    shape="circle"
+                                    onChange={onChange}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Banner">
+                        <Controller
+                            name="banner"
+                            control={control}
+                            render={({ field: { onChange } }) => (
+                                <ImageUploadField
+                                    existingUrl={existing?.data.banner}
+                                    size={120}
+                                    onChange={onChange}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Top seller">
+                        <Controller
+                            name="top_seller"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <Switcher checked={value} onChange={onChange} />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Show in marketplace">
+                        <Controller
+                            name="show_in_marketplace"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <Switcher checked={value} onChange={onChange} />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Fully verified">
+                        <Controller
+                            name="fully_verfied"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <Switcher checked={value} onChange={onChange} />
+                            )}
+                        />
+                    </FormItem>
+                </div>
 
-                    <LocalizedFieldsTabs
-                        fields={LOCALIZED_FIELDS}
-                        requiredFields={['title', 'about_text', 'address']}
-                        control={control}
-                    />
+                <LocalizedFieldsTabs
+                    fields={LOCALIZED_FIELDS}
+                    requiredFields={['title', 'about_text', 'address']}
+                    control={control}
+                />
 
-                    <div className="flex justify-end gap-2 mt-6">
-                        <Button
-                            type="button"
-                            variant="plain"
-                            onClick={() => navigate('/admin/agencies')}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="solid" loading={submitting}>
-                            Save
-                        </Button>
-                    </div>
-                </Form>
-            </AdaptiveCard>
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button
+                        type="button"
+                        variant="plain"
+                        onClick={() => navigate('/admin/agencies')}
+                    >
+                        Cancel
+                    </Button>
+                    <Button type="submit" variant="solid" loading={submitting}>
+                        Save
+                    </Button>
+                </div>
+            </Form>
+        </AdaptiveCard>
     )
 
     if (!isEditing) {
@@ -341,20 +358,23 @@ const AgencyForm = () => {
             <Tabs defaultValue="overview">
                 <Tabs.TabList>
                     <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
-                    <Tabs.TabNav value="service-categories">Service Categories</Tabs.TabNav>
+                    <Tabs.TabNav value="service-categories">
+                        Service Categories
+                    </Tabs.TabNav>
                     <Tabs.TabNav value="media">Media</Tabs.TabNav>
                     <Tabs.TabNav value="services">Services</Tabs.TabNav>
                     <Tabs.TabNav value="members">Members</Tabs.TabNav>
-                    <Tabs.TabNav value="capabilities">
-                        Member-Service Pricing &amp; Duration
+                    <Tabs.TabNav value="schedules">
+                        Member Schedules
                     </Tabs.TabNav>
-                    <Tabs.TabNav value="schedules">Member Schedules</Tabs.TabNav>
                     <Tabs.TabNav value="reservations">Bookings</Tabs.TabNav>
                     <Tabs.TabNav value="reviews">Reviews</Tabs.TabNav>
                     <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
                     <Tabs.TabNav value="analytics">Analytics</Tabs.TabNav>
                 </Tabs.TabList>
-                <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
+                <Tabs.TabContent value="overview">
+                    {overviewForm}
+                </Tabs.TabContent>
                 <Tabs.TabContent value="service-categories">
                     <AgencyServiceCategoriesTab agencySlug={agencySlug} />
                 </Tabs.TabContent>
@@ -366,9 +386,6 @@ const AgencyForm = () => {
                 </Tabs.TabContent>
                 <Tabs.TabContent value="members">
                     <AgencyMembersTab agencySlug={agencySlug} />
-                </Tabs.TabContent>
-                <Tabs.TabContent value="capabilities">
-                    <AgencyCapabilitiesTab agencySlug={agencySlug} />
                 </Tabs.TabContent>
                 <Tabs.TabContent value="schedules">
                     <AgencySchedulesTab agencySlug={agencySlug} />
