@@ -617,7 +617,9 @@ export const AgencyServicesStep = ({
                                 ? Number(draft.price)
                                 : null,
                         body: body || undefined,
-                        member_ids: draft.enabled ? draft.memberIds : [],
+                        member_ids: draft.enabled
+                            ? Array.from(new Set(draft.memberIds))
+                            : [],
                     }
                 }),
             })
