@@ -11,9 +11,22 @@ const GROUPS: Array<{ key: string; label: string; permission: string }> = [
     { key: 'about', label: 'About', permission: 'general settings' },
     { key: 'faq', label: 'Home FAQ', permission: 'general settings' },
     { key: 'store', label: 'Store', permission: 'general settings' },
-    { key: 'agency-workflow', label: 'Agency workflow', permission: 'view otp settings' },
+    {
+        key: 'agency-workflow',
+        label: 'Agency workflow',
+        permission: 'view otp settings',
+    },
     { key: 'otp', label: 'OTP', permission: 'view otp settings' },
-    { key: 'notifications', label: 'Notifications', permission: 'view notification settings' },
+    {
+        key: 'notifications',
+        label: 'Notifications',
+        permission: 'view notification settings',
+    },
+    {
+        key: 'push-notifications',
+        label: 'Push notifications',
+        permission: 'view notification settings',
+    },
 ]
 
 /**

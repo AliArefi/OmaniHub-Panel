@@ -1,0 +1,9 @@
+{
+  "name": "OmaniHub Panel",
+  "short_name": "OmaniHub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [{ "src": "/img/logo/logo-dark-streamline.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }]
+}

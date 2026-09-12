@@ -4,7 +4,16 @@ import appConfig from '@/configs/app.config'
 import { useSessionUser } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useLocaleStore } from '@/store/localeStore'
-import { apiAuthMe, apiSignIn, apiSignOut, apiSignUp } from '@/services/AuthService'
+import {
+    apiAuthMe,
+    apiSignIn,
+    apiSignOut,
+    apiSignUp,
+} from '@/services/AuthService'
+import {
+    revokeCurrentPushDevice,
+    syncPushDevice,
+} from '@/services/PushNotificationService'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
@@ -123,7 +132,11 @@ function AuthProvider({ children }: AuthProviderProps) {
         try {
             const resp = await apiSignIn(values)
 
-            if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+            if (
+                resp?.success &&
+                resp.next_step === 'otp_verify' &&
+                resp.challenge_id
+            ) {
                 setPendingChallenge({
                     challenge_id: resp.challenge_id,
                     expires_at: resp.expires_at,
@@ -134,7 +147,11 @@ function AuthProvider({ children }: AuthProviderProps) {
                 return { status: 'success', message: resp.message }
             }
 
-            if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+            if (
+                resp?.success &&
+                resp.next_step === 'authenticated' &&
+                resp.token
+            ) {
                 handleSignIn(
                     { accessToken: resp.token },
                     resp.user ? toSessionUser(resp.user) : undefined,
@@ -144,7 +161,10 @@ function AuthProvider({ children }: AuthProviderProps) {
             }
 
             if (resp?.success === false) {
-                return { status: 'failed', message: resp.message || 'Unable to sign in' }
+                return {
+                    status: 'failed',
+                    message: resp.message || 'Unable to sign in',
+                }
             }
 
             return {
@@ -154,7 +174,10 @@ function AuthProvider({ children }: AuthProviderProps) {
             // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         } catch (errors: any) {
             const data = errors?.response?.data
-            const fieldErrors = data?.errors && typeof data.errors === 'object' ? data.errors : undefined
+            const fieldErrors =
+                data?.errors && typeof data.errors === 'object'
+                    ? data.errors
+                    : undefined
             return {
                 status: 'failed',
                 message: data?.message || errors.toString(),
@@ -163,12 +186,15 @@ function AuthProvider({ children }: AuthProviderProps) {
         }
     }
 
-
     const signUp = async (values: SignUpCredential): AuthResult => {
         try {
             const resp = await apiSignUp(values)
 
-            if (resp?.success && resp.next_step === 'otp_verify' && resp.challenge_id) {
+            if (
+                resp?.success &&
+                resp.next_step === 'otp_verify' &&
+                resp.challenge_id
+            ) {
                 setPendingChallenge({
                     challenge_id: resp.challenge_id,
                     expires_at: resp.expires_at,
@@ -179,7 +205,11 @@ function AuthProvider({ children }: AuthProviderProps) {
                 return { status: 'success', message: resp.message }
             }
 
-            if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
+            if (
+                resp?.success &&
+                resp.next_step === 'authenticated' &&
+                resp.token
+            ) {
                 handleSignIn(
                     { accessToken: resp.token },
                     resp.user ? toSessionUser(resp.user) : undefined,
@@ -189,7 +219,10 @@ function AuthProvider({ children }: AuthProviderProps) {
             }
 
             if (resp?.success === false) {
-                return { status: 'failed', message: resp.message || 'Unable to sign up' }
+                return {
+                    status: 'failed',
+                    message: resp.message || 'Unable to sign up',
+                }
             }
 
             return {
@@ -199,7 +232,10 @@ function AuthProvider({ children }: AuthProviderProps) {
             // eslint-disable-next-line  @typescript-eslint/no-explicit-any
         } catch (errors: any) {
             const data = errors?.response?.data
-            const fieldErrors = data?.errors && typeof data.errors === 'object' ? data.errors : undefined
+            const fieldErrors =
+                data?.errors && typeof data.errors === 'object'
+                    ? data.errors
+                    : undefined
             return {
                 status: 'failed',
                 message: data?.message || errors.toString(),
@@ -210,12 +246,18 @@ function AuthProvider({ children }: AuthProviderProps) {
 
     const signOut = async () => {
         try {
+            await revokeCurrentPushDevice().catch(() => undefined)
             await apiSignOut()
         } finally {
             handleSignOut()
             navigatorRef.current?.navigate('/')
         }
     }
+
+    useEffect(() => {
+        if (!authenticated) return
+        void syncPushDevice().catch(() => undefined)
+    }, [authenticated])
 
     // Bootstrap auth session from the backend cookie session.
     // This avoids relying on any token stored in localStorage/sessionStorage.

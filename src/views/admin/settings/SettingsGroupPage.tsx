@@ -4,6 +4,7 @@ import PerLocaleSettingsGroupPage from './PerLocaleSettingsGroupPage'
 import AgencyWorkflowSettings from './AgencyWorkflowSettings'
 import OtpSettings from './OtpSettings'
 import NotificationSettings from './NotificationSettings'
+import PushNotificationSettings from './PushNotificationSettings'
 
 const PER_LOCALE_GROUPS = new Set([
     'general',
@@ -26,6 +27,8 @@ const SettingsGroupPage = (): React.JSX.Element => {
         content = <OtpSettings />
     } else if (group === 'notifications') {
         content = <NotificationSettings />
+    } else if (group === 'push-notifications') {
+        content = <PushNotificationSettings />
     }
 
     return <SettingsLayout>{content}</SettingsLayout>

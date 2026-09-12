@@ -12,6 +12,7 @@ export type SingletonSettingsGroup =
     | 'agency-workflow'
     | 'otp'
     | 'notifications'
+    | 'push-notifications'
     | 'messaging-providers'
 
 export function apiGetPerLocaleSettings<T = Record<string, unknown>>(
