@@ -84,6 +84,22 @@ export type AdminAgency = {
     top_seller: boolean
     show_in_marketplace: boolean
     fully_verfied: boolean
+    extra_info?: Array<{
+        id?: number
+        key: string | null
+        label: string
+        value: string | null
+        type: string
+        is_active: boolean
+        order_number: number
+    }>
+    working_hours?: Array<{
+        id: number
+        day_of_week: number
+        start_time: string
+        end_time: string
+        is_active: boolean
+    }>
     services_count?: number | null
     comments_count?: number | null
     organization?: { id: number; title: string }

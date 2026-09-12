@@ -1,6 +1,7 @@
 import ApiService from '@/services/ApiService'
 
 export type AdminAgencyMediaCollection =
+    | 'agency_public_images'
     | 'agency_gallery_images'
     | 'agency_gallery_videos'
     | 'agency_documents'

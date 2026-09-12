@@ -60,6 +60,28 @@ export type MyAgencyDetails = {
     youtube: string
     h1: string
     meta_description: string
+    extra_info: AgencyExtraInfoItem[]
+    working_hours_days: AgencyWorkingHoursDay[]
+}
+
+export type AgencyExtraInfoItem = {
+    id?: number
+    key: string | null
+    label: string
+    value: string | null
+    type: string
+    is_active: boolean
+    order_number: number
+}
+
+export type AgencyWorkingHoursDay = {
+    day_of_week: number
+    is_closed: boolean
+    slots: Array<{
+        start: string
+        end: string
+        is_active?: boolean
+    }>
 }
 
 export type MyAgencyService = {

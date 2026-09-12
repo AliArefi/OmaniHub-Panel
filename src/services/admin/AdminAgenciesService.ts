@@ -33,6 +33,17 @@ export function apiUpdateAdminAgency(slug: string, formData: FormData) {
     })
 }
 
+export function apiUpdateAdminAgencyAdditionalInfo(
+    slug: string,
+    data: Record<string, unknown>,
+) {
+    return ApiService.fetchDataWithAxios<{ data: AdminAgency }>({
+        url: `/admin/agencies/${encodeURIComponent(slug)}`,
+        method: 'post',
+        data,
+    })
+}
+
 export function apiDeleteAdminAgency(slug: string) {
     return ApiService.fetchDataWithAxios<{ success: boolean }>({
         url: `/admin/agencies/${encodeURIComponent(slug)}`,

@@ -25,7 +25,7 @@ import {
     apiUpdateInfoMyAgency,
     apiUploadMyAgencyMedia,
 } from '@/services/CenterService'
-import { Cities } from '@/@types/center'
+import { AgencyExtraInfoItem, Cities } from '@/@types/center'
 import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
 import { prepareValidatedFile } from '../utils/fileUpload'
 import { AdditionalInfo, AdditionalInfoEditor, DEFAULT_ADDITIONAL_INFO, DEFAULT_SCHEDULE, OpeningHoursEditor, WeeklySchedule } from './components/WorkingHoursEditor'
@@ -33,16 +33,16 @@ import { AdditionalInfo, AdditionalInfoEditor, DEFAULT_ADDITIONAL_INFO, DEFAULT_
 const validationSchema = z.object({
     logo: z.union([z.instanceof(File), z.null()]).optional(),
     banner: z.union([z.instanceof(File), z.null()]).optional(),
-    latitude: z.string().optional(),
-    longitude: z.string().optional(),
+    latitude: z.string().refine((value) => value === '' || (Number(value) >= -90 && Number(value) <= 90), 'خط العرض غير صالح').optional(),
+    longitude: z.string().refine((value) => value === '' || (Number(value) >= -180 && Number(value) <= 180), 'خط الطول غير صالح').optional(),
     city_id: z.number().nullable().optional(),
     phone: z.string().optional(),
-    website: z.string().optional(),
-    address: z.string().optional(),
-    instagram: z.string().optional(),
-    youtube: z.string().optional(),
-    linkedin: z.string().optional(),
-    facebook: z.string().optional(),
+    website: z.union([z.literal(''), z.string().url('رابط الموقع غير صالح')]).optional(),
+    address: z.string().max(500, 'العنوان طويل جداً').optional(),
+    instagram: z.union([z.literal(''), z.string().url('رابط Instagram غير صالح')]).optional(),
+    youtube: z.union([z.literal(''), z.string().url('رابط YouTube غير صالح')]).optional(),
+    linkedin: z.union([z.literal(''), z.string().url('رابط LinkedIn غير صالح')]).optional(),
+    facebook: z.union([z.literal(''), z.string().url('رابط Facebook غير صالح')]).optional(),
     h1: z.string().max(191).optional(),
     meta_description: z.string().max(400).optional(),
 })
@@ -50,6 +50,15 @@ const validationSchema = z.object({
 type FormValues = z.infer<typeof validationSchema>
 
 const DEFAULT_COUNTRY_CODE = '+968'
+const DAY_KEYS = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const
+const ADDITIONAL_INFO_LABELS: Record<keyof AdditionalInfo, string> = {
+    instant_confirmation: 'تأكيد فوري',
+    kid_friendly: 'مناسب للأطفال',
+    parking_available: 'موقف سيارات متاح',
+    near_public_transport: 'قريب من المواصلات العامة',
+    environmentally_friendly: 'صديق للبيئة',
+    woman_owned: 'مملوك لامرأة',
+}
 
 const parsePhoneValue = (
     phone: string | null | undefined,
@@ -115,6 +124,7 @@ export const ViewCenterTabExtraInformations = () => {
 
     const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule>(DEFAULT_SCHEDULE)
     const [additionalInfo, setAdditionalInfo] = useState<AdditionalInfo>(DEFAULT_ADDITIONAL_INFO)
+    const [existingExtraInfo, setExistingExtraInfo] = useState<AgencyExtraInfoItem[]>([])
 
 
     const revokeIfBlobUrl = (url: string | null) => {
@@ -128,7 +138,9 @@ export const ViewCenterTabExtraInformations = () => {
     }
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
-        const response = (err as any)?.response
+        const response = (err as {
+            response?: { data?: { errors?: Record<string, unknown>; message?: unknown } }
+        })?.response
         const data = response?.data
         const errors = data?.errors
 
@@ -167,6 +179,7 @@ export const ViewCenterTabExtraInformations = () => {
         handleSubmit,
         control,
         setValue,
+        reset,
         watch,
         formState: { errors, isSubmitting },
     } = form
@@ -194,19 +207,23 @@ export const ViewCenterTabExtraInformations = () => {
 
                 if (hasDraft) {
                     const draftValues = extraInformationDraft?.values ?? {}
-                    Object.entries(draftValues).forEach(([key, value]) => {
-                        setValue(key as any, value as any, {
-                            shouldDirty: false,
-                            shouldTouch: false,
-                            shouldValidate: false,
-                        })
-                    })
+                    reset({ ...form.getValues(), ...draftValues })
 
                     setLogoPreview(extraInformationDraft.logoPreview ?? null)
                     setBannerPreview(
                         extraInformationDraft.bannerPreview ?? null,
                     )
                     setPhoneValue(parsePhoneValue(draftValues.phone as string))
+                    if (extraInformationDraft.weeklySchedule) {
+                        setWeeklySchedule(
+                            extraInformationDraft.weeklySchedule as WeeklySchedule,
+                        )
+                    }
+                    if (extraInformationDraft.additionalInfo) {
+                        setAdditionalInfo(
+                            extraInformationDraft.additionalInfo as AdditionalInfo,
+                        )
+                    }
                 }
 
                 if (!hasDraft) {
@@ -234,9 +251,52 @@ export const ViewCenterTabExtraInformations = () => {
                         htmlToPlainText(agency.meta_description || ''),
                     )
 
+                    const schedule = { ...DEFAULT_SCHEDULE }
+                    for (const day of agency.working_hours_days ?? []) {
+                        const key = DAY_KEYS[day.day_of_week]
+                        if (!key) continue
+                        const firstSlot = day.slots?.[0]
+                        schedule[key] = {
+                            closed: day.is_closed || !firstSlot,
+                            open: firstSlot?.start ?? DEFAULT_SCHEDULE[key].open,
+                            close: firstSlot?.end ?? DEFAULT_SCHEDULE[key].close,
+                        }
+                    }
+                    setWeeklySchedule(schedule)
+
+                    const loadedExtraInfo = agency.extra_info ?? []
+                    setExistingExtraInfo(loadedExtraInfo)
+                    setAdditionalInfo((current) => {
+                        const next = { ...current }
+                        for (const item of loadedExtraInfo) {
+                            if (item.key && item.key in next) {
+                                next[item.key as keyof AdditionalInfo] =
+                                    item.is_active &&
+                                    ['1', 'true', 'on', 'yes'].includes(
+                                        String(item.value ?? '').toLowerCase(),
+                                    )
+                            }
+                        }
+                        return next
+                    })
+
                     updateExtraInformationDraft({
                         logoPreview: agency.logo || null,
                         bannerPreview: agency.banner || null,
+                        weeklySchedule: schedule,
+                        additionalInfo: loadedExtraInfo.reduce(
+                            (next, item) => {
+                                if (item.key && item.key in next) {
+                                    next[item.key as keyof AdditionalInfo] =
+                                        item.is_active &&
+                                        ['1', 'true', 'on', 'yes'].includes(
+                                            String(item.value ?? '').toLowerCase(),
+                                        )
+                                }
+                                return next
+                            },
+                            { ...DEFAULT_ADDITIONAL_INFO },
+                        ),
                         values: {
                             city_id: agency.city?.id,
                             latitude: agency.latitude || '',
@@ -278,12 +338,19 @@ export const ViewCenterTabExtraInformations = () => {
     useEffect(() => {
         const subscription = watch((values) => {
             updateExtraInformationDraft({
-                values: values as any,
+                values,
             })
         })
 
         return () => subscription.unsubscribe()
     }, [updateExtraInformationDraft, watch])
+
+    useEffect(() => {
+        updateExtraInformationDraft({
+            weeklySchedule,
+            additionalInfo,
+        })
+    }, [additionalInfo, updateExtraInformationDraft, weeklySchedule])
 
     const lat = watch('latitude')
     const lng = watch('longitude')
@@ -301,13 +368,42 @@ export const ViewCenterTabExtraInformations = () => {
             Object.entries(values).forEach(([key, value]) => {
                 if (value instanceof File) {
                     formData.append(key, value)
-                } else if (
-                    value !== null &&
-                    value !== undefined &&
-                    value !== ''
-                ) {
+                } else if (value !== null && value !== undefined) {
                     formData.append(key, String(value))
                 }
+            })
+
+            DAY_KEYS.forEach((key, index) => {
+                const day = weeklySchedule[key]
+                formData.append(`working_hours_days[${index}][day_of_week]`, String(index))
+                formData.append(`working_hours_days[${index}][is_closed]`, day.closed ? '1' : '0')
+                if (!day.closed) {
+                    formData.append(`working_hours_days[${index}][slots][0][start]`, day.open)
+                    formData.append(`working_hours_days[${index}][slots][0][end]`, day.close)
+                    formData.append(`working_hours_days[${index}][slots][0][is_active]`, '1')
+                }
+            })
+
+            const knownKeys = new Set(Object.keys(additionalInfo))
+            const extraInfo = [
+                ...existingExtraInfo.filter((item) => !item.key || !knownKeys.has(item.key)),
+                ...Object.entries(additionalInfo).map(([key, enabled], index) => ({
+                    key,
+                    label: ADDITIONAL_INFO_LABELS[key as keyof AdditionalInfo],
+                    value: '1',
+                    type: 'boolean',
+                    is_active: enabled,
+                    order_number: index,
+                })),
+            ]
+
+            extraInfo.forEach((item, index) => {
+                if (item.key) formData.append(`extra_info[${index}][key]`, item.key)
+                formData.append(`extra_info[${index}][label]`, item.label)
+                formData.append(`extra_info[${index}][value]`, item.value ?? '')
+                formData.append(`extra_info[${index}][type]`, item.type || 'text')
+                formData.append(`extra_info[${index}][is_active]`, item.is_active ? '1' : '0')
+                formData.append(`extra_info[${index}][order_number]`, String(item.order_number ?? index))
             })
 
             const resp = await apiUpdateInfoMyAgency(slug, formData)
@@ -335,7 +431,7 @@ export const ViewCenterTabExtraInformations = () => {
 
             updateExtraInformationDraft({
                 values: {
-                    ...(values as any),
+                    ...values,
                 },
             })
 
@@ -364,7 +460,7 @@ export const ViewCenterTabExtraInformations = () => {
 
             setExtraInformationDraft({
                 values: {
-                    ...(values as any),
+                    ...values,
                     logo: null,
                     banner: null,
                 },
@@ -377,10 +473,12 @@ export const ViewCenterTabExtraInformations = () => {
                     {'تم حفظ التغييرات'}
                 </Notification>,
             )
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.push(
                 <Notification type="danger">
-                    {getApiErrorMessage(err) || err.message || 'خطأ في الحفظ'}
+                    {getApiErrorMessage(err) ||
+                        (err instanceof Error ? err.message : undefined) ||
+                        'خطأ في الحفظ'}
                 </Notification>,
             )
         }

@@ -94,6 +94,8 @@ export interface ExtraInformationDraft {
     values: Partial<ExtraInformationDraftValues>
     logoPreview: string | null
     bannerPreview: string | null
+    weeklySchedule?: Record<string, unknown>
+    additionalInfo?: Record<string, boolean>
 }
 
 interface CreateStoreContextType {

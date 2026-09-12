@@ -24,6 +24,7 @@ import AgencySchedulesTab from './tabs/AgencySchedulesTab'
 import AgencyBookingsTab from './tabs/AgencyBookingsTab'
 import AgencyReviewsTab from './tabs/AgencyReviewsTab'
 import AgencyAnalyticsTab from './tabs/AgencyAnalyticsTab'
+import AgencyAdditionalInformationTab from './tabs/AgencyAdditionalInformationTab'
 import {
     apiGetAdminAgency,
     apiGetAdminAgencyServiceOptions,
@@ -83,7 +84,7 @@ const AgencyForm = () => {
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing, isLoading: isExistingLoading } = useSWR(
+    const { data: existing, isLoading: isExistingLoading, mutate: mutateAgency } = useSWR(
         isEditing ? ['admin-agency', slug] : null,
         () => apiGetAdminAgency(slug as string),
     )
@@ -362,6 +363,9 @@ const AgencyForm = () => {
                         Service Categories
                     </Tabs.TabNav>
                     <Tabs.TabNav value="media">Media</Tabs.TabNav>
+                    <Tabs.TabNav value="additional-information">
+                        Additional Information
+                    </Tabs.TabNav>
                     <Tabs.TabNav value="services">Services</Tabs.TabNav>
                     <Tabs.TabNav value="members">Members</Tabs.TabNav>
                     <Tabs.TabNav value="schedules">
@@ -380,6 +384,14 @@ const AgencyForm = () => {
                 </Tabs.TabContent>
                 <Tabs.TabContent value="media">
                     <AgencyMediaTab agencySlug={agencySlug} />
+                </Tabs.TabContent>
+                <Tabs.TabContent value="additional-information">
+                    <AdaptiveCard>
+                        <AgencyAdditionalInformationTab
+                            agency={existing.data}
+                            onSaved={() => mutateAgency()}
+                        />
+                    </AdaptiveCard>
                 </Tabs.TabContent>
                 <Tabs.TabContent value="services">
                     <AgencyServicesTab agencySlug={agencySlug} />
