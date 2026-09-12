@@ -47,3 +47,11 @@ export function apiDeleteAdminService(slug: string) {
 export function apiBulkAdminServices(action: AdminBulkAction, ids: number[]) {
     return apiAdminBulkAction('/admin/services/bulk', action, ids)
 }
+
+export function apiApproveServiceRecommendation(id: number) {
+    return ApiService.fetchDataWithAxios<{ message: string }>({ url: `/admin/service-recommendations/${id}/approve`, method: 'post' })
+}
+
+export function apiRejectServiceRecommendation(id: number, reviewNote: string) {
+    return ApiService.fetchDataWithAxios<{ message: string }>({ url: `/admin/service-recommendations/${id}/reject`, method: 'post', data: { review_note: reviewNote } })
+}

@@ -118,6 +118,14 @@ export async function apiCreateAgencyService(data: CreateAgencyServiceRequest) {
     })
 }
 
+export async function apiRecommendAgencyService(data: Record<string, unknown>) {
+    return ApiService.fetchDataWithAxios<{ message: string }>({
+        url: '/my-service-recommendations',
+        method: 'post',
+        data,
+    })
+}
+
 export async function apiSyncDemoAgencyServices(
     data: SyncDemoAgencyServicesRequest,
 ) {

@@ -34,6 +34,7 @@ export type AdminListPageProps<T extends { id: number }> = {
     statusFilters?: string[]
     trashEnabled?: boolean
     initialPageSize?: number
+    alternateView?: { label: string; endpoint: string; columns: AdminListPageProps<T>['columns'] }
 }
 
 /**
@@ -62,6 +63,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         statusFilters = [],
         trashEnabled = false,
         initialPageSize = 20,
+        alternateView,
     } = props
 
     const navigate = useNavigate()
@@ -77,16 +79,17 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
     const [deleting, setDeleting] = useState(false)
     const [status, setStatus] = useState('')
     const [isTrash, setIsTrash] = useState(false)
+    const [isAlternate, setIsAlternate] = useState(false)
     const [bulkAction, setBulkAction] = useState<'delete' | 'force-delete' | null>(null)
 
     const activeFilters: AdminListFilters = {
         ...filterData,
-        status: isTrash ? undefined : status || undefined,
+        status: isTrash || isAlternate ? undefined : status || undefined,
         trashed: isTrash || undefined,
     }
 
     const { list, total, counts, isLoading, mutate } = useAdminList<T>(
-        endpoint,
+        isAlternate && alternateView ? alternateView.endpoint : endpoint,
         tableData,
         activeFilters,
     )
@@ -116,8 +119,9 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         setTableData((prev) => ({ ...cloneDeep(prev), query: value, pageIndex: 1 }))
     }
 
-    const changeView = (trash: boolean) => {
+    const changeView = (trash: boolean, alternate = false) => {
         setIsTrash(trash)
+        setIsAlternate(alternate)
         setStatus('')
         setSelected([])
         setTableData((prev) => ({ ...cloneDeep(prev), pageIndex: 1 }))
@@ -222,15 +226,21 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                             )}
                         </div>
                     </div>
-                    {trashEnabled && (
+                    {(trashEnabled || alternateView) && (
                         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
                             <button
-                                className={`border-b-2 px-3 py-2 text-sm font-semibold ${!isTrash ? 'border-primary text-primary' : 'border-transparent text-gray-500'}`}
+                                className={`border-b-2 px-3 py-2 text-sm font-semibold ${!isTrash && !isAlternate ? 'border-primary text-primary' : 'border-transparent text-gray-500'}`}
                                 type="button"
                                 onClick={() => changeView(false)}
                             >
                                 Active ({counts.all ?? 0})
                             </button>
+                            {alternateView && (
+                                <button className={`border-b-2 px-3 py-2 text-sm font-semibold ${isAlternate ? 'border-amber-500 text-amber-600' : 'border-transparent text-gray-500'}`} type="button" onClick={() => changeView(false, true)}>
+                                    {alternateView.label}{isAlternate ? ` (${total})` : ''}
+                                </button>
+                            )}
+                            {trashEnabled && (
                             <button
                                 className={`border-b-2 px-3 py-2 text-sm font-semibold ${isTrash ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500'}`}
                                 type="button"
@@ -238,9 +248,10 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                             >
                                 Trash ({counts.trash ?? 0})
                             </button>
+                            )}
                         </div>
                     )}
-                    {!isTrash && statusFilters.length > 0 && (
+                    {!isTrash && !isAlternate && statusFilters.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                             {[{ label: 'All', value: '' }, ...statusFilters.map((value) => ({ label: value.charAt(0).toUpperCase() + value.slice(1), value }))].map((option) => (
                                 <button
@@ -263,7 +274,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                         {extraFilters}
                     </div>
                     <DataTable
-                        columns={columns({ mutate, isTrash })}
+                        columns={(isAlternate && alternateView ? alternateView.columns : columns)({ mutate, isTrash })}
                         data={visibleList}
                         loading={isLoading}
                         noData={!isLoading && visibleList.length === 0}
