@@ -76,6 +76,9 @@ export default function Chat() {
     const [sending, setSending] = useState(false)
 
     const pollTimerRef = useRef<number | null>(null)
+    const messagesEndRef = useRef<HTMLDivElement | null>(null)
+    const activeThreadIdRef = useRef<number | null>(null)
+    const messagesRef = useRef<ChatMessage[]>([])
 
     const fetchThreads = async (nextScope: ChatThreadScope) => {
         setThreadsLoading(true)
@@ -109,6 +112,7 @@ export default function Chat() {
         setMessagesError(null)
         try {
             const resp = await apiGetThreadMessages({ threadId, limit: 30 })
+            if (activeThreadIdRef.current !== threadId) return
             const list = resp?.data ?? []
             setMessages(list)
             const lastId = list.length ? list[list.length - 1].id : null
@@ -121,15 +125,21 @@ export default function Chat() {
                 )
             }
         } catch {
+            if (activeThreadIdRef.current !== threadId) return
             setMessagesError('تعذر تحميل الرسائل')
             setMessages([])
         } finally {
-            setMessagesLoading(false)
+            if (activeThreadIdRef.current === threadId) {
+                setMessagesLoading(false)
+            }
         }
     }
 
     const pollNewMessages = async (threadId: number) => {
-        const lastId = messages.length ? messages[messages.length - 1].id : null
+        const currentMessages = messagesRef.current
+        const lastId = currentMessages.length
+            ? currentMessages[currentMessages.length - 1].id
+            : null
         if (!lastId) return
 
         try {
@@ -138,6 +148,7 @@ export default function Chat() {
                 afterId: lastId,
                 limit: 50,
             })
+            if (activeThreadIdRef.current !== threadId) return
             const newItems = resp?.data ?? []
             if (!newItems.length) return
 
@@ -203,10 +214,14 @@ export default function Chat() {
         }
 
         if (!selectedThreadId) {
+            activeThreadIdRef.current = null
+            messagesRef.current = []
             setMessages([])
             return
         }
 
+        activeThreadIdRef.current = selectedThreadId
+        messagesRef.current = []
         setMessages([])
         void loadInitialMessages(selectedThreadId)
 
@@ -222,7 +237,6 @@ export default function Chat() {
                 pollTimerRef.current = null
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedThreadId])
 
     const onSend = async () => {
@@ -232,12 +246,15 @@ export default function Chat() {
         if (!body) return
 
         setSending(true)
+        setMessagesError(null)
         try {
             const resp = await apiSendThreadMessage(threadId, body)
             const msg = resp?.data
             if (msg) {
-                setMessages((prev) => [...prev, msg])
-                setComposer('')
+                if (activeThreadIdRef.current === threadId) {
+                    setMessages((prev) => [...prev, msg])
+                    setComposer('')
+                }
                 setThreads((prev) =>
                     prev.map((t) =>
                         t.id === threadId
@@ -257,10 +274,17 @@ export default function Chat() {
                     ),
                 )
             }
+        } catch {
+            setMessagesError('تعذر إرسال الرسالة. حاول مرة أخرى.')
         } finally {
             setSending(false)
         }
     }
+
+    useEffect(() => {
+        messagesRef.current = messages
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [messages])
 
     return (
         <Card className="h-[calc(100vh-140px)]">
@@ -318,7 +342,7 @@ export default function Chat() {
                                                     <div className="flex items-center justify-between gap-3">
                                                         <div className="flex items-center gap-3 min-w-0">
                                                             <Avatar
-                                                                src="/img/avatars/thumb-1.jpg"
+                                                                src={t.agency?.logo || undefined}
                                                                 alt={threadTitle}
                                                                 className="w-10 h-10"
                                                             />
@@ -361,17 +385,27 @@ export default function Chat() {
                             ) : (
                                 <>
                                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
-                                        <div className="min-w-0">
-                                            <div className="font-semibold truncate">
-                                                {getThreadTitle(selectedThread)}
-                                            </div>
-                                            <div className="text-xs text-gray-500 truncate">
-                                                {getThreadMeta(selectedThread)}
-                                            </div>
-                                            <div className="text-xs text-gray-400 truncate">
-                                                {getThreadCustomerMeta(
-                                                    selectedThread,
-                                                )}
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <Avatar
+                                                src={
+                                                    selectedThread.agency?.logo ||
+                                                    undefined
+                                                }
+                                                alt={getThreadTitle(selectedThread)}
+                                                className="h-11 w-11 shrink-0"
+                                            />
+                                            <div className="min-w-0">
+                                                <div className="font-semibold truncate">
+                                                    {getThreadTitle(selectedThread)}
+                                                </div>
+                                                <div className="text-xs text-gray-500 truncate">
+                                                    {getThreadMeta(selectedThread)}
+                                                </div>
+                                                <div className="text-xs text-gray-400 truncate">
+                                                    {getThreadCustomerMeta(
+                                                        selectedThread,
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="text-xs text-gray-500">
@@ -380,7 +414,7 @@ export default function Chat() {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-gray-900/30">
+                                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900/30">
                                         {messagesLoading ? (
                                             <div className="p-6 flex items-center justify-center gap-2">
                                                 <Spinner />
@@ -403,19 +437,29 @@ export default function Chat() {
                                                 return (
                                                     <div
                                                         key={m.id}
-                                                        className={`flex ${
+                                                        className={`flex items-end gap-2 ${
                                                             mine
-                                                                ? 'justify-end'
+                                                                ? 'flex-row-reverse justify-start'
                                                                 : 'justify-start'
                                                         }`}
                                                     >
+                                                        <Avatar
+                                                            src={m.sender?.avatar || undefined}
+                                                            alt={m.sender?.name || 'User'}
+                                                            className="h-9 w-9 shrink-0"
+                                                        />
                                                         <div
-                                                            className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                                                            className={`max-w-[75%] px-4 py-2.5 text-sm shadow-sm ${
                                                                 mine
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                                                                    ? 'rounded-2xl rounded-br-sm bg-primary text-white'
+                                                                    : 'rounded-2xl rounded-bl-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                                                             }`}
                                                         >
+                                                            {!mine && m.sender?.name ? (
+                                                                <div className="mb-1 text-xs font-semibold text-primary">
+                                                                    {m.sender.name}
+                                                                </div>
+                                                            ) : null}
                                                             <div className="whitespace-pre-wrap break-words">
                                                                 {m.body}
                                                             </div>
@@ -443,9 +487,10 @@ export default function Chat() {
                                                 )
                                             })
                                         )}
+                                        <div ref={messagesEndRef} />
                                     </div>
 
-                                    <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3">
+                                    <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3 bg-white dark:bg-gray-800">
                                         <Input
                                             value={composer}
                                             placeholder="اكتب رسالة..."
@@ -477,4 +522,3 @@ export default function Chat() {
         </Card>
     )
 }
-

@@ -20,11 +20,13 @@ export type ChatThread = {
         name: string | null
         mobile: string | null
         email?: string | null
+        avatar?: string | null
     }
     agency: {
         id: number
         slug: string
         title: string
+        logo: string | null
     } | null
     service: {
         id: number
@@ -46,7 +48,11 @@ export type ChatMessage = {
     id: number
     thread_id: number
     sender_user_id: number | null
+    sender: {
+        id: number
+        name: string
+        avatar: string | null
+    } | null
     body: string
     created_at: string | null
 }
-

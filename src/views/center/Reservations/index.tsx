@@ -15,7 +15,7 @@ import { HiOutlineChatAlt2, HiOutlineEye } from 'react-icons/hi'
 import type { Booking } from '@/@types/booking'
 import { getSingleAgencyBookings } from '@/services/BookingService'
 import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
 export default function Reservations() {
     const [bookings, setBookings] = useState<Booking[]>([])
@@ -25,6 +25,7 @@ export default function Reservations() {
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const { t } = useTranslation()
     const { agencySlug } = useParams()
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -205,11 +206,16 @@ export default function Reservations() {
                                                 عرض
                                             </Button>
                                             <Button
-                                                disabled
+                                                disabled={!booking.customer.user?.id}
                                                 size="xs"
                                                 variant="default"
                                                 icon={<HiOutlineChatAlt2 />}
                                                 className="cursor-pointer"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/chat?reservation_id=${booking.id}`,
+                                                    )
+                                                }
                                             >
                                                 محادثة
                                             </Button>
