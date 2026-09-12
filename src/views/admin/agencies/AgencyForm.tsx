@@ -25,11 +25,13 @@ import AgencyBookingsTab from './tabs/AgencyBookingsTab'
 import AgencyReviewsTab from './tabs/AgencyReviewsTab'
 import AgencyAnalyticsTab from './tabs/AgencyAnalyticsTab'
 import AgencyAdditionalInformationTab from './tabs/AgencyAdditionalInformationTab'
+import OwnerManagementTab from '@/components/admin/OwnerManagementTab'
 import {
     apiGetAdminAgency,
     apiGetAdminAgencyServiceOptions,
     apiCreateAdminAgency,
     apiUpdateAdminAgency,
+    apiUpdateAdminAgencyOwner,
 } from '@/services/admin/AdminAgenciesService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
 
@@ -366,6 +368,7 @@ const AgencyForm = () => {
                     <Tabs.TabNav value="additional-information">
                         Additional Information
                     </Tabs.TabNav>
+                    <Tabs.TabNav value="owner">Owner</Tabs.TabNav>
                     <Tabs.TabNav value="services">Services</Tabs.TabNav>
                     <Tabs.TabNav value="members">Members</Tabs.TabNav>
                     <Tabs.TabNav value="schedules">
@@ -390,6 +393,18 @@ const AgencyForm = () => {
                         <AgencyAdditionalInformationTab
                             agency={existing.data}
                             onSaved={() => mutateAgency()}
+                        />
+                    </AdaptiveCard>
+                </Tabs.TabContent>
+                <Tabs.TabContent value="owner">
+                    <AdaptiveCard>
+                        <OwnerManagementTab
+                            ownerRequired
+                            owner={existing.data.owner}
+                            onSave={async (ownerId) => {
+                                await apiUpdateAdminAgencyOwner(agencySlug, ownerId as number)
+                                await mutateAgency()
+                            }}
                         />
                     </AdaptiveCard>
                 </Tabs.TabContent>

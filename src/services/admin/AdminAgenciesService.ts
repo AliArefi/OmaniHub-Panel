@@ -44,6 +44,14 @@ export function apiUpdateAdminAgencyAdditionalInfo(
     })
 }
 
+export function apiUpdateAdminAgencyOwner(slug: string, userId: number) {
+    return ApiService.fetchDataWithAxios<{ data: AdminAgency }>({
+        url: `/admin/agencies/${encodeURIComponent(slug)}`,
+        method: 'post',
+        data: { user_id: userId },
+    })
+}
+
 export function apiDeleteAdminAgency(slug: string) {
     return ApiService.fetchDataWithAxios<{ success: boolean }>({
         url: `/admin/agencies/${encodeURIComponent(slug)}`,

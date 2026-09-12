@@ -20,10 +20,12 @@ import OrganizationMediaTab from './tabs/OrganizationMediaTab'
 import OrganizationHighlightsTab from './tabs/OrganizationHighlightsTab'
 import OrganizationRibbonsTab from './tabs/OrganizationRibbonsTab'
 import OrganizationReviewsTab from './tabs/OrganizationReviewsTab'
+import OwnerManagementTab from '@/components/admin/OwnerManagementTab'
 import {
     apiGetAdminOrganization,
     apiCreateAdminOrganization,
     apiUpdateAdminOrganization,
+    apiUpdateAdminOrganizationOwner,
 } from '@/services/admin/AdminOrganizationsService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
 
@@ -61,7 +63,7 @@ const OrganizationForm = () => {
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
 
-    const { data: existing, isLoading: isExistingLoading } = useSWR(
+    const { data: existing, isLoading: isExistingLoading, mutate: mutateOrganization } = useSWR(
         isEditing ? ['admin-organization', slug] : null,
         () => apiGetAdminOrganization(slug as string),
     )
@@ -215,6 +217,7 @@ const OrganizationForm = () => {
             <Tabs defaultValue="overview">
                 <Tabs.TabList>
                     <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
+                    <Tabs.TabNav value="owner">Owner</Tabs.TabNav>
                     <Tabs.TabNav value="agencies">Agencies</Tabs.TabNav>
                     <Tabs.TabNav value="members">Members</Tabs.TabNav>
                     <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
@@ -224,6 +227,17 @@ const OrganizationForm = () => {
                     <Tabs.TabNav value="reviews">Reviews</Tabs.TabNav>
                 </Tabs.TabList>
                 <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
+                <Tabs.TabContent value="owner">
+                    <AdaptiveCard>
+                        <OwnerManagementTab
+                            owner={existing.data.owner}
+                            onSave={async (ownerId) => {
+                                await apiUpdateAdminOrganizationOwner(slug as string, ownerId)
+                                await mutateOrganization()
+                            }}
+                        />
+                    </AdaptiveCard>
+                </Tabs.TabContent>
                 <Tabs.TabContent value="agencies">
                     <OrganizationAgenciesTab organizationSlug={organizationSlug} />
                 </Tabs.TabContent>

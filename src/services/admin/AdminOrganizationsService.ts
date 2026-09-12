@@ -35,6 +35,14 @@ export function apiDeleteAdminOrganization(slug: string) {
     })
 }
 
+export function apiUpdateAdminOrganizationOwner(slug: string, userId: number | null) {
+    return ApiService.fetchDataWithAxios<{ data: AdminOrganization }>({
+        url: `/admin/organizations/${encodeURIComponent(slug)}`,
+        method: 'post',
+        data: { user_id: userId },
+    })
+}
+
 export function apiBulkAdminOrganizations(action: AdminBulkAction, ids: number[]) {
     return apiAdminBulkAction('/admin/organizations/bulk', action, ids)
 }

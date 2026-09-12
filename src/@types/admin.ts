@@ -27,6 +27,15 @@ export type AdminService = {
 
 export type AdminServiceTreeOption = { id: number; label: string }
 
+export type AdminOwnerSummary = {
+    id: number
+    name: string
+    email: string
+    mobile: string | null
+    avatar: string | null
+    email_verified_at: string | null
+}
+
 export type AdminOrganization = {
     id: number
     title: string
@@ -47,7 +56,7 @@ export type AdminOrganization = {
     og_title: string | null
     og_description: string | null
     agencies_count?: number
-    owner?: { id: number; name: string; email: string }
+    owner?: AdminOwnerSummary | null
     city?: { id: number; name: string }
     translations: LocalizedTranslations
     created_at: string | null
@@ -63,6 +72,7 @@ export type AdminAgency = {
     logo: string | null
     banner: string | null
     user_id: number | null
+    owner?: AdminOwnerSummary | null
     organization_id: number | null
     service_id: number | null
     city_id: number | null
