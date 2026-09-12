@@ -9,6 +9,9 @@ import { apiGetMyAnalyticsOverview, type MyAnalyticsOverviewResponse } from '@/s
 import { COLORS } from '@/constants/chart.constant'
 import { useTranslation } from '@/store/useTranslation'
 import { useSessionUser } from '@/store/authStore'
+import { HiOutlineCalendar, HiOutlineCurrencyDollar, HiOutlineEye, HiOutlineUsers } from 'react-icons/hi'
+import StoreStatusBox from './components/StoreStatusBox'
+import { useAuth } from '@/auth'
 
 type Preset = '7d' | '30d' | '90d'
 
@@ -43,14 +46,14 @@ const AnalyticDashboard = () => {
 
     const { data, isLoading, isValidating, mutate } =
         useSWR<MyAnalyticsOverviewResponse>(
-        ['my-analytics-overview', currentUserId, params],
-        () => apiGetMyAnalyticsOverview(params),
-        {
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false,
-        },
-    )
+            ['my-analytics-overview', currentUserId, params],
+            () => apiGetMyAnalyticsOverview(params),
+            {
+                revalidateOnFocus: false,
+                revalidateIfStale: false,
+                revalidateOnReconnect: false,
+            },
+        )
 
     const isValidatingRef = useRef(isValidating)
     useEffect(() => {
@@ -101,15 +104,18 @@ const AnalyticDashboard = () => {
         ]
     }, [data, t])
 
+    const { user } = useAuth();
+    const firstName = user?.name ? user.name.split(' ')[0] : 'USER'
+
     return (
         <Loading loading={isLoading}>
             <div className="flex flex-col gap-4">
-                <Card>
-                    fff
+
+                <Card className='bg-transparent border-0'>
                     <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                         <div>
                             <h3 className="mb-1">
-                                {t('businessAnalyticsTitle')}
+                                {t('wellcome', firstName)}
                             </h3>
                             <div className="text-sm opacity-60">
                                 {t('businessAnalyticsSubtitle')}
@@ -140,31 +146,31 @@ const AnalyticDashboard = () => {
                             </div>
 
                             <div className="flex flex-col md:flex-row gap-3 md:items-end">
-                                <div className="min-w-[150px]">
-                                    <label className="text-sm opacity-70">
-                                        {t('preset')}
-                                    </label>
-                                    <Select
-                                        value={preset}
-                                        options={[
-                                            {
-                                                label: t('last7Days'),
-                                                value: '7d',
-                                            },
-                                            {
-                                                label: t('last30Days'),
-                                                value: '30d',
-                                            },
-                                            {
-                                                label: t('last90Days'),
-                                                value: '90d',
-                                            },
-                                        ]}
-                                        onChange={(v) =>
-                                            onApplyPreset(v as Preset)
-                                        }
-                                    />
-                                </div>
+                                {/* <div className="min-w-[150px]">
+                                            <label className="text-sm opacity-70">
+                                                {t('preset')}
+                                            </label>
+                                            <Select
+                                                value={preset}
+                                                options={[
+                                                    {
+                                                        label: t('last7Days'),
+                                                        value: '7d',
+                                                    },
+                                                    {
+                                                        label: t('last30Days'),
+                                                        value: '30d',
+                                                    },
+                                                    {
+                                                        label: t('last90Days'),
+                                                        value: '90d',
+                                                    },
+                                                ]}
+                                                onChange={(v) =>
+                                                    onApplyPreset(v as Preset)
+                                                }
+                                            />
+                                        </div> */}
 
                                 <div>
                                     <label className="text-sm opacity-70">
@@ -198,16 +204,16 @@ const AnalyticDashboard = () => {
                                     />
                                 </div>
 
-                                <div className="min-w-[220px]">
-                                    <label className="text-sm opacity-70">
-                                        {t('timezone')}
-                                    </label>
-                                    <Input
-                                        value={tz}
-                                        placeholder="UTC"
-                                        onChange={(e) => setTz(e.target.value)}
-                                    />
-                                </div>
+                                {/* <div className="min-w-[220px]">
+                                            <label className="text-sm opacity-70">
+                                                {t('timezone')}
+                                            </label>
+                                            <Input
+                                                value={tz}
+                                                placeholder="UTC"
+                                                onChange={(e) => setTz(e.target.value)}
+                                            />
+                                        </div> */}
                             </div>
                         </div>
                     </div>
@@ -217,53 +223,80 @@ const AnalyticDashboard = () => {
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                             <Card>
-                                <div className="text-sm opacity-60">
-                                    {t('pageviews')}
+                                <div className="flex items-center gap-4 p-1">
+                                    <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary">
+                                        <HiOutlineEye className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm opacity-60 truncate">{t('pageviews')}</div>
+                                        <div className="text-2xl font-semibold">{data.kpis.pageviews}</div>
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-semibold">{data.kpis.pageviews}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">
-                                    {t('uniqueVisitors')}
+                                <div className="flex items-center gap-4 p-1">
+                                    <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500">
+                                        <HiOutlineUsers className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm opacity-60 truncate">{t('uniqueVisitors')}</div>
+                                        <div className="text-2xl font-semibold">{data.kpis.unique_visitors}</div>
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-semibold">{data.kpis.unique_visitors}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">
-                                    {t('reservations')}
+                                <div className="flex items-center gap-4 p-1">
+                                    <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500">
+                                        <HiOutlineCalendar className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm opacity-60 truncate">{t('reservations')}</div>
+                                        <div className="text-2xl font-semibold">{data.kpis.reservations.total}</div>
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-semibold">{data.kpis.reservations.total}</div>
                             </Card>
                             <Card>
-                                <div className="text-sm opacity-60">
-                                    {t('ordersRevenue')}
-                                </div>
-                                <div className="text-2xl font-semibold">
-                                    {data.kpis.orders.total} ({data.kpis.orders.revenue})
+                                <div className="flex items-center gap-4 p-1">
+                                    <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-violet-500/10 text-violet-500">
+                                        <HiOutlineCurrencyDollar className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm opacity-60 truncate">{t('ordersRevenue')}</div>
+                                        <div className="text-2xl font-semibold">
+                                            {data.kpis.orders.total}{' '}
+                                            <span className="text-base font-normal opacity-60">({data.kpis.orders.revenue})</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </Card>
                         </div>
 
-                        <Card className="h-full">
-                            <div className="flex items-center justify-between">
-                                <h4>{t('dailyTrends')}</h4>
-                                <div className="text-sm opacity-60">
-                                    {t('from')} {data.range.from} {t('to')} {data.range.to} ({data.range.tz})
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <StoreStatusBox />
+                            <Card className="h-full">
+                                <div className="flex items-center justify-between">
+                                    <h4>{t('dailyTrends')}</h4>
+                                    <div className="text-sm opacity-60">
+                                        {t('from')} {data.range.from} {t('to')} {data.range.to} ({data.range.tz})
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mt-4">
-                                <Chart
-                                    type="line"
-                                    series={chartSeries}
-                                    xAxis={data.series.labels}
-                                    height="360px"
-                                    customOptions={{
-                                        legend: { show: true },
-                                        colors: [COLORS[0], COLORS[7], COLORS[8], COLORS[3]],
-                                    }}
-                                />
-                            </div>
-                        </Card>
+                                <div className="mt-4">
+                                    <Chart
+                                        type="line"
+                                        series={chartSeries}
+                                        xAxis={data.series.labels}
+                                        height="360px"
+                                        customOptions={{
+                                            legend: { show: true },
+                                            colors: [COLORS[0], COLORS[7], COLORS[8], COLORS[3]],
+                                        }}
+                                    />
+                                </div>
+                            </Card>
+                        </div>
+
+
+
 
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <Card>

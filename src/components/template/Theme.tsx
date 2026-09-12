@@ -10,7 +10,8 @@ import type { CommonProps } from '@/@types/common'
 const Theme = (props: CommonProps) => {
     useThemeSchema()
     const [isDarkMode] = useDarkMode()
-    const [direction] = useDirection()
+    const [direction] = useDirection();
+    console.log('direction =>', direction);
 
     const { locale } = useLocale()
 

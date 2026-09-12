@@ -72,8 +72,6 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
     const profileCompletion = 70;
     const navigate = useNavigate();
 
-
-    const onCompleteProfile = () => { };
     return (
         <div
             className="min-h-screen p-4 md:p-8"

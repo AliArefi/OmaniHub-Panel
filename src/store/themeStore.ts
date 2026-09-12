@@ -27,7 +27,9 @@ export const useThemeStore = create<ThemeState & ThemeAction>()(
                 set((state) => ({
                     layout: { ...state.layout, sideNavCollapse: payload },
                 })),
-            setDirection: (payload) => set(() => ({ direction: payload })),
+            setDirection: (payload) => set(() => ({ 
+                //direction: payload
+             })),
             setPanelExpand: (payload) => set(() => ({ panelExpand: payload })),
             setLayout: (payload) =>
                 set((state) => ({
@@ -39,7 +41,7 @@ export const useThemeStore = create<ThemeState & ThemeAction>()(
                 })),
         }),
         {
-            name: 'theme',
+            name: 'theme2',
         },
     ),
 )
