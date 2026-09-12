@@ -123,7 +123,7 @@ export const AgencyServicesStep = ({
     const [searchQuery, setSearchQuery] = useState('')
     const [recommendOpen, setRecommendOpen] = useState(false)
     const [recommendSaving, setRecommendSaving] = useState(false)
-    const [recommendation, setRecommendation] = useState({ parent_service_id: 0, name: '', title: '', h1: '', body: '', meta_description: '', sub_title: '', agency_description: '', estimate_time: '', duration_unit: 'minute' as DurationUnit, pricing_type: 'fixed' as PricingType, price: '' })
+    const [recommendation, setRecommendation] = useState({ name: '', body: '', estimate_time: '', duration_unit: 'minute' as DurationUnit, pricing_type: 'fixed' as PricingType, price: '' })
 
     const [duration, setDuration] = useState<string>('')
     const [durationUnit, setDurationUnit] = useState<DurationUnit>('minute')
@@ -377,7 +377,7 @@ export const AgencyServicesStep = ({
     }, [i18n.language, searchQuery, serviceCatalog])
 
     const submitRecommendation = async () => {
-        if (!newHojraData?.id || !recommendation.parent_service_id || !recommendation.name.trim() || !recommendation.title.trim() || !recommendation.body.trim() || !recommendation.sub_title.trim() || Number(recommendation.estimate_time) <= 0 || (recommendation.pricing_type === 'fixed' && recommendation.price.trim() === '')) {
+        if (!newHojraData?.id || !recommendation.name.trim() || !recommendation.body.trim() || Number(recommendation.estimate_time) <= 0 || (recommendation.pricing_type === 'fixed' && recommendation.price.trim() === '')) {
             toast.push(<Notification type="danger">يرجى تعبئة جميع الحقول المطلوبة.</Notification>)
             return
         }
@@ -385,7 +385,7 @@ export const AgencyServicesStep = ({
         try {
             await apiRecommendAgencyService({ ...recommendation, agency_id: newHojraData.id, estimate_time: Number(recommendation.estimate_time), price: recommendation.pricing_type === 'fixed' ? Number(recommendation.price) : null })
             setRecommendOpen(false)
-            setRecommendation({ parent_service_id: 0, name: '', title: '', h1: '', body: '', meta_description: '', sub_title: '', agency_description: '', estimate_time: '', duration_unit: 'minute', pricing_type: 'fixed', price: '' })
+            setRecommendation({ name: '', body: '', estimate_time: '', duration_unit: 'minute', pricing_type: 'fixed', price: '' })
             toast.push(<Notification type="success">تم إرسال الخدمة للمراجعة ولن تظهر قبل موافقة الإدارة.</Notification>)
         } catch (error: unknown) {
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -1250,19 +1250,13 @@ export const AgencyServicesStep = ({
                 <div className="space-y-4" dir="rtl">
                     <h3>اقتراح خدمة جديدة</h3>
                     <div className="grid gap-4 md:grid-cols-2">
-                        <FormItem label="الخدمة الأم *"><Select options={serviceCatalog.map((item) => ({ value: item.serviceId, label: item.label }))} value={serviceCatalog.map((item) => ({ value: item.serviceId, label: item.label })).find((item) => item.value === recommendation.parent_service_id) ?? null} onChange={(option) => setRecommendation((value) => ({ ...value, parent_service_id: Number(option?.value ?? 0) }))} /></FormItem>
-                        <FormItem label="الاسم *"><Input value={recommendation.name} onChange={(e) => setRecommendation((v) => ({ ...v, name: e.target.value }))} /></FormItem>
-                        <FormItem label="العنوان *"><Input value={recommendation.title} onChange={(e) => setRecommendation((v) => ({ ...v, title: e.target.value }))} /></FormItem>
-                        <FormItem label="عنوان الصفحة"><Input value={recommendation.h1} onChange={(e) => setRecommendation((v) => ({ ...v, h1: e.target.value }))} /></FormItem>
-                        <FormItem label="العنوان المختصر للخدمة *"><Input value={recommendation.sub_title} onChange={(e) => setRecommendation((v) => ({ ...v, sub_title: e.target.value }))} /></FormItem>
+                        <FormItem label="اسم الخدمة *"><Input value={recommendation.name} onChange={(e) => setRecommendation((v) => ({ ...v, name: e.target.value }))} /></FormItem>
                         <FormItem label="المدة *"><Input inputMode="numeric" value={recommendation.estimate_time} onChange={(e) => setRecommendation((v) => ({ ...v, estimate_time: extractDigits(e.target.value) }))} /></FormItem>
                         <FormItem label="وحدة المدة"><Select options={durationUnitOptionsLocalized} value={getDurationUnitOption(recommendation.duration_unit)} onChange={(option) => setRecommendation((v) => ({ ...v, duration_unit: (option?.value as DurationUnit) ?? 'minute' }))} /></FormItem>
                         <FormItem label="نوع السعر"><Select options={pricingOptionsLocalized.map((option) => ({ value: option.value, label: option.label }))} value={getPricingOption(recommendation.pricing_type)} onChange={(option) => setRecommendation((v) => ({ ...v, pricing_type: pricingOptionsLocalized.find((item) => item.value === option?.value)?.pricingType ?? 'fixed', price: '' }))} /></FormItem>
                         <FormItem label="السعر"><Input disabled={recommendation.pricing_type !== 'fixed'} inputMode="numeric" value={recommendation.price} onChange={(e) => setRecommendation((v) => ({ ...v, price: extractDigits(e.target.value) }))} /></FormItem>
-                        <FormItem label="وصف محركات البحث"><Input value={recommendation.meta_description} onChange={(e) => setRecommendation((v) => ({ ...v, meta_description: e.target.value }))} /></FormItem>
                     </div>
-                    <FormItem label="وصف الخدمة العام *"><Input textArea rows={4} value={recommendation.body} onChange={(e) => setRecommendation((v) => ({ ...v, body: e.target.value }))} /></FormItem>
-                    <FormItem label="وصف الخدمة في المركز"><Input textArea rows={3} value={recommendation.agency_description} onChange={(e) => setRecommendation((v) => ({ ...v, agency_description: e.target.value }))} /></FormItem>
+                    <FormItem label="وصف الخدمة *"><Input textArea rows={4} value={recommendation.body} onChange={(e) => setRecommendation((v) => ({ ...v, body: e.target.value }))} /></FormItem>
                     <div className="flex justify-end gap-2"><Button onClick={() => setRecommendOpen(false)}>إلغاء</Button><Button loading={recommendSaving} variant="solid" onClick={submitRecommendation}>إرسال للمراجعة</Button></div>
                 </div>
             </Dialog>
