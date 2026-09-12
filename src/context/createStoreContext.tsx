@@ -1,5 +1,6 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useState,
     type Dispatch,
@@ -231,7 +232,7 @@ export const CreateStoreProvider = ({
         )
     }
 
-    const updateExtraInformationDraft = (
+    const updateExtraInformationDraft = useCallback((
         draft: Partial<ExtraInformationDraft>,
     ) => {
         setExtraInformationDraft((prev) => ({
@@ -242,7 +243,7 @@ export const CreateStoreProvider = ({
                 ...(draft.values ?? {}),
             },
         }))
-    }
+    }, [])
 
     return (
         <CreateStoreContext.Provider
