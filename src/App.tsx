@@ -5,6 +5,7 @@ import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import appConfig from './configs/app.config'
 import AnalyticsRouteTracker from '@/components/analytics/AnalyticsRouteTracker'
+import InstallAppPrompt from '@/components/template/InstallAppPrompt'
 
 if (appConfig.enableMock) {
     import('./mock')
@@ -19,6 +20,7 @@ function App() {
                     <Layout>
                         <Views />
                     </Layout>
+                    <InstallAppPrompt />
                 </AuthProvider>
             </BrowserRouter>
         </Theme>
