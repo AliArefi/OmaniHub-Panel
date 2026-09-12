@@ -13,6 +13,7 @@ export type SingletonSettingsGroup =
     | 'otp'
     | 'notifications'
     | 'push-notifications'
+    | 'maps'
     | 'messaging-providers'
 
 export function apiGetPerLocaleSettings<T = Record<string, unknown>>(
