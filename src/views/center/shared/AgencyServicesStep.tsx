@@ -1,6 +1,7 @@
 import {
     Button,
     Card,
+    Dialog,
     FormItem,
     Input,
     Select,
@@ -11,6 +12,7 @@ import Notification from '@/components/ui/Notification'
 import { useCreateStore } from '@/context/createStoreContext'
 import {
     apiCreateAgencyService,
+    apiRecommendAgencyService,
     apiDeleteAgencyService,
     apiSyncDemoAgencyServices,
     getServices,
@@ -118,6 +120,10 @@ export const AgencyServicesStep = ({
     const [isSaving, setIsSaving] = useState(false)
     const [isDemoSaving, setIsDemoSaving] = useState(false)
     const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [recommendOpen, setRecommendOpen] = useState(false)
+    const [recommendSaving, setRecommendSaving] = useState(false)
+    const [recommendation, setRecommendation] = useState({ name: '', body: '', estimate_time: '', duration_unit: 'minute' as DurationUnit, pricing_type: 'fixed' as PricingType, price: '' })
 
     const [duration, setDuration] = useState<string>('')
     const [durationUnit, setDurationUnit] = useState<DurationUnit>('minute')
@@ -365,6 +371,27 @@ export const AgencyServicesStep = ({
             }),
         [demoDrafts, serviceCatalog],
     )
+    const filteredCatalog = useMemo(() => {
+        const query = searchQuery.trim().toLocaleLowerCase(i18n.language)
+        return query ? serviceCatalog.filter((item) => item.label.toLocaleLowerCase(i18n.language).includes(query)) : serviceCatalog
+    }, [i18n.language, searchQuery, serviceCatalog])
+
+    const submitRecommendation = async () => {
+        if (!newHojraData?.id || !recommendation.name.trim() || !recommendation.body.trim() || Number(recommendation.estimate_time) <= 0 || (recommendation.pricing_type === 'fixed' && recommendation.price.trim() === '')) {
+            toast.push(<Notification type="danger">يرجى تعبئة جميع الحقول المطلوبة.</Notification>)
+            return
+        }
+        setRecommendSaving(true)
+        try {
+            await apiRecommendAgencyService({ ...recommendation, agency_id: newHojraData.id, estimate_time: Number(recommendation.estimate_time), price: recommendation.pricing_type === 'fixed' ? Number(recommendation.price) : null })
+            setRecommendOpen(false)
+            setRecommendation({ name: '', body: '', estimate_time: '', duration_unit: 'minute', pricing_type: 'fixed', price: '' })
+            toast.push(<Notification type="success">تم إرسال الخدمة للمراجعة ولن تظهر قبل موافقة الإدارة.</Notification>)
+        } catch (error: unknown) {
+            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
+            toast.push(<Notification type="danger">{message || 'تعذر إرسال الاقتراح.'}</Notification>)
+        } finally { setRecommendSaving(false) }
+    }
 
     const hasUnassignedMembers = useMemo(() => {
         if (teamMembers.length === 0) return false
@@ -704,8 +731,12 @@ export const AgencyServicesStep = ({
                     </div>
                 ) : viewMode === 'picker' ? (
                     <div className="space-y-4">
+                        <div className="flex flex-col gap-3 md:flex-row">
+                            <Input value={searchQuery} placeholder="ابحث عن خدمة" onChange={(event) => setSearchQuery(event.target.value)} />
+                            <Button variant="solid" onClick={() => setRecommendOpen(true)}>اقتراح خدمة جديدة</Button>
+                        </div>
                         <div className="grid gap-3">
-                            {serviceCatalog.map((catalogItem) => {
+                            {filteredCatalog.map((catalogItem) => {
                                 const draft =
                                     demoDrafts[catalogItem.serviceId] ?? {
                                         enabled: false,
@@ -1215,6 +1246,20 @@ export const AgencyServicesStep = ({
                     </div>
                 )}
             </div>
+            <Dialog isOpen={recommendOpen} className="max-w-3xl" onClose={() => setRecommendOpen(false)}>
+                <div className="space-y-4" dir="rtl">
+                    <h3>اقتراح خدمة جديدة</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <FormItem label="اسم الخدمة *"><Input value={recommendation.name} onChange={(e) => setRecommendation((v) => ({ ...v, name: e.target.value }))} /></FormItem>
+                        <FormItem label="المدة *"><Input inputMode="numeric" value={recommendation.estimate_time} onChange={(e) => setRecommendation((v) => ({ ...v, estimate_time: extractDigits(e.target.value) }))} /></FormItem>
+                        <FormItem label="وحدة المدة"><Select options={durationUnitOptionsLocalized} value={getDurationUnitOption(recommendation.duration_unit)} onChange={(option) => setRecommendation((v) => ({ ...v, duration_unit: (option?.value as DurationUnit) ?? 'minute' }))} /></FormItem>
+                        <FormItem label="نوع السعر"><Select options={pricingOptionsLocalized.map((option) => ({ value: option.value, label: option.label }))} value={getPricingOption(recommendation.pricing_type)} onChange={(option) => setRecommendation((v) => ({ ...v, pricing_type: pricingOptionsLocalized.find((item) => item.value === option?.value)?.pricingType ?? 'fixed', price: '' }))} /></FormItem>
+                        <FormItem label="السعر"><Input disabled={recommendation.pricing_type !== 'fixed'} inputMode="numeric" value={recommendation.price} onChange={(e) => setRecommendation((v) => ({ ...v, price: extractDigits(e.target.value) }))} /></FormItem>
+                    </div>
+                    <FormItem label="وصف الخدمة *"><Input textArea rows={4} value={recommendation.body} onChange={(e) => setRecommendation((v) => ({ ...v, body: e.target.value }))} /></FormItem>
+                    <div className="flex justify-end gap-2"><Button onClick={() => setRecommendOpen(false)}>إلغاء</Button><Button loading={recommendSaving} variant="solid" onClick={submitRecommendation}>إرسال للمراجعة</Button></div>
+                </div>
+            </Dialog>
         </Card>
     )
 }

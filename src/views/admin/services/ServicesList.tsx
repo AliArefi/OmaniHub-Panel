@@ -6,11 +6,11 @@ import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { TbCornerDownRight, TbEdit, TbList, TbTrash, TbTree } from 'react-icons/tb'
+import { TbCheck, TbCornerDownRight, TbEdit, TbList, TbTrash, TbTree, TbX } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
-import { apiDeleteAdminService } from '@/services/admin/AdminServicesService'
+import { apiApproveServiceRecommendation, apiDeleteAdminService, apiRejectServiceRecommendation } from '@/services/admin/AdminServicesService'
 import type { AdminService } from '@/@types/admin'
 import type { ColumnDef } from '@/components/shared/DataTable'
 
@@ -24,6 +24,13 @@ type ServiceTreeRow = AdminService & {
     depth?: number
     parentLabel?: string | null
     childCount?: number
+    agency?: { title: string; slug: string }
+    parent_service?: { name: string | null; title: string | null }
+    user?: { name: string; email: string }
+    estimate_time?: number
+    duration_unit?: string
+    pricing_type?: string
+    price?: number | null
 }
 
 const serviceLabel = (service: AdminService) =>
@@ -102,6 +109,22 @@ const ServicesList = () => {
     } | null>(null)
     const [deleting, setDeleting] = useState(false)
     const [treeView, setTreeView] = useState(false)
+    const [reviewingId, setReviewingId] = useState<number | null>(null)
+
+    const reviewRecommendation = async (row: ServiceTreeRow, approve: boolean, mutate: () => void) => {
+        const note = approve ? '' : window.prompt('Reason for rejection:')?.trim()
+        if (!approve && !note) return
+        setReviewingId(row.id)
+        try {
+            if (approve) await apiApproveServiceRecommendation(row.id)
+            else await apiRejectServiceRecommendation(row.id, note as string)
+            await mutate()
+            toast.push(<Notification type="success" title={approve ? 'Approved' : 'Rejected'} />)
+        } catch (error: unknown) {
+            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
+            toast.push(<Notification type="danger" title="Review failed">{message}</Notification>)
+        } finally { setReviewingId(null) }
+    }
 
     const handleDelete = async () => {
         if (!pendingDelete) return
@@ -224,6 +247,13 @@ const ServicesList = () => {
         },
         ...defaultColumns({ mutate, isTrash }).slice(1),
     ]
+    const recommendationColumns = ({ mutate }: { mutate: () => void; isTrash: boolean }): ColumnDef<ServiceTreeRow>[] => [
+        { header: 'Service', accessorKey: 'title', cell: ({ row }) => <div><div className="font-semibold">{row.original.title}</div><div className="text-xs text-gray-500">{row.original.name}</div></div> },
+        { header: 'Parent', id: 'parent', cell: ({ row }) => row.original.parent_service?.name ?? row.original.parent_service?.title ?? '-' },
+        { header: 'Agency', id: 'agency', cell: ({ row }) => <div><div>{row.original.agency?.title}</div><div className="text-xs text-gray-500">{row.original.user?.email}</div></div> },
+        { header: 'Offering', id: 'offering', cell: ({ row }) => `${row.original.estimate_time} ${row.original.duration_unit} · ${row.original.pricing_type}${row.original.price != null ? ` · ${row.original.price}` : ''}` },
+        { header: '', id: 'actions', cell: ({ row }) => <div className="flex gap-2"><Button icon={<TbCheck />} loading={reviewingId === row.original.id} size="sm" variant="solid" onClick={() => reviewRecommendation(row.original, true, mutate)}>Approve</Button><Button icon={<TbX />} size="sm" onClick={() => reviewRecommendation(row.original, false, mutate)}>Disapprove</Button></div> },
+    ]
 
     return (
         <>
@@ -249,6 +279,7 @@ const ServicesList = () => {
                 viewPermission="services.view"
                 searchPlaceholder="Search services…"
                 statusFilters={['published', 'draft', 'pending']}
+                alternateView={{ label: 'Pending recommendations', endpoint: '/admin/service-recommendations', columns: recommendationColumns }}
             />
             <ConfirmDialog
                 isOpen={Boolean(pendingDelete)}
