@@ -1,3 +1,5 @@
-import AnalyticDashboard from './AnalyticDashboard'
+// import AnalyticDashboard from './AnalyticDashboard'
+// export default AnalyticDashboard
 
-export default AnalyticDashboard
+import WrapperDashboard from './WrapperDashboard';
+export default WrapperDashboard;

@@ -151,6 +151,82 @@
         EN: 'About us is required',
         AR: 'معلومات عنّا إلزامية',
     },
+    loadingDashboard: {
+        EN: 'Loading Dashboard',
+        AR: 'تحميل لوحة التحكم'
+    },
+    wellcome: (firstName: string) => {
+        return {
+            EN: `Welcome, ${firstName} 👋`,
+            AR: `أهلاً وسهلاً، ${firstName} 👋`
+        }
+    },
+    textHomeSubtitle: {
+        EN: 'Manage and grow your business from your dashboard',
+        AR: 'قم بإدارة وتنمية أعمالك من لوحة التحكم الخاصة بك'
+    },
+    completeInformation: {
+        EN: 'Completing Information',
+        AR: 'معلومات كاملة'
+    },
+    completeProfile: {
+        EN: 'Complete Profile',
+        AR: 'أكمل الملف الشخصي'
+    },
+    textCallToActionTitle: {
+        EN: 'Start your business at OmaniHub',
+        AR: 'ابدأ مشروعك التجاري في عماني هاب'
+    },
+    textCallToActionSubTitle: {
+        EN: 'Thousands of customers will discover your services and products by building an exhibition stand',
+        AR: 'عرّف آلاف العملاء بخدماتك ومنتجاتك من خلال بناء جناح عرض'
+    },
+    textCallToActionAction: {
+        EN: 'Building new Center',
+        AR: 'بناء حجرة جديدة'
+    },
+    myCenters: {
+        EN: 'My Centers',
+        AR: 'جميع حجری'
+    },
+    viewAll: {
+        EN: 'View all',
+        AR: 'عرض الكل',
+    },
+    noCenters: {
+        EN: 'You have not built a Center yet',
+        AR: 'لم تقم ببناء مركز بعد'
+    },
+    noCentersDesc: {
+        EN: 'Build your first Center and launch your online presence',
+        AR: 'أنشئ غرفتك الأولى وابدأ تواجدك على الإنترنت'
+    },
+    setting: {
+        EN: 'Settings',
+        AR: 'إعدادات'
+    },
+    settingDescription: {
+        EN: 'Account Settings and Security',
+        AR: 'إعدادات الحساب والأمان'
+    },
+    favorite: {
+        EN: 'Favorite',
+        AR: 'مفضل'
+    },
+    favoriteDescription: {
+        EN: 'Your favorite businesses and shops',
+        AR: 'أماكنك التجارية وغرفك المفضلة'
+    },
+    myProfiles: {
+        EN: 'My Profiles',
+        AR: 'ملفاتي الشخصية'
+    },
+    myProfilesDescription: {
+        EN: 'View and edit profile',
+        AR: 'عرض وتعديل معلومات المستخدم'
+    }
+
+
 } as const
 
 export type Language = keyof typeof TEXT_CONSTANT.loading
