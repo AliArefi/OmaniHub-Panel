@@ -10,7 +10,6 @@ const HorizontalNav = ({
     translationSetup?: boolean
 }) => {
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
-
     const userAuthority = useSessionUser((state) => state.user.authority)
     const navigationConfig = useFilteredNavigationConfig()
 

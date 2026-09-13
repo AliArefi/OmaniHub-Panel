@@ -11,7 +11,6 @@ const Theme = (props: CommonProps) => {
     useThemeSchema()
     const [isDarkMode] = useDarkMode()
     const [direction] = useDirection();
-    console.log('direction =>', direction);
 
     const { locale } = useLocale()
 

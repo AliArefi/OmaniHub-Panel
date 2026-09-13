@@ -18,7 +18,6 @@ import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { apiDeleteMyAgency, getMyAgencies } from '@/services/CenterService'
 import { useTranslation } from '@/store/useTranslation'
-import { resolveImageUrl } from '@/utils/imageUrl'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ActionLink } from '@/components/shared'
@@ -31,6 +30,8 @@ import {
     TbAlertCircle,
     TbExternalLink,
 } from 'react-icons/tb'
+import { resolveImageUrl } from '@/utils/imageUrl'
+import { HiPlus } from 'react-icons/hi'
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
 
@@ -38,21 +39,20 @@ type AgencyStatus = 'published' | 'rejected' | 'pending' | string
 
 const STATUS_LABELS: Record<AgencyStatus, string> = {
     published: 'منشورة',
-    rejected:  'مرفوضة',
-    pending:   'قيد المراجعة',
+    rejected: 'مرفوضة',
+    pending: 'قيد المراجعة',
 }
 
 const STATUS_CLASSES: Record<AgencyStatus, string> = {
     published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
-    rejected:  'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
-    pending:   'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+    rejected: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+    pending: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
 }
 
-// Mock reason until backend provides one per agency
 const MOCK_STATUS_REASON: Record<AgencyStatus, string> = {
     published: 'تمت مراجعة الحجرة واعتمادها من قِبل فريق عُمانيهاب.',
-    rejected:  'تم رفض الحجرة بسبب نقص في المعلومات. يرجى مراجعة البيانات وإعادة التقديم.',
-    pending:   'حجرتك قيد المراجعة من قِبل كارشناس عُمانيهاب. سيتم إشعارك فور اتخاذ القرار.',
+    rejected: 'تم رفض الحجرة بسبب نقص في المعلومات. يرجى مراجعة البيانات وإعادة التقديم.',
+    pending: 'حجرتك قيد المراجعة من قِبل كارشناس عُمانيهاب. سيتم إشعارك فور اتخاذ القرار.',
 }
 
 function statusLabel(status: AgencyStatus) {
@@ -82,7 +82,6 @@ function DeleteWithReasonDialog({
 }) {
     const [reason, setReason] = useState('')
 
-    // Reset reason each time dialog opens
     useEffect(() => {
         if (isOpen) setReason('')
     }, [isOpen])
@@ -156,23 +155,20 @@ function AgencyActions({
 }) {
     const isPublished = agency.status === 'published'
 
-    // Desktop: inline buttons
     const desktopActions = (
         <div className="hidden sm:flex items-center justify-center gap-1 flex-wrap">
-            {/* Edit */}
             <Tooltip title="تعديل الحجرة">
                 <Button
                     size="xs"
                     variant="plain"
                     className="flex items-center gap-1"
-                    onClick={() => onSelect(`/centers/${agency.slug}/edit`)}
+                    onClick={() => onView(agency.slug)}
                 >
                     <TbEdit size={15} />
                     <span className="hidden md:inline">تعديل</span>
                 </Button>
             </Tooltip>
 
-            {/* View — with note for non-published */}
             <Tooltip
                 title={
                     isPublished
@@ -184,7 +180,7 @@ function AgencyActions({
                     size="xs"
                     variant="plain"
                     className="flex items-center gap-1"
-                    onClick={() => onView(agency.slug)}
+                    onClick={() => window.open(`https://omanihub.com/${agency.slug}`, '_blank', 'noopener,noreferrer')}
                 >
                     <TbEye size={15} />
                     <span className="hidden md:inline">عرض</span>
@@ -194,7 +190,6 @@ function AgencyActions({
                 </Button>
             </Tooltip>
 
-            {/* Published-only actions */}
             {isPublished && (
                 <>
                     <Tooltip title="الحجوزات">
@@ -231,7 +226,6 @@ function AgencyActions({
                 </>
             )}
 
-            {/* Delete */}
             <Tooltip title="حذف الحجرة">
                 <Button
                     size="xs"
@@ -247,7 +241,6 @@ function AgencyActions({
         </div>
     )
 
-    // Mobile: dropdown
     const mobileActions = (
         <div className="flex sm:hidden items-center justify-center">
             <Dropdown title="العمليات">
@@ -307,6 +300,52 @@ function AgencyActions({
     )
 }
 
+// ─── Mobile card for a single agency ─────────────────────────────────────────
+
+function AgencyCard({
+    agency,
+    deletingSlug,
+    onView,
+    onSelect,
+    onDeleteRequest,
+}: {
+    agency: Agency
+    deletingSlug: string | null
+    onView: (slug: string) => void
+    onSelect: (url: string) => void
+    onDeleteRequest: (slug: string) => void
+}) {
+    return (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex flex-col gap-3">
+            <ActionLink
+                to={`/centers/${agency.slug}/view`}
+                className="no-underline hover:no-underline group"
+            >
+                <div className="flex items-center gap-3">
+                    <Avatar src={resolveImageUrl(agency.logo)} />
+                    <div className="font-bold heading-text group-hover:text-primary transition-colors">
+                        {agency.title}
+                    </div>
+                </div>
+            </ActionLink>
+
+            {/* Status */}
+            <StatusBadge status={agency.status} />
+
+            {/* Actions */}
+            <div className="pt-1 border-t border-gray-100 dark:border-gray-700">
+                <AgencyActions
+                    agency={agency}
+                    deletingSlug={deletingSlug}
+                    onView={onView}
+                    onSelect={onSelect}
+                    onDeleteRequest={onDeleteRequest}
+                />
+            </div>
+        </div>
+    )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function Centers() {
@@ -345,7 +384,6 @@ export default function Centers() {
     const handleDelete = async (slug: string, reason: string) => {
         setDeletingSlug(slug)
         try {
-            // `reason` will be wired to the API once the backend is ready
             const resp = await apiDeleteMyAgency(slug)
             if (!resp?.success) throw new Error(resp?.message || 'فشل حذف المركز')
             setAgencies((prev) => prev.filter((a) => a.slug !== slug))
@@ -381,53 +419,116 @@ export default function Centers() {
                     <h2 className="mb-2">{t('myAgenciesTitle')}</h2>
                     <p>{t('myAgenciesSubtitle')}</p>
                 </div>
-                <Table>
-                    <THead>
-                        <Tr>
-                            <Th>{t('myAgenciesHojra')}</Th>
-                            <Th>{t('status')}</Th>
-                            <Th className="text-center">{t('operation')}</Th>
-                        </Tr>
-                    </THead>
-                    <TBody>
-                        {agencies.map((agency) => (
-                            <Tr key={agency.id}>
-                                {/* Agency name + logo */}
-                                <Td>
-                                    <ActionLink
-                                        to={`/centers/${agency.slug}/view`}
-                                        className="no-underline hover:no-underline group"
-                                    >
-                                        <div className="flex items-center justify-start gap-2">
-                                            <Avatar src={resolveImageUrl(agency.logo)} />
-                                            <Tooltip title="عرض وتعديل الحُجرة">
-                                                <div className="font-bold heading-text hover:text-primary group-hover:text-primary">
-                                                    {agency.title}
-                                                </div>
-                                            </Tooltip>
-                                        </div>
-                                    </ActionLink>
-                                </Td>
 
-                                {/* Status badge + reason tooltip */}
-                                <Td>
-                                    <StatusBadge status={agency.status} />
-                                </Td>
+                {/* ── Mobile: card list (hidden on sm+) ── */}
+                <div className="flex flex-col gap-3 sm:hidden">
+                    {agencies.length > 0 ?
+                        (
+                            agencies.map((agency) => (
+                                <AgencyCard
+                                    key={agency.id}
+                                    agency={agency}
+                                    deletingSlug={deletingSlug}
+                                    onView={onView}
+                                    onSelect={onSelect}
+                                    onDeleteRequest={setConfirmDeleteSlug}
+                                />
+                            ))
+                        )
+                        :
+                        (
+                            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex flex-col gap-3">
+                                <Button
+                                    variant="solid"
+                                    className="bg-primary hover:bg-primary/90 text-white gap-1.5"
+                                    size='sm'
+                                    icon={<HiPlus />}
+                                    onClick={() => navigate('/new-center')}
+                                >
+                                    {t('textCallToActionAction')}
+                                </Button>
+                            </div>
+                        )
 
-                                {/* Actions */}
-                                <Td>
-                                    <AgencyActions
-                                        agency={agency}
-                                        deletingSlug={deletingSlug}
-                                        onView={onView}
-                                        onSelect={onSelect}
-                                        onDeleteRequest={setConfirmDeleteSlug}
-                                    />
-                                </Td>
+
+                    }
+                </div>
+
+                {/* ── Desktop: table (hidden below sm) ── */}
+                <div className="hidden sm:block">
+                    <Table>
+                        <THead>
+                            <Tr>
+                                <Th>{t('myAgenciesHojra')}</Th>
+                                <Th>{t('status')}</Th>
+                                <Th className="text-center">{t('operation')}</Th>
                             </Tr>
-                        ))}
-                    </TBody>
-                </Table>
+                        </THead>
+                        <TBody>
+                            {
+
+                                agencies.length > 0 ?
+                                    (
+                                        agencies.map((agency) => (
+                                            <Tr key={agency.id}>
+                                                <Td>
+                                                    <ActionLink
+                                                        to={`/centers/${agency.slug}/view`}
+                                                        className="no-underline hover:no-underline group"
+                                                    >
+                                                        <div className="flex items-center justify-start gap-2">
+                                                            <Avatar src={resolveImageUrl(agency.logo)} />
+                                                            <Tooltip title="عرض وتعديل الحُجرة">
+                                                                <div className="font-bold heading-text hover:text-primary group-hover:text-primary">
+                                                                    {agency.title}
+                                                                </div>
+                                                            </Tooltip>
+                                                        </div>
+                                                    </ActionLink>
+                                                </Td>
+                                                <Td>
+                                                    <StatusBadge status={agency.status} />
+                                                </Td>
+                                                <Td>
+                                                    <AgencyActions
+                                                        agency={agency}
+                                                        deletingSlug={deletingSlug}
+                                                        onView={onView}
+                                                        onSelect={onSelect}
+                                                        onDeleteRequest={setConfirmDeleteSlug}
+                                                    />
+                                                </Td>
+                                            </Tr>
+                                        ))
+                                    )
+                                    :
+                                    (
+                                        <Tr>
+                                            <Td colSpan={3} className='text-center space-y-4'>
+                                                <div className="flex-1 text-center space-y-1">
+                                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                        {t('textCallToActionTitle')}
+                                                    </h2>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                        {t('textCallToActionSubTitle')}
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    variant="solid"
+                                                    size='sm'
+                                                    className="bg-primary hover:bg-primary/90 text-white gap-1.5"
+                                                    icon={<HiPlus />}
+                                                    onClick={() => navigate('/new-center')}
+                                                >
+                                                    {t('textCallToActionAction')}
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    )
+                            }
+                        </TBody>
+                    </Table>
+                </div>
             </Card>
 
             <DeleteWithReasonDialog

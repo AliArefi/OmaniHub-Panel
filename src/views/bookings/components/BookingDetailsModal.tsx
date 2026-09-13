@@ -127,13 +127,13 @@ export default function BookingDetailsModal({
         } catch (error: unknown) {
             const message =
                 typeof error === 'object' &&
-                error !== null &&
-                'response' in error &&
-                typeof (
-                    error as { response?: { data?: { message?: string } } }
-                ).response?.data?.message === 'string'
+                    error !== null &&
+                    'response' in error &&
+                    typeof (
+                        error as { response?: { data?: { message?: string } } }
+                    ).response?.data?.message === 'string'
                     ? (error as { response?: { data?: { message?: string } } })
-                          .response?.data?.message
+                        .response?.data?.message
                     : 'تعذر حفظ التسعير.'
 
             setQuoteError(message || 'تعذر حفظ التسعير.')
@@ -145,7 +145,7 @@ export default function BookingDetailsModal({
     return (
         <Dialog isOpen={isOpen} className="max-w-lg w-full" onClose={onClose}>
             {/* ── header ── */}
-            <div className="border-b border-gray-100 py-4 dark:border-gray-800">
+            <div className="border-b border-gray-100g py-4 dark:border-gray-800">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                     تفاصيل الحجز
                 </h3>

@@ -7,9 +7,13 @@ import LayoutBase from '@/components//template/LayoutBase'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
+import { Button } from '@/components/ui'
+import { HiOutlineChatAlt } from 'react-icons/hi'
+import { useNavigate } from 'react-router'
 
 const CollapsibleSide = ({ children }: CommonProps) => {
     const { larger, smaller } = useResponsive()
+    const navigate = useNavigate();
 
     return (
         <LayoutBase
@@ -29,6 +33,9 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                         }
                         headerEnd={
                             <>
+                                <Button size="sm" onClick={() => navigate('/chat')} variant="plain" >
+                                    <HiOutlineChatAlt size={24} />
+                                </Button>
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

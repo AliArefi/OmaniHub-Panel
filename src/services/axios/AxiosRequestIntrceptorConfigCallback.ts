@@ -8,7 +8,6 @@ const AxiosRequestIntrceptorConfigCallback = (
 ) => {
     config.withCredentials = true
     const locale = getActiveLocale()
-    console.log('LOCALE = > ', locale)
     config.headers['X-Locale'] = locale
     config.headers['Accept-Language'] = locale
 

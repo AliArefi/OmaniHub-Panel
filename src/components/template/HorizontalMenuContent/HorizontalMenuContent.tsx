@@ -22,7 +22,7 @@ const HorizontalMenuContent = (props: HorizontalMenuContentProps) => {
         routeKey,
         navigationTree = [],
         translationSetup,
-        userAuthority,
+        userAuthority
     } = props
 
     const { t } = useTranslation(!translationSetup)

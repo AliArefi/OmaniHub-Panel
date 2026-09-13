@@ -97,8 +97,6 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                             </p>
                         </div>
 
-
-
                         {/* profile completion – left on RTL = visual left */}
                         <div className="w-full sm:w-62 flex-shrink-0 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-2">
                             <div className="flex items-center justify-between">
@@ -129,7 +127,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                 <Card className="p-6 bg-primary/5 border-primary">
                     <div className="flex  flex-col sm:flex-row items-center gap-6">
 
-                        <div className="flex-1 text-right space-y-1">
+                        <div className="flex-1 text-start space-y-1">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                                 {t('textCallToActionTitle')}
                             </h2>
@@ -155,9 +153,9 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                         <h3 className="font-semibold text-gray-800 dark:text-white">
                             {t('myCenters')}
                         </h3>
-                        <button className="text-sm text-primary dark:text-primary hover:underline">
+                        <Button onClick={() => navigate('/centers')} size='xs' variant="plain">
                             {t('viewAll')}
-                        </button>
+                        </Button>
 
                     </div>
 

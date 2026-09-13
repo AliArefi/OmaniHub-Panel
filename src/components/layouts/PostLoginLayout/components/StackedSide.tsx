@@ -22,7 +22,7 @@ const StackedSide = ({ children }: CommonProps) => {
                         className="shadow-sm dark:shadow-2xl"
                         headerStart={<>{smaller.lg && <MobileNav />}</>}
                         headerEnd={
-                            <>
+                            <> 
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

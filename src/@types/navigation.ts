@@ -1,16 +1,16 @@
 export type HorizontalMenuMeta =
     | {
-          layout: 'default'
-      }
+        layout: 'default'
+    }
     | {
-          layout: 'columns'
-          showColumnTitle?: boolean
-          columns: 1 | 2 | 3 | 4 | 5
-      }
+        layout: 'columns'
+        showColumnTitle?: boolean
+        columns: 1 | 2 | 3 | 4 | 5
+    }
     | {
-          layout: 'tabs'
-          columns: 1 | 2 | 3 | 4 | 5
-      }
+        layout: 'tabs'
+        columns: 1 | 2 | 3 | 4 | 5
+    }
 
 export interface NavigationTree {
     key: string
@@ -21,6 +21,7 @@ export interface NavigationTree {
     icon: string
     type: 'title' | 'collapse' | 'item'
     authority: string[]
+    showHasCenter?: boolean
     /** Permission names (any-match). Empty/omitted = no restriction. */
     permissions?: string[]
     subMenu: NavigationTree[]
