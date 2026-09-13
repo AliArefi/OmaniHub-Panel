@@ -5,6 +5,7 @@ import AgencyWorkflowSettings from './AgencyWorkflowSettings'
 import OtpSettings from './OtpSettings'
 import NotificationSettings from './NotificationSettings'
 import PushNotificationSettings from './PushNotificationSettings'
+import MapSettings from './MapSettings'
 
 const PER_LOCALE_GROUPS = new Set([
     'general',
@@ -29,6 +30,8 @@ const SettingsGroupPage = (): React.JSX.Element => {
         content = <NotificationSettings />
     } else if (group === 'push-notifications') {
         content = <PushNotificationSettings />
+    } else if (group === 'maps') {
+        content = <MapSettings />
     }
 
     return <SettingsLayout>{content}</SettingsLayout>

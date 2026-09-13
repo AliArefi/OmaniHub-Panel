@@ -11,6 +11,7 @@ const GROUPS: Array<{ key: string; label: string; permission: string }> = [
     { key: 'about', label: 'About', permission: 'general settings' },
     { key: 'faq', label: 'Home FAQ', permission: 'general settings' },
     { key: 'store', label: 'Store', permission: 'general settings' },
+    { key: 'maps', label: 'Maps', permission: 'general settings' },
     {
         key: 'agency-workflow',
         label: 'Agency workflow',
