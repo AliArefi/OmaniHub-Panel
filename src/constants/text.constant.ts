@@ -224,7 +224,12 @@
     myProfilesDescription: {
         EN: 'View and edit profile',
         AR: 'عرض وتعديل معلومات المستخدم'
+    },
+    selectRange: {
+        EN: 'Select range',
+        AR: 'تحديد النطاق'
     }
+
 
 
 } as const

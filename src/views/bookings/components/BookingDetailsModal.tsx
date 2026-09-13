@@ -6,7 +6,7 @@ import {
     getReservationPricingLabel,
     getReservationPricingStatusLabel,
 } from '@/utils/pricing'
-import { HiCalendar, HiOfficeBuilding, HiUser, HiX } from 'react-icons/hi'
+import { HiCalendar, HiChatAlt2, HiOfficeBuilding, HiUser } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
 
@@ -18,6 +18,58 @@ interface BookingDetailsModalProps {
     onBookingUpdated?: (booking: Booking) => void
 }
 
+// ── tiny helpers ──────────────────────────────────────────────────────────────
+
+function InfoRow({
+    label,
+    value,
+    dir,
+}: {
+    label: string
+    value: React.ReactNode
+    dir?: 'ltr' | 'rtl'
+}) {
+    return (
+        <div className="flex items-start justify-between gap-4 py-1.5">
+            <span className="shrink-0 text-sm text-gray-500 dark:text-gray-400">
+                {label}
+            </span>
+            <span
+                className="text-right text-sm font-medium text-gray-900 dark:text-white"
+                dir={dir}
+            >
+                {value || '-'}
+            </span>
+        </div>
+    )
+}
+
+function Section({
+    icon,
+    title,
+    children,
+}: {
+    icon: React.ReactNode
+    title: string
+    children: React.ReactNode
+}) {
+    return (
+        <div>
+            <div className="mb-2 flex items-center gap-2">
+                <span className="text-indigo-600 dark:text-indigo-400">{icon}</span>
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    {title}
+                </h4>
+            </div>
+            <div className="divide-y divide-gray-100 rounded-xl bg-gray-50 px-4 dark:divide-gray-800 dark:bg-gray-900/50">
+                {children}
+            </div>
+        </div>
+    )
+}
+
+// ── main component ────────────────────────────────────────────────────────────
+
 export default function BookingDetailsModal({
     isOpen,
     onClose,
@@ -27,26 +79,21 @@ export default function BookingDetailsModal({
 }: BookingDetailsModalProps) {
     const navigate = useNavigate()
     const chatAvailable = Boolean(booking.customer.user?.id)
+
     const [quotePrice, setQuotePrice] = useState(
-        booking.final_price?.toString() ||
-            booking.quoted_price?.toString() ||
-            '',
+        booking.final_price?.toString() || booking.quoted_price?.toString() || '',
     )
-    const [quoteStatus, setQuoteStatus] = useState<Booking['status']>(
-        booking.status,
-    )
+    const [quoteStatus, setQuoteStatus] = useState<Booking['status']>(booking.status)
     const [quoteError, setQuoteError] = useState<string | null>(null)
     const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
     const [isSubmittingQuote, setIsSubmittingQuote] = useState(false)
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        return new Intl.DateTimeFormat('ar-OM', {
+    const formatDate = (dateString: string) =>
+        new Intl.DateTimeFormat('ar-OM', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
-        }).format(date)
-    }
+        }).format(new Date(dateString))
 
     const handleQuoteSave = async () => {
         const parsed = Number(quotePrice)
@@ -82,8 +129,9 @@ export default function BookingDetailsModal({
                 typeof error === 'object' &&
                 error !== null &&
                 'response' in error &&
-                typeof (error as { response?: { data?: { message?: string } } })
-                    .response?.data?.message === 'string'
+                typeof (
+                    error as { response?: { data?: { message?: string } } }
+                ).response?.data?.message === 'string'
                     ? (error as { response?: { data?: { message?: string } } })
                           .response?.data?.message
                     : 'تعذر حفظ التسعير.'
@@ -95,211 +143,119 @@ export default function BookingDetailsModal({
     }
 
     return (
-        <Dialog isOpen={isOpen} className="max-w-2xl" onClose={onClose}>
-            <div
-                className="fixed inset-0 bg-black/60 z-[9999]"
-                onClick={onClose}
-            />
+        <Dialog isOpen={isOpen} className="max-w-lg w-full" onClose={onClose}>
+            {/* ── header ── */}
+            <div className="border-b border-gray-100 py-4 dark:border-gray-800">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    تفاصيل الحجز
+                </h3>
+                <p className="mt-0.5 text-xs text-gray-400">
+                    #{booking.id}
+                </p>
+            </div>
 
+            {/* ── scrollable body ── */}
             <div
-                className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-[10000] max-w-2xl w-full mx-4"
-                dir="rtl"
+                className="overflow-y-auto space-y-5"
+                style={{ maxHeight: 'min(72vh, 560px)' }}
             >
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        تفاصيل الحجز
-                    </h3>
-                    <button
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
-                        aria-label="إغلاق"
-                        onClick={onClose}
-                    >
-                        <HiX className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                    </button>
-                </div>
+                {/* customer */}
+                <Section
+                    icon={<HiUser className="w-4 h-4" />}
+                    title="بيانات العميل"
+                >
+                    <InfoRow label="الاسم" value={booking.customer.name} />
+                    <InfoRow
+                        label="رقم الهاتف"
+                        value={booking.customer.mobile}
+                        dir="ltr"
+                    />
+                    {booking.customer.user?.email ? (
+                        <InfoRow
+                            label="البريد الإلكتروني"
+                            value={booking.customer.user.email}
+                        />
+                    ) : null}
+                </Section>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+                {/* center & service */}
+                <Section
+                    icon={<HiOfficeBuilding className="w-4 h-4" />}
+                    title="المركز والخدمة"
+                >
+                    <InfoRow label="المركز" value={booking.agency?.title} />
+                    <InfoRow label="الخدمة" value={booking.service?.title} />
+                    <InfoRow
+                        label="مقدم الخدمة"
+                        value={booking.member?.name || 'غير محدد'}
+                    />
+                </Section>
+
+                {/* date, time & status */}
+                <Section
+                    icon={<HiCalendar className="w-4 h-4" />}
+                    title="التاريخ والوقت"
+                >
+                    <InfoRow label="التاريخ" value={formatDate(booking.date)} />
+                    <InfoRow
+                        label="الوقت"
+                        value={`${booking.start_time} - ${booking.end_time}`}
+                        dir="ltr"
+                    />
+                    <InfoRow label="الحالة" value={booking.status} />
+                    <InfoRow
+                        label="التسعير"
+                        value={getReservationPricingStatusLabel(booking.pricing_status)}
+                    />
+                    <InfoRow
+                        label="السعر"
+                        value={getReservationPricingLabel(booking)}
+                    />
+                    {booking.note ? (
+                        <InfoRow label="الملاحظات" value={booking.note} />
+                    ) : null}
+                </Section>
+
+                {/* quote panel */}
+                {canQuote ? (
                     <div>
-                        <div className="flex items-center gap-2 mb-3">
-                            <HiUser className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                بيانات العميل
-                            </h4>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-2">
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    الاسم:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.customer.name || '-'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    رقم الهاتف:
-                                </span>
-                                <span
-                                    className="font-medium text-gray-900 dark:text-white"
-                                    dir="ltr"
-                                >
-                                    {booking.customer.mobile || '-'}
-                                </span>
-                            </div>
-                            {booking.customer.user?.email ? (
-                                <div className="flex justify-between gap-6">
-                                    <span className="text-gray-600 dark:text-gray-400">
-                                        البريد الإلكتروني:
-                                    </span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                        {booking.customer.user.email}
-                                    </span>
-                                </div>
+                        <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            تحديث التسعير
+                        </h4>
+                        <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-4 space-y-4 dark:border-indigo-900 dark:bg-indigo-950/20">
+                            {quoteError ? (
+                                <Notification type="danger">{quoteError}</Notification>
                             ) : null}
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex items-center gap-2 mb-3">
-                            <HiOfficeBuilding className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                المركز والخدمة
-                            </h4>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-2">
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    المركز:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.agency?.title || '-'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    الخدمة:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.service?.title || '-'}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    مقدم الخدمة:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.member?.name || 'غير محدد'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="flex items-center gap-2 mb-3">
-                            <HiCalendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                التاريخ والوقت
-                            </h4>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-2">
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    التاريخ:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {formatDate(booking.date)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    الوقت:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.start_time} - {booking.end_time}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    الحالة:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {booking.status}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    التسعير:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {getReservationPricingStatusLabel(booking.pricing_status)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between gap-6">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                    السعر:
-                                </span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {getReservationPricingLabel(booking)}
-                                </span>
-                            </div>
-                            {booking.note ? (
-                                <div className="flex justify-between gap-6">
-                                    <span className="text-gray-600 dark:text-gray-400">
-                                        الملاحظات:
-                                    </span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                        {booking.note}
-                                    </span>
-                                </div>
+                            {quoteSuccess ? (
+                                <Notification type="success">{quoteSuccess}</Notification>
                             ) : null}
-                        </div>
-                    </div>
 
-                    {canQuote ? (
-                        <div>
-                            <div className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
-                                تحديث التسعير
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 space-y-3">
-                                {quoteError ? (
-                                    <Notification type="danger">
-                                        {quoteError}
-                                    </Notification>
-                                ) : null}
-                                {quoteSuccess ? (
-                                    <Notification type="success">
-                                        {quoteSuccess}
-                                    </Notification>
-                                ) : null}
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <div>
-                                    <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+                                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                                         السعر النهائي
-                                    </div>
+                                    </label>
                                     <Input
                                         value={quotePrice}
                                         placeholder="17.50"
                                         inputMode="decimal"
-                                        onChange={(event) =>
+                                        onChange={(e) =>
                                             setQuotePrice(
-                                                event.target.value.replace(
-                                                    /[^\d.]/g,
-                                                    '',
-                                                ),
+                                                e.target.value.replace(/[^\d.]/g, ''),
                                             )
                                         }
                                     />
                                 </div>
                                 <div>
-                                    <div className="mb-1 text-sm text-gray-600 dark:text-gray-400">
-                                        حالة الحجز بعد التسعير
-                                    </div>
+                                    <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        حالة الحجز
+                                    </label>
                                     <select
                                         value={quoteStatus}
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                        onChange={(event) =>
+                                        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                        onChange={(e) =>
                                             setQuoteStatus(
-                                                event.target
-                                                    .value as Booking['status'],
+                                                e.target.value as Booking['status'],
                                             )
                                         }
                                     >
@@ -308,36 +264,46 @@ export default function BookingDetailsModal({
                                         <option value="cancelled">ملغي</option>
                                     </select>
                                 </div>
-                                <div className="flex justify-end">
-                                    <Button
-                                        variant="solid"
-                                        loading={isSubmittingQuote}
-                                        onClick={handleQuoteSave}
-                                    >
-                                        حفظ التسعير
-                                    </Button>
-                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="solid"
+                                    loading={isSubmittingQuote}
+                                    onClick={handleQuoteSave}
+                                >
+                                    حفظ التسعير
+                                </Button>
                             </div>
                         </div>
-                    ) : null}
-
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                        <Button
-                            variant="solid"
-                            disabled={!chatAvailable}
-                            onClick={() => {
-                                navigate(`/chat?reservation_id=${booking.id}`)
-                                onClose()
-                            }}
-                        >
-                            المحادثة
-                        </Button>
-                        {!chatAvailable ? (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                                الدردشة غير متاحة للحجوزات بدون حساب.
-                            </div>
-                        ) : null}
                     </div>
+                ) : null}
+            </div>
+
+            {/* ── sticky footer ── */}
+            <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
+                {!chatAvailable ? (
+                    <p className="text-xs text-gray-400">
+                        الدردشة غير متاحة للحجوزات بدون حساب.
+                    </p>
+                ) : (
+                    <span />
+                )}
+                <div className="flex items-center gap-2">
+                    <Button variant="plain" onClick={onClose}>
+                        إغلاق
+                    </Button>
+                    <Button
+                        variant="solid"
+                        disabled={!chatAvailable}
+                        icon={<HiChatAlt2 />}
+                        onClick={() => {
+                            navigate(`/chat?reservation_id=${booking.id}`)
+                            onClose()
+                        }}
+                    >
+                        المحادثة
+                    </Button>
                 </div>
             </div>
         </Dialog>
