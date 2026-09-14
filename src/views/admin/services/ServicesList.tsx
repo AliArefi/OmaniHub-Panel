@@ -146,7 +146,13 @@ const ServicesList = () => {
         {
             header: 'Name',
             accessorKey: 'name',
-            cell: (props) => props.row.original.name ?? props.row.original.title,
+            cell: (props) => (
+                <div>
+                    <div>{props.row.original.name ?? props.row.original.title}</div>
+                    <div className='text-xs'>{props.row.original.translations?.en?.name}</div>
+
+                </div>
+            ),
         },
         {
             header: 'Slug',
