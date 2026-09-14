@@ -5,5 +5,5 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
-  "icons": [{ "src": "/img/logo/logo-dark-streamline.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }]
+  "icons": [{ "src": "/img/logo/pwa-icon.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }]
 }
