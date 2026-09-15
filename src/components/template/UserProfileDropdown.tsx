@@ -3,10 +3,10 @@ import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
 import { Link } from 'react-router'
-import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 import { resolveImageUrl } from '@/utils/imageUrl'
+import { HiOutlineUser } from 'react-icons/hi'
 
 type DropdownList = {
     label: string
@@ -18,7 +18,7 @@ const dropdownItemList: DropdownList[] = [
     {
         label: 'الملف الشخصي',
         path: '/profile',
-        icon: <PiUserDuotone />,
+        icon: <HiOutlineUser  />,
     }
 ]
 
@@ -32,7 +32,7 @@ const _UserDropdown = () => {
     }
 
     const avatarProps = {
-        ...(avatar ? { src: resolveImageUrl(avatar) } : { icon: <PiUserDuotone /> }),
+        ...(avatar ? { src: resolveImageUrl(avatar) } : { icon: <HiOutlineUser /> }),
     }
 
     return (
@@ -80,7 +80,7 @@ const _UserDropdown = () => {
                 onClick={handleSignOut}
             >
                 <span className="text-xl">
-                    <PiSignOutDuotone />
+                    <HiOutlineUser />
                 </span>
                 <span>تسجيل الخروج</span>
             </Dropdown.Item>

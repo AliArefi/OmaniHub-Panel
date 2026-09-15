@@ -5,11 +5,10 @@ import type { ToggleDrawerRef } from '@/components/shared/ToggleDrawer'
 
 const SettingMobileMenu = () => {
     const drawerRef = useRef<ToggleDrawerRef>(null)
-
     return (
         <>
             <div>
-                <ToggleDrawer ref={drawerRef} title="ناوبری">
+                <ToggleDrawer ref={drawerRef} title="قائمة الوصول">
                     <SettingsMenu
                         onChange={() => {
                             drawerRef.current?.handleCloseDrawer()

@@ -23,7 +23,7 @@ const FooterContent = () => {
                     href="/#"
                     onClick={(e) => e.preventDefault()}
                 >
-                   الشروط والأحكام
+                    الشروط والأحكام
                 </a>
                 <span className="mx-2 text-muted"> | </span>
                 <a
@@ -31,7 +31,7 @@ const FooterContent = () => {
                     href="/#"
                     onClick={(e) => e.preventDefault()}
                 >
-                   الخصوصية والسياسات
+                    الخصوصية والسياسات
                 </a>
             </div>
         </div>
@@ -45,7 +45,7 @@ export default function Footer({
     return (
         <footer
             className={classNames(
-                `footer flex flex-auto items-center h-16 ${PAGE_CONTAINER_GUTTER_X}`,
+                ` mb-30 sm:mb-0 footer flex flex-auto items-center h-16 ${PAGE_CONTAINER_GUTTER_X}`,
                 className,
             )}
         >

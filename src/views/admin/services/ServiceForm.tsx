@@ -40,7 +40,7 @@ const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
     { name: 'meta_title', label: 'Meta title', group: 'seo' },
     { name: 'meta_description', label: 'Meta description', group: 'seo', type: 'textarea' },
     { name: 'url_pattern', label: 'URL pattern', group: 'seo', help: 'Example: /occasion-makeup/' },
-    { name: 'city_url_pattern', label: 'City URL pattern', group: 'seo', help: 'Required format: /service-slug/{city}/' },
+    { name: 'city_url_pattern', label: 'City URL pattern', group: 'seo', help: 'Required format: /service-slug/{city}/' }
 ]
 
 type ServiceFormValues = {
@@ -55,6 +55,7 @@ type ServiceFormValues = {
     icon: File | null
     image: File | null
     translations: Record<string, Record<string, string>>
+    use_as_filter: boolean
 }
 
 const ServiceForm = () => {
@@ -84,6 +85,7 @@ const ServiceForm = () => {
             featured: false,
             icon: null,
             image: null,
+            use_as_filter: false,
             translations: {},
         },
     })
@@ -100,6 +102,7 @@ const ServiceForm = () => {
                 service_id: service.service_id,
                 order_number: service.order_number,
                 featured: service.featured,
+                use_as_filter: service.use_as_filter,
                 icon: null,
                 image: null,
                 translations: service.translations as Record<
@@ -121,9 +124,10 @@ const ServiceForm = () => {
             formData.append('status', values.status)
             formData.append('order_number', String(values.order_number))
             formData.append('featured', values.featured ? 'on' : '')
+            formData.append('use_as_filter', values.use_as_filter ? '1' : '')
             if (values.service_id) {
                 formData.append('service_id', String(values.service_id));
-            }else {
+            } else {
                 formData.append('service_id', '');
             }
             if (values.icon) formData.append('icon', values.icon)
@@ -164,126 +168,135 @@ const ServiceForm = () => {
     }))
 
     const overviewForm = (
-            <AdaptiveCard>
-                <h3 className="mb-6">
-                    {isEditing ? 'Edit Service' : 'New Service'}
-                </h3>
-                <Form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <FormItem label="Slug">
-                            <Controller
-                                name="slug"
-                                control={control}
-                                render={({ field }) => <Input {...field} />}
-                            />
-                        </FormItem>
-                        <FormItem label="Order number">
-                            <Controller
-                                name="order_number"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        onChange={(e) =>
-                                            field.onChange(Number(e.target.value))
-                                        }
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Status">
-                            <Controller
-                                name="status"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        options={STATUS_OPTIONS}
-                                        value={STATUS_OPTIONS.find(
-                                            (o) => o.value === field.value,
-                                        )}
-                                        onChange={(option) =>
-                                            field.onChange(option?.value)
-                                        }
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Parent service">
-                            <Controller
-                                name="service_id"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        isClearable
-                                        options={treeOptions}
-                                        value={treeOptions.find(
-                                            (o) => o.value === field.value,
-                                        )}
-                                        onChange={(option) =>
-                                            field.onChange(option?.value ?? null)
-                                        }
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Icon">
-                            <Controller
-                                name="icon"
-                                control={control}
-                                render={({ field: { onChange } }) => (
-                                    <ImageUploadField
-                                        existingUrl={existing?.data.icon}
-                                        size={64}
-                                        onChange={onChange}
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Image">
-                            <Controller
-                                name="image"
-                                control={control}
-                                render={({ field: { onChange } }) => (
-                                    <ImageUploadField
-                                        existingUrl={existing?.data.image}
-                                        size={64}
-                                        onChange={onChange}
-                                    />
-                                )}
-                            />
-                        </FormItem>
-                        <FormItem label="Featured">
-                            <Controller
-                                name="featured"
-                                control={control}
-                                render={({ field: { value, onChange } }) => (
-                                    <Switcher checked={value} onChange={onChange} />
-                                )}
-                            />
-                        </FormItem>
-                    </div>
+        <AdaptiveCard>
+            <h3 className="mb-6">
+                {isEditing ? 'Edit Service' : 'خدمة جديدة'}
+            </h3>
+            <Form onSubmit={handleSubmit(onSubmit)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <FormItem label="Slug">
+                        <Controller
+                            name="slug"
+                            control={control}
+                            render={({ field }) => <Input {...field} />}
+                        />
+                    </FormItem>
+                    <FormItem label="Order number">
+                        <Controller
+                            name="order_number"
+                            control={control}
+                            render={({ field }) => (
+                                <Input
+                                    type="number"
+                                    {...field}
+                                    onChange={(e) =>
+                                        field.onChange(Number(e.target.value))
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Status">
+                        <Controller
+                            name="status"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    options={STATUS_OPTIONS}
+                                    value={STATUS_OPTIONS.find(
+                                        (o) => o.value === field.value,
+                                    )}
+                                    onChange={(option) =>
+                                        field.onChange(option?.value)
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Parent service">
+                        <Controller
+                            name="service_id"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    isClearable
+                                    options={treeOptions}
+                                    value={treeOptions.find(
+                                        (o) => o.value === field.value,
+                                    )}
+                                    onChange={(option) =>
+                                        field.onChange(option?.value ?? null)
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Icon">
+                        <Controller
+                            name="icon"
+                            control={control}
+                            render={({ field: { onChange } }) => (
+                                <ImageUploadField
+                                    existingUrl={existing?.data.icon}
+                                    size={64}
+                                    onChange={onChange}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Image">
+                        <Controller
+                            name="image"
+                            control={control}
+                            render={({ field: { onChange } }) => (
+                                <ImageUploadField
+                                    existingUrl={existing?.data.image}
+                                    size={64}
+                                    onChange={onChange}
+                                />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Featured">
+                        <Controller
+                            name="featured"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <Switcher checked={value} onChange={onChange} />
+                            )}
+                        />
+                    </FormItem>
+                    <FormItem label="Use as Filter">
+                        <Controller
+                            name="use_as_filter"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <Switcher checked={value} onChange={onChange} />
+                            )}
+                        />
+                    </FormItem>
+                </div>
 
-                    <LocalizedFieldsTabs
-                        fields={LOCALIZED_FIELDS}
-                        requiredFields={['name', 'title', 'body']}
-                        control={control}
-                    />
+                <LocalizedFieldsTabs
+                    fields={LOCALIZED_FIELDS}
+                    requiredFields={['name', 'title', 'body']}
+                    control={control}
+                />
 
-                    <div className="flex justify-end gap-2 mt-6">
-                        <Button
-                            type="button"
-                            variant="plain"
-                            onClick={() => navigate('/admin/services')}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="solid" loading={submitting}>
-                            Save
-                        </Button>
-                    </div>
-                </Form>
-            </AdaptiveCard>
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button
+                        type="button"
+                        variant="plain"
+                        onClick={() => navigate('/admin/services')}
+                    >
+                        Cancel
+                    </Button>
+                    <Button type="submit" variant="solid" loading={submitting}>
+                        Save
+                    </Button>
+                </div>
+            </Form>
+        </AdaptiveCard>
     )
 
     if (isEditing && isExistingLoading) {
