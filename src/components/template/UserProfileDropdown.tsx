@@ -6,7 +6,7 @@ import { Link } from 'react-router'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 import { resolveImageUrl } from '@/utils/imageUrl'
-import { HiOutlineUser } from 'react-icons/hi'
+import { HiOutlineChatAlt, HiOutlineLightningBolt, HiOutlineLogout, HiOutlineUser } from 'react-icons/hi'
 
 type DropdownList = {
     label: string
@@ -18,7 +18,18 @@ const dropdownItemList: DropdownList[] = [
     {
         label: 'الملف الشخصي',
         path: '/profile',
-        icon: <HiOutlineUser  />,
+        icon: <HiOutlineUser />,
+    },
+    {
+        label: 'محادثة',
+        path: '/chat',
+        icon: <HiOutlineChatAlt />,
+    },
+    
+    {
+        label: 'اشتراك',
+        path: '/plans',
+        icon: <HiOutlineLightningBolt />,
     }
 ]
 
@@ -76,11 +87,12 @@ const _UserDropdown = () => {
             ))}
             <Dropdown.Item
                 eventKey="Sign Out"
-                className="gap-2"
+                className='px-2 text-red-400'
+
                 onClick={handleSignOut}
             >
                 <span className="text-xl">
-                    <HiOutlineUser />
+                    <HiOutlineLogout />
                 </span>
                 <span>تسجيل الخروج</span>
             </Dropdown.Item>
