@@ -12,8 +12,8 @@ const Faq = () => {
         <Card>
             <h3 className="mt-2">الأسئلة الشائعة</h3>
             <div className="flex flex-col md:flex-row gap-4 md:gap-20 mt-8">
-                <div className="min-w-[230px]">
-                    <Menu>
+                <div className="min-w-[230px] mb-3 sm:mb-0 pb-3 sm:pb-3 border-b sm:border-b-0 border-gray-300 ">
+                    <Menu className='flex sm:block items-center'>
                         {Object.entries(questionList).map(([key]) => (
                             <Menu.MenuItem
                                 key={key}

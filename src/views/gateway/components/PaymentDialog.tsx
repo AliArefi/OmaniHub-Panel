@@ -138,22 +138,17 @@ const PaymentDialog = () => {
                                                                 ? 'شهري'
                                                                 : 'سنوي'}
                                                         </div>
-                                                        <span className="text-lg font-bold heading-text flex gap-0.5">
+                                                        <span className="text-2xl font-bold heading-text items-center flex gap-0.5">
                                                             <NumericFormat
                                                                 displayType="text"
                                                                 value={value}
-                                                                prefix={'$'}
                                                                 thousandSeparator={
                                                                     true
                                                                 }
                                                             />
-                                                            <span>{'/'}</span>
-                                                            <span>
-                                                                {key ===
-                                                                    'monthly'
-                                                                    ? 'شهر'
-                                                                    : 'سنة'}
-                                                            </span>
+                                                            <div className="text-lg font-bold px-1">
+                                                                <img className='w-6 block' src='./img/others/rial.webp' alt='rial' />
+                                                            </div>
                                                         </span>
                                                     </div>
                                                     {active && (
@@ -208,9 +203,9 @@ const PaymentDialog = () => {
                         </div>
                     </div>
                     <div className="mt-6 flex flex-col items-start">
-                        <h4>
+                        <h4 className='flex items-center gap-1'>
                             <span>الفاتورة الآن: </span>
-                            <span>
+                            <div className='text-2xl'>
                                 <NumericFormat
                                     displayType="text"
                                     value={
@@ -218,16 +213,19 @@ const PaymentDialog = () => {
                                         selectedPlan.paymentCycle as PaymentCycle
                                         ]
                                     }
-                                    prefix={'$'}
                                     thousandSeparator={true}
                                 />
-                            </span>
+                            </div>
+                            <div className="text-lg font-bold px-1">
+                                <img className='w-6 block' src='./img/others/rial.webp' alt='rial' />
+                            </div>
                         </h4>
                         <div className="max-w-[350px] text-start leading-none mt-2 opacity-80">
                             <small>
-                                بالنقر على "الدفع"، فإنك توافق على خصم مبلغ 399$ منك كل شهر، ويمكنك إلغاء هذا الاشتراك في أي وقت.
+                                بالنقر على "الدفع"، فإنك توافق على خصم مبلغ 399 منك كل شهر، ويمكنك إلغاء هذا الاشتراك في أي وقت.
                             </small>
                         </div>
+
                     </div>
                     <div className="mt-6">
                         <Button
