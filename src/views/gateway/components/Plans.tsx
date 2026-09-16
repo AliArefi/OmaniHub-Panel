@@ -103,7 +103,7 @@ const Plans = () => {
                     className={classNames(
                         'px-6 pt-2 flex flex-col justify-between',
                         !isLastChild(data.plans, index) &&
-                        'border-r-0 xl:border-r border-gray-200 dark:border-gray-700',
+                        'border-e-0 xl:border-e border-gray-200 dark:border-gray-700',
                     )}
                 >
                     <div>
@@ -111,7 +111,7 @@ const Plans = () => {
                             <span>{plan.name}</span>
                             {plan.recommended && (
                                 <Tag className="rounded-full bg-green-200 font-bold">
-                                    توصیه می شود
+                                    مُستَحسَن
                                 </Tag>
                             )}
                         </h5>
@@ -178,8 +178,8 @@ const Plans = () => {
                             }}
                         >
                             {subcription === plan.id && cycle === paymentCycle
-                                ? 'طرح فعلی'
-                                : 'انتخاب طرح'}
+                                ? 'الخطة الحالية'
+                                : 'اختر الخطة'}
                         </Button>
                     </div>
                 </div>

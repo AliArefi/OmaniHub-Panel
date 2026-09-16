@@ -1,6 +1,8 @@
 import Card from '@/components/ui/Card'
 import Plans from './components/Plans'
 import PaymentCycleToggle from './components/PaymentCycleToggle'
+import Faq from './components/Faq'
+import PaymentDialog from './components/PaymentDialog'
 
 const Pricing = () => {
     return (
@@ -12,6 +14,8 @@ const Pricing = () => {
                 </div>
                 <Plans />
             </Card>
+            <Faq />
+            <PaymentDialog />
         </>
     )
 }
