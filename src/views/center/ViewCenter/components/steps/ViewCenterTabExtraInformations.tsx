@@ -51,13 +51,13 @@ type FormValues = z.infer<ReturnType<typeof buildValidationSchema>>
 
 const DEFAULT_COUNTRY_CODE = '+968'
 const DAY_KEYS = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const
-const ADDITIONAL_INFO_LABELS: Record<keyof AdditionalInfo, string> = {
-    instant_confirmation: 'تأكيد فوري',
-    kid_friendly: 'مناسب للأطفال',
-    parking_available: 'موقف سيارات متاح',
-    near_public_transport: 'قريب من المواصلات العامة',
-    environmentally_friendly: 'صديق للبيئة',
-    woman_owned: 'مملوك لامرأة',
+const ADDITIONAL_INFO_LABEL_KEYS: Record<keyof AdditionalInfo, string> = {
+    instant_confirmation: 'viewCenterExtra.additionalInfo.instant_confirmation',
+    kid_friendly: 'viewCenterExtra.additionalInfo.kid_friendly',
+    parking_available: 'viewCenterExtra.additionalInfo.parking_available',
+    near_public_transport: 'viewCenterExtra.additionalInfo.near_public_transport',
+    environmentally_friendly: 'viewCenterExtra.additionalInfo.environmentally_friendly',
+    woman_owned: 'viewCenterExtra.additionalInfo.woman_owned',
 }
 
 const parsePhoneValue = (
@@ -390,7 +390,7 @@ export const ViewCenterTabExtraInformations = () => {
                 ...existingExtraInfo.filter((item) => !item.key || !knownKeys.has(item.key)),
                 ...Object.entries(additionalInfo).map(([key, enabled], index) => ({
                     key,
-                    label: ADDITIONAL_INFO_LABELS[key as keyof AdditionalInfo],
+                    label: t(ADDITIONAL_INFO_LABEL_KEYS[key as keyof AdditionalInfo]),
                     value: '1',
                     type: 'boolean',
                     is_active: enabled,

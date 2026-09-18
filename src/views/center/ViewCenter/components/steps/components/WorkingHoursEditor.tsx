@@ -1,4 +1,5 @@
 import { Select } from "@/components/ui"
+import useTranslation from '@/utils/hooks/useTranslation'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,40 +23,43 @@ export type AdditionalInfo = Record<AdditionalInfoKey, boolean>
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const DAYS: { key: DayKey; label: string }[] = [
-    { key: 'monday',    label: 'الإثنين'  },
-    { key: 'tuesday',   label: 'الثلاثاء' },
-    { key: 'wednesday', label: 'الأربعاء' },
-    { key: 'thursday',  label: 'الخميس'   },
-    { key: 'friday',    label: 'الجمعة'   },
-    { key: 'saturday',  label: 'السبت'    },
-    { key: 'sunday',    label: 'الأحد'    },
+export const DAYS: DayKey[] = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
 ]
 
-const ADDITIONAL_INFO_ITEMS: { key: AdditionalInfoKey; label: string }[] = [
-    { key: 'instant_confirmation',     label: 'تأكيد فوري'               },
-    { key: 'kid_friendly',             label: 'مناسب للأطفال'            },
-    { key: 'parking_available',        label: 'موقف سيارات متاح'         },
-    { key: 'near_public_transport',    label: 'قريب من المواصلات العامة' },
-    { key: 'environmentally_friendly', label: 'صديق للبيئة'              },
-    { key: 'woman_owned',              label: 'مملوك لامرأة'             },
+const ADDITIONAL_INFO_KEYS: AdditionalInfoKey[] = [
+    'instant_confirmation',
+    'kid_friendly',
+    'parking_available',
+    'near_public_transport',
+    'environmentally_friendly',
+    'woman_owned',
 ]
 
-function buildTimeOptions(stepMinutes = 30) {
+function buildTimeOptions(locale: string, stepMinutes = 30) {
     const options: { value: string; label: string }[] = []
     for (let h = 0; h < 24; h++) {
         for (let m = 0; m < 60; m += stepMinutes) {
             const hh = String(h).padStart(2, '0')
             const mm = String(m).padStart(2, '0')
-            const period = h < 12 ? 'am' : 'pm'
-            const displayH = h % 12 === 0 ? 12 : h % 12
-            options.push({ value: `${hh}:${mm}`, label: `${displayH}:${mm} ${period}` })
+            const date = new Date(2000, 0, 1, h, m)
+            options.push({
+                value: `${hh}:${mm}`,
+                label: new Intl.DateTimeFormat(locale, {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                }).format(date),
+            })
         }
     }
     return options
 }
-
-const TIME_OPTIONS = buildTimeOptions(30)
 
 export const DEFAULT_SCHEDULE: WeeklySchedule = {
     monday:    { closed: false, open: '08:00', close: '17:00' },
@@ -85,16 +89,18 @@ export const OpeningHoursEditor = ({
     value: WeeklySchedule
     onChange: (next: WeeklySchedule) => void
 }) => {
+    const { t, i18n } = useTranslation()
+    const timeOptions = buildTimeOptions(i18n.language)
     const updateDay = (key: DayKey, patch: Partial<DaySchedule>) =>
         onChange({ ...value, [key]: { ...value[key], ...patch } })
 
     return (
         <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 overflow-hidden">
-            {DAYS.map(({ key, label }) => {
+            {DAYS.map((key) => {
                 const day = value[key]
                 return (
                     <div key={key} className="flex flex-wrap items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 transition-colors">
-                        <span className="w-24 text-sm font-medium text-gray-700 shrink-0">{label}</span>
+                        <span className="w-24 text-sm font-medium text-gray-700 shrink-0">{t(`viewCenterExtra.days.${key}`)}</span>
                         <label className="flex items-center gap-2 cursor-pointer select-none shrink-0">
                             <input
                                 type="checkbox"
@@ -102,25 +108,25 @@ export const OpeningHoursEditor = ({
                                 checked={day.closed}
                                 onChange={(e) => updateDay(key, { closed: e.target.checked })}
                             />
-                            <span className="text-sm text-gray-500">مغلق</span>
+                            <span className="text-sm text-gray-500">{t('viewCenterExtra.closed')}</span>
                         </label>
                         {day.closed ? (
-                            <span className="text-sm text-gray-400 italic">مغلق</span>
+                            <span className="text-sm text-gray-400 italic">{t('viewCenterExtra.closed')}</span>
                         ) : (
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Select
                                     size="sm"
                                     className="w-36"
-                                    options={TIME_OPTIONS}
-                                    value={TIME_OPTIONS.find((o) => o.value === day.open) ?? null}
+                                    options={timeOptions}
+                                    value={timeOptions.find((o) => o.value === day.open) ?? null}
                                     onChange={(opt) => updateDay(key, { open: opt?.value ?? day.open })}
                                 />
                                 <span className="text-gray-400 text-sm">—</span>
                                 <Select
                                     size="sm"
                                     className="w-36"
-                                    options={TIME_OPTIONS}
-                                    value={TIME_OPTIONS.find((o) => o.value === day.close) ?? null}
+                                    options={timeOptions}
+                                    value={timeOptions.find((o) => o.value === day.close) ?? null}
                                     onChange={(opt) => updateDay(key, { close: opt?.value ?? day.close })}
                                 />
                             </div>
@@ -138,9 +144,11 @@ export const AdditionalInfoEditor = ({
 }: {
     value: AdditionalInfo
     onChange: (next: AdditionalInfo) => void
-}) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {ADDITIONAL_INFO_ITEMS.map(({ key, label }) => (
+}) => {
+    const { t } = useTranslation()
+
+    return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {ADDITIONAL_INFO_KEYS.map((key) => (
             <label
                 key={key}
                 className={[
@@ -156,8 +164,8 @@ export const AdditionalInfoEditor = ({
                     checked={value[key]}
                     onChange={() => onChange({ ...value, [key]: !value[key] })}
                 />
-                <span className="text-sm">{label}</span>
+                <span className="text-sm">{t(`viewCenterExtra.additionalInfo.${key}`)}</span>
             </label>
         ))}
     </div>
-)
+}

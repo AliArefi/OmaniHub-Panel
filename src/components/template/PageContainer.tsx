@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Container from '@/components/shared/Container'
 import Footer from '@/components/template/Footer'
 import useLayout from '@/utils/hooks/useLayout'
+import useTranslation from '@/utils/hooks/useTranslation'
 import classNames from '@/utils/classNames'
 import {
     PAGE_CONTAINER_GUTTER_X,
@@ -52,6 +53,8 @@ export const PageContainerHeader = ({
     gutterLess,
     className,
 }: PageContainerHeaderProps) => {
+    const { t, i18n } = useTranslation()
+
     if (!title && !extraHeader) return null
 
     return (
@@ -69,7 +72,9 @@ export const PageContainerHeader = ({
                     (customeHeader ? (
                         customeHeader()
                     ) : (
-                        <h3 className="font-bold">{title}</h3>
+                        <h3 className="font-bold">
+                            {i18n.exists(title) ? t(title) : title}
+                        </h3>
                     ))}
                 <Suspense fallback={<></>}>
                     {title && typeof title !== 'string' && (
