@@ -14,7 +14,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { apiCreateNewAgency, apiUpdateMyAgency, getServices } from '@/services/CenterService'
 import { Services } from '@/@types/center'
 import { HojraInfo, useCreateStore } from '@/context/createStoreContext'
@@ -35,23 +35,23 @@ const buildValidationSchema = (
         .object({
             title: z
                 .string()
-                .min(1, { message: t('centerValidationCenterNameRequired') }),
+                .min(1, { message: t('centerCreation.form.nameRequired') }),
             service_id: z.any().nullable().optional(),
             about_text: z
                 .string()
                 .refine((val) => stripHtml(val).length > 0, {
-                    message: t('centerValidationDescriptionRequired'),
+                    message: t('centerCreation.form.descriptionRequired'),
                 })
                 .refine((val) => stripHtml(val).length >= 8, {
-                    message: t('centerValidationTextTooShort'),
+                    message: t('centerCreation.form.textTooShort'),
                 }),
             about_us: z
                 .string()
                 .refine((val) => stripHtml(val).length > 0, {
-                    message: t('centerValidationAboutUsRequired'),
+                    message: t('centerCreation.form.aboutUsRequired'),
                 })
                 .refine((val) => stripHtml(val).length >= 8, {
-                    message: t('centerValidationTextTooShort'),
+                    message: t('centerCreation.form.textTooShort'),
                 }),
         })
         .superRefine((values, ctx) => {
@@ -59,7 +59,7 @@ const buildValidationSchema = (
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     path: ['service_id'],
-                    message: t('centerValidationServiceTypeRequired'),
+                    message: t('centerCreation.form.serviceRequired'),
                 })
             }
         })
@@ -106,13 +106,13 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                 const resp = await getServices();
                 setServicesList(resp.data)
             } catch (err: unknown) {
-                setError(getApiErrorMessage(err) || 'حدث خطأ أثناء تحميل البيانات')
+                setError(getApiErrorMessage(err) || t('centerCreation.form.loadServicesError'))
             } finally {
                 setLoading(false)
             }
         }
         fetchServices()
-    }, [])
+    }, [t])
 
     const {
         handleSubmit,
@@ -133,7 +133,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             if (canUpdate) {
                 const resp = await apiUpdateMyAgency(newHojraData.slug, values)
                 if (!resp?.success) {
-                    throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
+                    throw new Error(resp?.message || t('centerCreation.form.createError'))
                 }
 
                 setHojraInfo(values)
@@ -143,7 +143,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
 
             const resp = await apiCreateNewAgency(values)
             if (!resp?.success) {
-                throw new Error(resp?.message || 'تعذر إنشاء المركز')
+                throw new Error(resp?.message || t('centerCreation.form.createError'))
             }
 
             setNewHojraData(resp.data)
@@ -154,7 +154,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             const message = err instanceof Error ? err.message : undefined
             toast.push(
                 <Notification type="danger">
-                    {apiMessage || message || 'حدث خطأ أثناء حفظ البيانات'}
+                    {apiMessage || message || t('centerCreation.form.saveError')}
                 </Notification>,
             )
         }
@@ -164,7 +164,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>{t('loading')}</div>
+                <div>{t('centerCreation.form.loading')}</div>
             </div>
         )
 
@@ -174,14 +174,14 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
         <div>
             <Card
                 header={{
-                    content: 'معلومات المركز',
+                    content: t('centerCreation.stepInformation'),
                     bordered: false,
                 }}
             >
                 <div>
                     <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                         <FormItem
-                            label="اسم المركز"
+                            label={t('centerCreation.form.title')}
                             invalid={Boolean(errors.title)}
                             errorMessage={errors.title?.message}
                             className="mb-8"
@@ -193,7 +193,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                     <Input
                                         type="text"
                                         autoComplete="off"
-                                        placeholder="اسم المركز"
+                                        placeholder={t('centerCreation.form.title')}
                                         {...field}
                                     />
                                 )}
@@ -201,7 +201,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                         </FormItem>
 
                         <FormItem
-                            label="نوع الخدمة"
+                            label={t('centerCreation.form.serviceType')}
                             invalid={Boolean(errors.service_id)}
                             errorMessage={errors.service_id?.message}
                             className="mb-8"
@@ -212,7 +212,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                 render={({ field }) => (
                                     <Select
                                         size="sm"
-                                        placeholder="اختر"
+                                        placeholder={t('centerCreation.form.select')}
                                         options={servicesList.map(
                                             (service) => ({
                                                 value: service.id,
@@ -240,7 +240,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                         </FormItem>
 
                         <FormItem
-                            label="الوصف"
+                            label={t('centerCreation.form.description')}
                             invalid={Boolean(errors.about_text)}
                             errorMessage={errors.about_text?.message}
                             className="mb-8"
@@ -261,7 +261,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                         </FormItem>
 
                         <FormItem
-                            label="معلومات عنّا"
+                            label={t('centerCreation.form.aboutUs')}
                             invalid={Boolean(errors.about_us)}
                             errorMessage={errors.about_us?.message}
                             className="mb-8"
@@ -289,7 +289,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                                     variant="solid"
                                     type="submit"
                                 >
-                                    التالي
+                                    {t('centerCreation.form.next')}
                                 </Button>
                             </div>
                         </FormItem>
