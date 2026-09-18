@@ -11,17 +11,19 @@ import { getAgencyReservationsV2 } from '@/services/BookingService'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 import dayjs from 'dayjs'
+import useTranslation from '@/utils/hooks/useTranslation'
 
-const formatDateAr = (dateString: string) =>
-    new Intl.DateTimeFormat('ar-SA', {
+const formatDate = (dateString: string, locale: string) =>
+    new Intl.DateTimeFormat(locale === 'ar' ? 'ar-OM' : 'en-OM', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     }).format(new Date(dateString))
 
-const formatTimeAr = (time: string) => time?.toString().slice(0, 5)
+const formatTime = (time: string) => time?.toString().slice(0, 5)
 
 export default function AgencyStats() {
+    const { t, i18n } = useTranslation()
     const { agencySlug } = useParams()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -79,45 +81,45 @@ export default function AgencyStats() {
                         ? message.trim()
                         : undefined
                 })()
-                setError(apiMessage || 'حدث خطأ أثناء تحميل الإحصائيات')
+                setError(apiMessage || t('centerStats.loadError'))
             } finally {
                 setLoading(false)
             }
         }
         run()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [agencySlug])
+    }, [agencySlug, t])
 
     const monthEvents = useMemo(() => {
         return (dailyCounts || []).map((d) => ({
             id: d.date,
-            title: `${d.count} حجز`,
+            title: t('centerStats.count', { count: d.count }),
             start: d.date,
             allDay: true,
             extendedProps: { eventColor: 'blue' },
         }))
-    }, [dailyCounts])
+    }, [dailyCounts, t])
 
     const getStatusBadge = (status: string) => {
-        const statusConfig: Record<string, { label: string; className: string }> =
+        const statusConfig: Record<string, { labelKey: string; className: string }> =
             {
                 pending: {
-                    label: 'قيد الانتظار',
+                    labelKey: 'centerStats.statusPending',
                     className:
                         'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
                 },
                 confirmed: {
-                    label: 'مؤكد',
+                    labelKey: 'centerStats.statusConfirmed',
                     className:
                         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
                 },
                 completed: {
-                    label: 'مكتمل',
+                    labelKey: 'centerStats.statusCompleted',
                     className:
                         'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
                 },
                 cancelled: {
-                    label: 'ملغي',
+                    labelKey: 'centerStats.statusCancelled',
                     className:
                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
                 },
@@ -127,7 +129,7 @@ export default function AgencyStats() {
             <Badge
                 className={`${config.className} px-3 py-1 rounded-full text-xs font-medium`}
             >
-                {config.label}
+                {t(config.labelKey)}
             </Badge>
         )
     }
@@ -136,7 +138,7 @@ export default function AgencyStats() {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>جاري التحميل...</div>
+                <div>{t('centerStats.loading')}</div>
             </div>
         )
 
@@ -146,9 +148,9 @@ export default function AgencyStats() {
         <div className="space-y-6">
             <Card>
                 <div className="mb-6">
-                    <h2 className="mb-2">إحصائيات الحجوزات</h2>
+                    <h2 className="mb-2">{t('centerStats.title')}</h2>
                     <p className="text-gray-500 dark:text-gray-400">
-                        عرض الحجوزات حسب الشهر أو اليوم
+                        {t('centerStats.subtitle')}
                     </p>
                 </div>
 
@@ -196,24 +198,24 @@ export default function AgencyStats() {
 
             <Card>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">حجوزات يوم</h3>
+                    <h3 className="font-semibold">{t('centerStats.dayReservations')}</h3>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDateAr(selectedDate)}
+                        {formatDate(selectedDate, i18n.language)}
                     </div>
                 </div>
 
                 {dayReservations.length === 0 ? (
                     <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                        لا توجد حجوزات في هذا اليوم
+                        {t('centerStats.empty')}
                     </div>
                 ) : (
                     <Table>
                         <THead>
                             <Tr>
-                                <Th>العميل</Th>
-                                <Th>الخدمة</Th>
-                                <Th>الوقت</Th>
-                                <Th>الحالة</Th>
+                                <Th>{t('centerStats.customer')}</Th>
+                                <Th>{t('centerStats.service')}</Th>
+                                <Th>{t('centerStats.time')}</Th>
+                                <Th>{t('centerStats.status')}</Th>
                             </Tr>
                         </THead>
                         <TBody>
@@ -221,7 +223,7 @@ export default function AgencyStats() {
                                 <Tr key={r.id}>
                                     <Td>
                                         <div className="font-medium">
-                                            {r.customer?.name || 'غير محدد'}
+                                            {r.customer?.name || t('centerStats.unassigned')}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
                                             {r.customer?.mobile || ''}
@@ -229,16 +231,16 @@ export default function AgencyStats() {
                                     </Td>
                                     <Td>
                                         <div className="font-medium">
-                                            {r.service?.title || 'غير محدد'}
+                                            {r.service?.title || t('centerStats.unassigned')}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                                            {r.member?.name || 'غير محدد'}
+                                            {r.member?.name || t('centerStats.unassigned')}
                                         </div>
                                     </Td>
                                     <Td>
                                         <div className="text-sm">
-                                            {formatTimeAr(r.start_time)} -{' '}
-                                            {formatTimeAr(r.end_time)}
+                                            {formatTime(r.start_time)} -{' '}
+                                            {formatTime(r.end_time)}
                                         </div>
                                     </Td>
                                     <Td>{getStatusBadge(r.status)}</Td>
@@ -251,4 +253,3 @@ export default function AgencyStats() {
         </div>
     )
 }
-
