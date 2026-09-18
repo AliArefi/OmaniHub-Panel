@@ -12,7 +12,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { apiCreateNewAgency, getServices } from '@/services/CenterService'
 import { Services } from '@/@types/center'
 import { HojraInfo } from '@/context/createStoreContext'
@@ -25,35 +25,34 @@ const stripHtml = (value: string): string =>
         .replace(/\s+/g, ' ')
         .trim()
 
-const validationSchema = z.object({
-    title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
-    service_id: z.any().refine((val) => Number(val) > 0, {
-        message: 'يجب اختيار نوع الخدمة',
-    }),
-    about_text: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'About is required',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'Text is too short',
-        }),
-    about_us: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'About us is required',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'Text is too short',
-        }),
-})
-
 export const FormGeneralSection = () => {
     const [servicesList, setServicesList] = useState<Services[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const { t } = useTranslation()
     const navigate = useNavigate()
+    const validationSchema = z.object({
+        title: z.string().min(1, { message: t('centerCreation.form.nameRequired') }),
+        service_id: z.any().refine((val) => Number(val) > 0, {
+            message: t('centerCreation.form.serviceRequired'),
+        }),
+        about_text: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerCreation.form.descriptionRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerCreation.form.textTooShort'),
+            }),
+        about_us: z
+            .string()
+            .refine((val) => stripHtml(val).length > 0, {
+                message: t('centerCreation.form.aboutUsRequired'),
+            })
+            .refine((val) => stripHtml(val).length >= 8, {
+                message: t('centerCreation.form.textTooShort'),
+            }),
+    })
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         if (typeof err !== 'object' || err === null) return undefined
@@ -87,13 +86,13 @@ export const FormGeneralSection = () => {
                 const resp = await getServices()
                 setServicesList(resp.data)
             } catch (err: unknown) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+                setError(getApiErrorMessage(err) || t('centerCreation.form.loadServicesError'))
             } finally {
                 setLoading(false)
             }
         }
         fetchServices()
-    }, [])
+    }, [t])
 
     const {
         handleSubmit,
@@ -108,12 +107,12 @@ export const FormGeneralSection = () => {
             const resp = await apiCreateNewAgency(values)
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'تعذر إنشاء المركز')
+                throw new Error(resp?.message || t('centerCreation.form.createError'))
             }
 
             toast.push(
                 <Notification type="success">
-                    {'تم إنشاء حجرة جديدة'}
+                    {t('centerCreation.form.created')}
                 </Notification>,
             )
 
@@ -127,7 +126,7 @@ export const FormGeneralSection = () => {
             const message = err instanceof Error ? err.message : undefined
             toast.push(
                 <Notification type="danger">
-                    {apiMessage || message || 'حدث خطأ أثناء حفظ البيانات'}
+                    {apiMessage || message || t('centerCreation.form.saveError')}
                 </Notification>,
             )
         }
@@ -137,7 +136,7 @@ export const FormGeneralSection = () => {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>{t('loading')}</div>
+                <div>{t('centerCreation.form.loading')}</div>
             </div>
         )
 
@@ -148,7 +147,7 @@ export const FormGeneralSection = () => {
             <div>
                 <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                     <FormItem
-                        label="اسم المركز"
+                        label={t('centerCreation.form.title')}
                         invalid={Boolean(errors.title)}
                         errorMessage={errors.title?.message}
                         className="mb-8"
@@ -160,7 +159,7 @@ export const FormGeneralSection = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="اسم المركز"
+                                    placeholder={t('centerCreation.form.title')}
                                     {...field}
                                 />
                             )}
@@ -168,7 +167,7 @@ export const FormGeneralSection = () => {
                     </FormItem>
 
                     <FormItem
-                        label="نوع الخدمة"
+                        label={t('centerCreation.form.serviceType')}
                         invalid={Boolean(errors.service_id)}
                         errorMessage={errors.service_id?.message}
                         className="mb-8"
@@ -179,7 +178,7 @@ export const FormGeneralSection = () => {
                             render={({ field }) => (
                                 <Select
                                     size="sm"
-                                    placeholder="اختر"
+                                    placeholder={t('centerCreation.form.select')}
                                     options={servicesList.map((service) => ({
                                         value: service.id,
                                         label: service.name,
@@ -204,7 +203,7 @@ export const FormGeneralSection = () => {
                     </FormItem>
 
                     <FormItem
-                        label="الوصف"
+                        label={t('centerCreation.form.description')}
                         invalid={Boolean(errors.about_text)}
                         errorMessage={errors.about_text?.message}
                         className="mb-8"
@@ -227,7 +226,7 @@ export const FormGeneralSection = () => {
                     </FormItem>
 
                     <FormItem
-                        label="معلومات عنّا"
+                        label={t('centerCreation.form.aboutUs')}
                         invalid={Boolean(errors.about_us)}
                         errorMessage={errors.about_us?.message}
                         className="mb-8"
@@ -256,7 +255,7 @@ export const FormGeneralSection = () => {
                                 variant="solid"
                                 type="submit"
                             >
-                                التالي
+                                {t('centerCreation.form.next')}
                             </Button>
                         </div>
                     </FormItem>
