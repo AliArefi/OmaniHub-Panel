@@ -3,16 +3,18 @@ import Chart from '@/components/shared/Chart'
 import { COLORS } from '@/constants/chart.constant'
 import { TbDeviceDesktop, TbDeviceMobile, TbDeviceTablet } from 'react-icons/tb'
 import type { DeviceSessionData } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type DeviceSessionProps = {
     data: DeviceSessionData
 }
 
 const DeviceSession = ({ data }: DeviceSessionProps) => {
+    const { t } = useTranslation()
     return (
         <Card>
             <div className="flex items-center justify-between">
-                <h4>جلسات الجهاز</h4>
+                <h4>{t('dashboard.analytics.deviceSessions')}</h4>
             </div>
             <div className="mt-6">
                 <Chart
@@ -49,7 +51,7 @@ const DeviceSession = ({ data }: DeviceSessionProps) => {
                         <TbDeviceDesktop />
                     </div>
                     <div className="text-center">
-                        <span>سطح المكتب</span>
+                        <span>{t('dashboard.analytics.desktop')}</span>
                         <h5>{data.percentage[0]}%</h5>
                     </div>
                 </div>
@@ -58,7 +60,7 @@ const DeviceSession = ({ data }: DeviceSessionProps) => {
                         <TbDeviceMobile />
                     </div>
                     <div className="text-center">
-                        <span>الجوال</span>
+                        <span>{t('dashboard.analytics.mobile')}</span>
                         <h5>{data.percentage[1]}%</h5>
                     </div>
                 </div>
@@ -67,7 +69,7 @@ const DeviceSession = ({ data }: DeviceSessionProps) => {
                         <TbDeviceTablet />
                     </div>
                     <div className="text-center">
-                        <span>جهاز لوحي</span>
+                        <span>{t('dashboard.analytics.tablet')}</span>
                         <h5>{data.percentage[2]}%</h5>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import Table from '@/components/ui/Table'
 import GrowShrinkValue from '@/components/shared/GrowShrinkValue'
 import { CSVLink } from 'react-csv'
 import type { TopPageData } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type TopPerformingPagesProps = {
     data: TopPageData[]
@@ -12,33 +13,35 @@ type TopPerformingPagesProps = {
 const { Tr, Td, TBody, THead, Th } = Table
 
 const TopPerformingPages = ({ data }: TopPerformingPagesProps) => {
+    const { t } = useTranslation()
     return (
         <Card>
             <div className="flex items-center justify-between">
-                <h4>الصفحات الأعلى أداءً</h4>
+                <h4>{t('dashboard.analytics.topPerformingPages')}</h4>
                 <CSVLink
                     filename="top-page.csv"
                     data={data.map((row) => {
                         return {
                             pageUrl: row.pageUrl,
                             views: row.views.amount,
-                            'View growth': `${row.views.growth}%`,
-                            'Unique visitors': row.uniqueVisitor.amount,
-                            'Unique visitors growth': `${row.uniqueVisitor.growth}%`,
+                            [t('dashboard.analytics.views')]: row.views.amount,
+                            [`${t('dashboard.analytics.views')} growth`]: `${row.views.growth}%`,
+                            [t('dashboard.analytics.uniqueVisitors')]: row.uniqueVisitor.amount,
+                            [`${t('dashboard.analytics.uniqueVisitors')} growth`]: `${row.uniqueVisitor.growth}%`,
                         }
                     })}
                 >
-                    <Button size="sm">تصدير البيانات</Button>
+                    <Button size="sm">{t('dashboard.analytics.exportData')}</Button>
                 </CSVLink>
             </div>
             <div className="mt-6">
                 <Table hoverable={false}>
                     <THead>
                         <Tr>
-                            <Th className="!px-0">رابط الصفحة</Th>
-                            <Th className="!text-right max-w-[100px]">مشاهدات</Th>
+                            <Th className="!px-0">{t('dashboard.analytics.pageUrl')}</Th>
+                            <Th className="!text-right max-w-[100px]">{t('dashboard.analytics.views')}</Th>
                             <Th className="!px-0 !text-right max-w-[100px]">
-                                زوار فريدون
+                                {t('dashboard.analytics.uniqueVisitors')}
                             </Th>
                         </Tr>
                     </THead>

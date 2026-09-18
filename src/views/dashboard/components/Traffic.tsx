@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { CSVLink } from 'react-csv'
 import type { TrafficData } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type TrafficTableProps = {
     data: TrafficData[]
@@ -20,28 +21,28 @@ const { Tr, Td, TBody, THead, Th } = Table
 
 const columnHelper = createColumnHelper<TrafficData>()
 
-const columns = [
+const getColumns = (t: (key: string) => string) => [
     columnHelper.accessor('source', {
-        header: 'مصدر',
+        header: t('dashboard.analytics.source'),
         cell: (props) => {
             const { source } = props.row.original
             return <div className="heading-text font-semibold">{source}</div>
         },
     }),
     columnHelper.accessor('visits', {
-        header: 'زيارات',
+        header: t('dashboard.analytics.visit'),
     }),
     columnHelper.accessor('uniqueVisitors', {
-        header: 'زوار فريدون',
+        header: t('dashboard.analytics.uniqueVisitors'),
     }),
     columnHelper.accessor('bounceRate', {
-        header: 'معدل الارتداد',
+        header: t('dashboard.analytics.bounceRate'),
     }),
     columnHelper.accessor('avgSessionDuration', {
-        header: 'متوسط مدة الجلسة',
+        header: t('dashboard.analytics.averageSessionDuration'),
     }),
     columnHelper.accessor('progress', {
-        header: 'التقدم نحو الهدف (%)',
+        header: t('dashboard.analytics.goalProgress'),
         size: 150,
         cell: (props) => {
             const { progress } = props.row.original
@@ -61,30 +62,31 @@ const columns = [
 ]
 
 const Traffic = ({ data = [] }: TrafficTableProps) => {
+    const { t } = useTranslation()
     const table = useReactTable({
         data,
-        columns,
+        columns: getColumns(t),
         getCoreRowModel: getCoreRowModel(),
     })
 
     return (
         <Card>
             <div className="flex items-center justify-between mb-6">
-                <h4>بيانات الزيارات</h4>
+                <h4>{t('dashboard.analytics.trafficData')}</h4>
                 <CSVLink
                     filename="traffic-data.csv"
                     data={data.map((traffic) => {
                         return {
-                            المصدر: traffic.source,
-                            الزيارات: traffic.visits,
-                            'الزوار الفريدون': traffic.uniqueVisitors,
-                            'معدل الارتداد': traffic.bounceRate,
-                            'متوسط مدة الجلسة': traffic.avgSessionDuration,
-                            'التقدم نحو الهدف': `${traffic.progress}%`,
+                            [t('dashboard.analytics.source')]: traffic.source,
+                            [t('dashboard.analytics.visit')]: traffic.visits,
+                            [t('dashboard.analytics.uniqueVisitors')]: traffic.uniqueVisitors,
+                            [t('dashboard.analytics.bounceRate')]: traffic.bounceRate,
+                            [t('dashboard.analytics.averageSessionDuration')]: traffic.avgSessionDuration,
+                            [t('dashboard.analytics.goalProgress')]: `${traffic.progress}%`,
                         }
                     })}
                 >
-                    <Button size="sm">تصدير البيانات</Button>
+                    <Button size="sm">{t('dashboard.analytics.exportData')}</Button>
                 </CSVLink>
             </div>
             <Table>

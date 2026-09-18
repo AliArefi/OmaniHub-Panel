@@ -6,6 +6,7 @@ import GrowShrinkValue from '@/components/shared/GrowShrinkValue'
 import { CSVLink } from 'react-csv'
 import { NumericFormat } from 'react-number-format'
 import type { TopChannelData } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type TopChannelProps = {
     data: TopChannelData
@@ -14,25 +15,26 @@ type TopChannelProps = {
 const { TBody, THead, Tr, Th, Td } = Table
 
 const TopChannel = ({ data }: TopChannelProps) => {
+    const { t } = useTranslation()
     return (
         <Card>
             <div className="flex items-center justify-between">
-                <h4>القناة الأعلى</h4>
+                <h4>{t('dashboard.analytics.topChannel')}</h4>
                 <CSVLink
                     filename="top-channel.csv"
                     data={data.channels.map((channel) => {
                         return {
-                            القناة: channel.name,
-                            النسبة: `${channel.percentage}%`,
-                            المجموع: channel.total,
+                            [t('dashboard.analytics.channel')]: channel.name,
+                            [t('dashboard.analytics.percentage')]: `${channel.percentage}%`,
+                            [t('dashboard.analytics.total')]: channel.total,
                         }
                     })}
                 >
-                    <Button size="sm">تصدير البيانات</Button>
+                    <Button size="sm">{t('dashboard.analytics.exportData')}</Button>
                 </CSVLink>
             </div>
             <div className="mt-5">
-                <div className="mb-2">الزوار</div>
+                <div className="mb-2">{t('dashboard.analytics.visitors')}</div>
                 <div className="flex items-end gap-2 mb-1">
                     <h3>
                         <NumericFormat
@@ -52,9 +54,9 @@ const TopChannel = ({ data }: TopChannelProps) => {
                 <Table className="mt-6" hoverable={false}>
                     <THead>
                         <Tr>
-                            <Th className="!px-0">القناة</Th>
-                            <Th>النسبة</Th>
-                            <Th className="!px-0">المجموع</Th>
+                            <Th className="!px-0">{t('dashboard.analytics.channel')}</Th>
+                            <Th>{t('dashboard.analytics.percentage')}</Th>
+                            <Th className="!px-0">{t('dashboard.analytics.total')}</Th>
                         </Tr>
                     </THead>
                     <TBody>

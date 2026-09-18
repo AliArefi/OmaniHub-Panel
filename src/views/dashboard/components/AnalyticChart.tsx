@@ -6,12 +6,14 @@ import { COLORS } from '@/constants/chart.constant'
 import { useThemeStore } from '@/store/themeStore'
 import { NumericFormat } from 'react-number-format'
 import type { WebAnalyticData } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type WebAnalyticProps = {
     data: WebAnalyticData
 }
 
 const WebAnalytic = ({ data }: WebAnalyticProps) => {
+    const { t } = useTranslation()
 
     const isFirstRender = useRef(true);
 
@@ -31,35 +33,35 @@ const WebAnalytic = ({ data }: WebAnalyticProps) => {
     return (
         <Card className="h-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h4>تحليل الويب</h4>
+                <h4>{t('dashboard.analytics.webAnalytics')}</h4>
                 <div className="inline-flex items-center gap-6">
                     <div className="flex items-center gap-1.5">
                         <div
                             className="h-3.5 w-3.5 rounded"
                             style={{ backgroundColor: COLORS[0] }}
                         />
-                        <div>زيارة</div>
+                        <div>{t('dashboard.analytics.visit')}</div>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div
                             className="h-3.5 w-3.5 rounded"
                             style={{ backgroundColor: COLORS[7] }}
                         />
-                        <div>حجز</div>
+                        <div>{t('dashboard.analytics.booking')}</div>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div
                             className="h-3.5 w-3.5 rounded"
                             style={{ backgroundColor: COLORS[8] }}
                         />
-                        <div>انقر على واتساب</div>
+                        <div>{t('dashboard.analytics.whatsAppClick')}</div>
                     </div>
                 </div>
             </div>
             <div className="mt-8">
                 <div className="flex items-center gap-10">
                     <div>
-                        <div className="mb-2">زيارة</div>
+                        <div className="mb-2">{t('dashboard.analytics.visit')}</div>
                         <div className="flex items-end gap-2">
                             <h3>
                                 <NumericFormat
@@ -79,7 +81,7 @@ const WebAnalytic = ({ data }: WebAnalyticProps) => {
                         </div>
                     </div>
                     <div>
-                        <div className="mb-2">متوسط وقت الشاشة</div>
+                        <div className="mb-2">{t('dashboard.analytics.averageScreenTime')}</div>
                         <div className="flex items-end gap-2">
                             <h3>{data.avgTimeOnPage.value}</h3>
                             <GrowShrinkValue
