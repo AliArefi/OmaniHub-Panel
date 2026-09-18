@@ -10,11 +10,34 @@ type LocaleState = {
     setLang: (payload: string) => void
 }
 
+const initialLocale = (): string => {
+    if (typeof document !== 'undefined') {
+        const cookie = document.cookie
+            .split('; ')
+            .find((entry) => entry.startsWith('locale='))
+            ?.split('=')[1]
+        if (cookie === 'ar' || cookie === 'en') return cookie
+    }
+
+    if (typeof window !== 'undefined') {
+        try {
+            const persisted = JSON.parse(window.localStorage.getItem('locale') || '{}')
+            if (persisted?.state?.currentLang === 'ar' || persisted?.state?.currentLang === 'en') {
+                return persisted.state.currentLang
+            }
+        } catch {
+            // Ignore malformed persisted preferences and use the configured default.
+        }
+    }
+
+    return appConfig.locale
+}
+
 export const useLocaleStore = create<LocaleState>()(
     devtools(
         persist(
             (set) => ({
-                currentLang: appConfig.locale,
+                currentLang: initialLocale(),
                 setLang: (lang: string) => {
                     const formattedLang = lang.replace(
                         /-([a-z])/g,
@@ -24,6 +47,11 @@ export const useLocaleStore = create<LocaleState>()(
                     )
 
                     i18n.changeLanguage(formattedLang)
+
+                    if (typeof document !== 'undefined') {
+                        document.cookie = `locale=${encodeURIComponent(lang)}; path=/; SameSite=Lax`
+                        document.documentElement.lang = lang
+                    }
 
                     dateLocales[formattedLang]().then(() => {
                         dayjs.locale(formattedLang)

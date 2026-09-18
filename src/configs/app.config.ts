@@ -52,7 +52,7 @@ const appConfig: AppConfig = {
     locale: 'ar',
     accessTokenPersistStrategy: 'localStorage',
     enableMock: readBoolEnv(import.meta.env.VITE_ENABLE_MOCK, false),
-    activeNavTranslation: false,
+    activeNavTranslation: true,
 }
 
 export default appConfig
