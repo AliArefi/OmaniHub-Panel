@@ -3,7 +3,16 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Spinner from '@/components/ui/Spinner'
 import Switcher from '@/components/ui/Switcher'
-import { apiCheckBillingProviderHealth, apiGetBillingSettings, apiUpdateBillingProvider, type AdminBillingProvider } from '@/services/admin/AdminBillingService'
+import {
+    apiCheckBillingProviderHealth,
+    apiCreateBillingPlan,
+    apiGetBillingSettings,
+    apiUpdateBillingPlan,
+    apiUpdateBillingProvider,
+    type AdminBillingPlan,
+    type AdminBillingProvider,
+    type BillingPlanPayload,
+} from '@/services/admin/AdminBillingService'
 import useTranslation from '@/utils/hooks/useTranslation'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -12,6 +21,29 @@ type ProviderForm = Record<string, string | boolean>
 
 const fieldNames = ['base_url', 'public_key', 'secret_key', 'hmac_secret', 'payment_methods', 'checkout_url'] as const
 
+const emptyPlan = (): BillingPlanPayload => ({
+    key: '',
+    name: { en: '', ar: '' },
+    description: { en: '', ar: '' },
+    currency: 'OMR',
+    active: true,
+    sort_order: 0,
+    prices: [
+        { interval: 'monthly', amount_minor: 0 },
+        { interval: 'annually', amount_minor: 0 },
+    ],
+})
+
+const toPlanPayload = (plan: AdminBillingPlan): BillingPlanPayload => ({
+    key: plan.key,
+    name: plan.name,
+    description: plan.description || { en: '', ar: '' },
+    currency: plan.currency,
+    active: plan.active,
+    sort_order: plan.sort_order,
+    prices: plan.prices.filter((price) => price.active !== false).map(({ interval, amount_minor }) => ({ interval, amount_minor })),
+})
+
 const BillingSettings = () => {
     const { t } = useTranslation()
     const { data, error, isLoading, mutate } = useSWR('/admin/billing/settings', apiGetBillingSettings)
@@ -19,6 +51,9 @@ const BillingSettings = () => {
     const [saving, setSaving] = useState<number | null>(null)
     const [message, setMessage] = useState<string | null>(null)
     const [checking, setChecking] = useState<number | null>(null)
+    const [plan, setPlan] = useState<BillingPlanPayload | null>(null)
+    const [editingPlanId, setEditingPlanId] = useState<number | null>(null)
+    const [savingPlan, setSavingPlan] = useState(false)
 
     const formFor = (provider: AdminBillingProvider): ProviderForm => forms[provider.id] || {
         enabled: provider.enabled,
@@ -62,6 +97,41 @@ const BillingSettings = () => {
         }
     }
 
+    const savePlan = async () => {
+        if (!plan) return
+        setSavingPlan(true)
+        setMessage(null)
+        try {
+            if (editingPlanId === null) await apiCreateBillingPlan(plan)
+            else await apiUpdateBillingPlan(editingPlanId, plan)
+            setPlan(null)
+            setEditingPlanId(null)
+            await mutate()
+            setMessage(t('billingAdmin.planSaved'))
+        } catch {
+            setMessage(t('billingAdmin.planSaveError'))
+        } finally {
+            setSavingPlan(false)
+        }
+    }
+
+    const updatePlan = (field: keyof BillingPlanPayload, value: BillingPlanPayload[keyof BillingPlanPayload]) =>
+        setPlan((current) => current ? { ...current, [field]: value } : current)
+
+    const updateLocalizedPlanField = (field: 'name' | 'description', locale: 'en' | 'ar', value: string) =>
+        setPlan((current) => current ? {
+            ...current,
+            [field]: { ...(current[field] || {}), [locale]: value },
+        } : current)
+
+    const updatePrice = (index: number, field: 'interval' | 'amount_minor', value: string) =>
+        setPlan((current) => current ? {
+            ...current,
+            prices: current.prices.map((price, priceIndex) => priceIndex === index
+                ? { ...price, [field]: field === 'amount_minor' ? Number(value) || 0 : value }
+                : price),
+        } : current)
+
     if (isLoading) return <div className="flex justify-center py-16"><Spinner /></div>
     if (error) return <AdaptiveCard>{t('billingAdmin.loadError')}</AdaptiveCard>
 
@@ -79,7 +149,24 @@ const BillingSettings = () => {
                 <div className="mt-5 flex gap-3"><Button variant="solid" loading={saving === provider.id} onClick={() => save(provider)}>{t('billingAdmin.save')}</Button><Button loading={checking === provider.id} onClick={() => checkHealth(provider)}>{t('billingAdmin.testConnection')}</Button></div>
             </AdaptiveCard>
         })}
-        <AdaptiveCard><h4>{t('billingAdmin.plans')}</h4><ul className="mt-3 space-y-2">{data?.plans.map((plan) => <li key={plan.id}>{plan.key} · {plan.currency} · {plan.prices.map((price) => `${price.interval}: ${price.amount_minor}`).join(', ')}</li>)}</ul></AdaptiveCard>
+        <AdaptiveCard>
+            <div className="flex items-center justify-between gap-3"><h4>{t('billingAdmin.plans')}</h4><Button size="sm" variant="solid" onClick={() => { setPlan(emptyPlan()); setEditingPlanId(null) }}>{t('billingAdmin.addPlan')}</Button></div>
+            {plan ? <div className="mt-5 space-y-4 border-t pt-5">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.key')}</span><Input disabled={editingPlanId !== null} value={plan.key} onChange={(event) => updatePlan('key', event.target.value)} /></label>
+                    <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.currency')}</span><Input maxLength={3} value={plan.currency} onChange={(event) => updatePlan('currency', event.target.value.toUpperCase())} /></label>
+                    <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.nameEn')}</span><Input value={plan.name.en || ''} onChange={(event) => updateLocalizedPlanField('name', 'en', event.target.value)} /></label>
+                    <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.nameAr')}</span><Input dir="rtl" value={plan.name.ar || ''} onChange={(event) => updateLocalizedPlanField('name', 'ar', event.target.value)} /></label>
+                    <label className="text-sm md:col-span-2"><span className="mb-1 block">{t('billingAdmin.planFields.descriptionEn')}</span><Input value={plan.description?.en || ''} onChange={(event) => updateLocalizedPlanField('description', 'en', event.target.value)} /></label>
+                    <label className="text-sm md:col-span-2"><span className="mb-1 block">{t('billingAdmin.planFields.descriptionAr')}</span><Input dir="rtl" value={plan.description?.ar || ''} onChange={(event) => updateLocalizedPlanField('description', 'ar', event.target.value)} /></label>
+                    <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.sortOrder')}</span><Input type="number" min={0} value={String(plan.sort_order)} onChange={(event) => updatePlan('sort_order', Number(event.target.value) || 0)} /></label>
+                    <div className="flex items-end"><Switcher checked={plan.active} onChange={(value) => updatePlan('active', value)}>{t('billingAdmin.active')}</Switcher></div>
+                </div>
+                <div><p className="mb-2 text-sm font-semibold">{t('billingAdmin.prices')}</p><div className="space-y-2">{plan.prices.map((price, index) => <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3" key={`${price.interval}-${index}`}><label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.interval')}</span><select className="input input-md h-11 w-full rounded-md" value={price.interval} onChange={(event) => updatePrice(index, 'interval', event.target.value)}><option value="monthly">{t('billingAdmin.intervals.monthly')}</option><option value="annually">{t('billingAdmin.intervals.annually')}</option><option value="one_time">{t('billingAdmin.intervals.oneTime')}</option></select></label><label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.amountMinor')}</span><Input type="number" min={0} value={String(price.amount_minor)} onChange={(event) => updatePrice(index, 'amount_minor', event.target.value)} /></label><Button size="sm" disabled={plan.prices.length === 1} onClick={() => updatePlan('prices', plan.prices.filter((_, priceIndex) => priceIndex !== index))}>{t('billingAdmin.remove')}</Button></div>)}</div><Button size="sm" className="mt-3" onClick={() => updatePlan('prices', [...plan.prices, { interval: 'one_time', amount_minor: 0 }])}>{t('billingAdmin.addPrice')}</Button></div>
+                <div className="flex gap-3"><Button variant="solid" loading={savingPlan} onClick={savePlan}>{t('billingAdmin.savePlan')}</Button><Button onClick={() => { setPlan(null); setEditingPlanId(null) }}>{t('billingAdmin.cancel')}</Button></div>
+            </div> : null}
+            <ul className="mt-4 space-y-2">{data?.plans.map((billingPlan) => <li className="flex items-center justify-between gap-3 rounded border p-3" key={billingPlan.id}><span>{billingPlan.key} · {billingPlan.currency} · {billingPlan.prices.filter((price) => price.active !== false).map((price) => `${price.interval}: ${price.amount_minor}`).join(', ')}</span><Button size="sm" onClick={() => { setPlan(toPlanPayload(billingPlan)); setEditingPlanId(billingPlan.id) }}>{t('billingAdmin.edit')}</Button></li>)}</ul>
+        </AdaptiveCard>
     </div>
 }
 

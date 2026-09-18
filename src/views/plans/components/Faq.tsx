@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card'
 import Menu from '@/components/ui/Menu'
 import Question from './Question'
 import useTranslation from '@/utils/hooks/useTranslation'
-import { questionList, questionCategory } from '../constants'
+import { questionCategories } from '../constants'
 import isLastChild from '@/utils/isLastChild'
 
 const Faq = () => {
@@ -16,32 +16,34 @@ const Faq = () => {
             <div className="flex flex-col md:flex-row gap-4 md:gap-20 mt-8">
                 <div className="min-w-[230px] mb-3 sm:mb-0 pb-3 sm:pb-3 border-b sm:border-b-0 border-gray-300 ">
                     <Menu className='flex sm:block items-center'>
-                        {Object.entries(questionList).map(([key]) => (
+                        {Object.keys(questionCategories).map((key) => (
                             <Menu.MenuItem
                                 key={key}
                                 isActive={key === selectedCategory}
                                 eventKey={key}
                                 onSelect={setSelectedCategory}
                             >
-                                {questionCategory[key]}
+                                {t(`plansFaq.categories.${key}`)}
                             </Menu.MenuItem>
                         ))}
                     </Menu>
                 </div>
                 <div className="max-w-[800px] my-2">
                     <div className="">
-                        {questionList[selectedCategory].map(
-                            (question, index) => (
+                        {questionCategories[selectedCategory as keyof typeof questionCategories].map(
+                            (questionKey, index, questions) => (
                                 <Question
-                                    key={question.title}
+                                    key={questionKey}
                                     border={
                                         !isLastChild(
-                                            questionList[selectedCategory],
+                                            questions,
                                             index,
                                         )
                                     }
                                     isFirstChild={index === 0}
-                                    {...question}
+                                    title={t(`plansFaq.questions.${questionKey}.title`)}
+                                    content={t(`plansFaq.questions.${questionKey}.content`)}
+                                    defaultExpand={index === 0}
                                 />
                             ),
                         )}
