@@ -5,6 +5,7 @@ import { NumericFormat } from 'react-number-format'
 import { TbUsers, TbCoins, TbClick } from 'react-icons/tb'
 import { MetricsData, Period } from '../types'
 import type { ReactNode } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type WidgetProps = {
     title: string
@@ -21,9 +22,9 @@ type MetricsProps = {
 }
 
 const vsPeriod: Record<Period, string> = {
-    thisMonth: 'مقارنة بالشهر السابق',
-    thisWeek: 'مقارنة بالأسبوع السابق',
-    thisYear: 'مقارنة بالسنة السابقة',
+    thisMonth: 'dashboard.analytics.vsPreviousMonth',
+    thisWeek: 'dashboard.analytics.vsPreviousWeek',
+    thisYear: 'dashboard.analytics.vsPreviousYear',
 }
 
 const Widget = ({
@@ -65,10 +66,12 @@ const Widget = ({
 }
 
 const Metrics = ({ data, selectedPeriod }: MetricsProps) => {
+    const { t } = useTranslation()
+
     return (
         <div className="flex flex-col 2xl:flex-col xl:flex-row gap-4">
             <Widget
-                title="زائر"
+                title={t('dashboard.analytics.visitors')}
                 value={
                     <NumericFormat
                         displayType="text"
@@ -77,20 +80,20 @@ const Metrics = ({ data, selectedPeriod }: MetricsProps) => {
                     />
                 }
                 growShrink={data.visitors.growShrink}
-                compareFrom={vsPeriod[selectedPeriod]}
+                compareFrom={t(vsPeriod[selectedPeriod])}
                 icon={<TbUsers />}
                 iconClass="bg-orange-200"
             />
             <Widget
-                title="معدل التحويل"
+                title={t('dashboard.analytics.conversionRate')}
                 value={`${data.conversionRate.value}%`}
                 growShrink={data.conversionRate.growShrink}
-                compareFrom={vsPeriod[selectedPeriod]}
+                compareFrom={t(vsPeriod[selectedPeriod])}
                 icon={<TbCoins />}
                 iconClass="bg-emerald-200"
             />
             <Widget
-                title="نقرة الحملة الإعلانية"
+                title={t('dashboard.analytics.adCampaignClicks')}
                 value={
                     <NumericFormat
                         displayType="text"
@@ -99,7 +102,7 @@ const Metrics = ({ data, selectedPeriod }: MetricsProps) => {
                     />
                 }
                 growShrink={data.adCampaignClicks.growShrink}
-                compareFrom={vsPeriod[selectedPeriod]}
+                compareFrom={t(vsPeriod[selectedPeriod])}
                 icon={<TbClick />}
                 iconClass="bg-purple-200"
             />

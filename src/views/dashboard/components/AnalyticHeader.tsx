@@ -1,16 +1,17 @@
 /* eslint-disable react-refresh/only-export-components */
 import Select from '@/components/ui/Select'
 import type { Period } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type AnalyticHeaderProps = {
     selectedPeriod: Period
     onSelectedPeriodChange: (value: Period) => void
 }
 
-export const options: { value: Period; label: string }[] = [
-    { value: 'thisMonth', label: 'شهری' },
-    { value: 'thisWeek', label: 'أسبوعي' },
-    { value: 'thisYear', label: 'سنوی' },
+export const options: { value: Period; labelKey: string }[] = [
+    { value: 'thisMonth', labelKey: 'dashboard.analytics.periodMonth' },
+    { value: 'thisWeek', labelKey: 'dashboard.analytics.periodWeek' },
+    { value: 'thisYear', labelKey: 'dashboard.analytics.periodYear' },
 ]
 
 
@@ -18,22 +19,28 @@ const AnalyticHeader = ({
     selectedPeriod,
     onSelectedPeriodChange,
 }: AnalyticHeaderProps) => {
+    const { t } = useTranslation()
+    const localizedOptions = options.map((option) => ({
+        ...option,
+        label: t(option.labelKey),
+    }))
+
     return (
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 gap-4">
             <div>
-                <h4 className="mb-1"> استعراض تحليلي عام</h4>
-                <p>لاستيعاب الاتجاهات والدوافع، استكشف المعايير</p>
+                <h4 className="mb-1">{t('dashboard.analytics.title')}</h4>
+                <p>{t('dashboard.analytics.subtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
-                <span>العرض بواسطة</span>
+                <span>{t('dashboard.analytics.viewBy')}</span>
                 <Select
                     className="w-[150px]"
                     size="sm"
-                    placeholder="Select period"
-                    value={options.filter(
+                    placeholder={t('dashboard.analytics.selectPeriod')}
+                    value={localizedOptions.filter(
                         (option) => option.value === selectedPeriod,
                     )}
-                    options={options}
+                    options={localizedOptions}
                     isSearchable={false}
                     onChange={(option) => {
                         if (option?.value) {
