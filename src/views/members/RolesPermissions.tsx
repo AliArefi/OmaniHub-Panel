@@ -8,8 +8,10 @@ import RolesPermissionsAccessDialog from './components/RolesPermissionsAccessDia
 import useRolePermissonsUsers from './hooks/useRolePermissonsUsers'
 import useRolePermissonsRoles from './hooks/useRolePermissonsRoles'
 import { Card } from '@/components/ui'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const RolesPermissions = () => {
+    const { t } = useTranslation()
     const {
         userList,
         userListTotal,
@@ -24,7 +26,7 @@ const RolesPermissions = () => {
                 <Card>
                     <div>
                         <div className="mb-6 flex flex-col gap-5">
-                            <h3>إدارة المشتركين</h3>
+                            <h3>{t('memberManagement.title')}</h3>
                             <div className="flex-1">
                                 <RolesPermissionsUserAction />
                             </div>
