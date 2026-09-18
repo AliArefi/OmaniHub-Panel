@@ -32,3 +32,9 @@ export const apiUpdateBillingProvider = (
     method: 'post',
     data: payload,
 })
+
+export const apiCheckBillingProviderHealth = (id: number) =>
+    ApiService.fetchDataWithAxios<{ health: { reachable: boolean } }>({
+        url: `/admin/billing/providers/${id}/health`,
+        method: 'post',
+    })

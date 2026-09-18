@@ -3,7 +3,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Spinner from '@/components/ui/Spinner'
 import Switcher from '@/components/ui/Switcher'
-import { apiGetBillingSettings, apiUpdateBillingProvider, type AdminBillingProvider } from '@/services/admin/AdminBillingService'
+import { apiCheckBillingProviderHealth, apiGetBillingSettings, apiUpdateBillingProvider, type AdminBillingProvider } from '@/services/admin/AdminBillingService'
 import useTranslation from '@/utils/hooks/useTranslation'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -18,6 +18,7 @@ const BillingSettings = () => {
     const [forms, setForms] = useState<Record<number, ProviderForm>>({})
     const [saving, setSaving] = useState<number | null>(null)
     const [message, setMessage] = useState<string | null>(null)
+    const [checking, setChecking] = useState<number | null>(null)
 
     const formFor = (provider: AdminBillingProvider): ProviderForm => forms[provider.id] || {
         enabled: provider.enabled,
@@ -48,6 +49,19 @@ const BillingSettings = () => {
         }
     }
 
+    const checkHealth = async (provider: AdminBillingProvider) => {
+        setChecking(provider.id)
+        setMessage(null)
+        try {
+            const response = await apiCheckBillingProviderHealth(provider.id)
+            setMessage(response.health.reachable ? t('billingAdmin.healthReachable') : t('billingAdmin.healthUnreachable'))
+        } catch {
+            setMessage(t('billingAdmin.healthError'))
+        } finally {
+            setChecking(null)
+        }
+    }
+
     if (isLoading) return <div className="flex justify-center py-16"><Spinner /></div>
     if (error) return <AdaptiveCard>{t('billingAdmin.loadError')}</AdaptiveCard>
 
@@ -62,7 +76,7 @@ const BillingSettings = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {fieldNames.map((field) => <label key={field} className="text-sm"><span className="mb-1 block">{t(`billingAdmin.fields.${field}`)}</span><Input type={field.includes('secret') ? 'password' : 'text'} value={String(form[field] || '')} onChange={(event) => updateField(provider, field, event.target.value)} /></label>)}
                 </div>
-                <div className="mt-5"><Button variant="solid" loading={saving === provider.id} onClick={() => save(provider)}>{t('billingAdmin.save')}</Button></div>
+                <div className="mt-5 flex gap-3"><Button variant="solid" loading={saving === provider.id} onClick={() => save(provider)}>{t('billingAdmin.save')}</Button><Button loading={checking === provider.id} onClick={() => checkHealth(provider)}>{t('billingAdmin.testConnection')}</Button></div>
             </AdaptiveCard>
         })}
         <AdaptiveCard><h4>{t('billingAdmin.plans')}</h4><ul className="mt-3 space-y-2">{data?.plans.map((plan) => <li key={plan.id}>{plan.key} · {plan.currency} · {plan.prices.map((price) => `${price.interval}: ${price.amount_minor}`).join(', ')}</li>)}</ul></AdaptiveCard>
