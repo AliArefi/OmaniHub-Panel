@@ -6,6 +6,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import { TbMessageCircleCheck } from 'react-icons/tb'
 import type { GetSettingsNotificationResponse } from '../types'
 import { apiGetSettingsNotification } from '@/services/AccontsService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type EmailNotificationFields =
     | 'newsAndUpdate'
@@ -14,54 +15,55 @@ type EmailNotificationFields =
     | 'followUpReminder'
 
 const emailNotificationOption: {
-    label: string
+    labelKey: string
     value: EmailNotificationFields
-    desc: string
+    descKey: string
 }[] = [{
-    label: 'الأخبار والتحديثات',
+    labelKey: 'profile.notifications.news',
     value: 'newsAndUpdate',
-    desc: 'أخبار جديدة حول المنتج وتحديثات الميزات',
+    descKey: 'profile.notifications.newsHint',
 },
 {
-    label: 'النصائح والدروس التعليمية',
+    labelKey: 'profile.notifications.tips',
     value: 'tipsAndTutorial',
-    desc: 'نصائح وحيل لزيادة الكفاءة والإنتاجية',
+    descKey: 'profile.notifications.tipsHint',
 },
 {
-    label: 'العروض والتخفيضات',
+    labelKey: 'profile.notifications.offers',
     value: 'offerAndPromotion',
-    desc: 'إشعارات حول أسعار المنتجات وأحدث التخفيضات',
+    descKey: 'profile.notifications.offersHint',
 },
 {
-    label: 'تذكير المتابعة',
+    labelKey: 'profile.notifications.followUp',
     value: 'followUpReminder',
-    desc: 'استلام إشعارات لجميع التذكيرات التي تم إنشاؤها',
+    descKey: 'profile.notifications.followUpHint',
 }
     ]
 
 const notifyMeOption: {
-    label: string
+    labelKey: string
     value: string
-    desc: string
+    descKey: string
 }[] = [
         {
-            label: 'جميع الرسائل الجديدة',
+            labelKey: 'profile.notifications.allMessages',
             value: 'allNewMessage',
-            desc: 'إرسال إشعار إلى القناة لكل رسالة جديدة',
+            descKey: 'profile.notifications.allMessagesHint',
         },
         {
-            label: 'الإشارات فقط',
+            labelKey: 'profile.notifications.mentions',
             value: 'mentionsOnly',
-            desc: 'التنبيه في القناة فقط عندما يقوم شخص ما بالإشارة إليّ في رسالة',
+            descKey: 'profile.notifications.mentionsHint',
         },
         {
-            label: 'لا شيء',
+            labelKey: 'profile.notifications.nothing',
             value: 'nothing',
-            desc: 'لا ترسل لي أي إشعارات',
+            descKey: 'profile.notifications.nothingHint',
         }
     ]
 
 const SettingsNotification = () => {
+    const { t } = useTranslation()
     const {
         data = {
             email: [],
@@ -122,12 +124,12 @@ const SettingsNotification = () => {
 
     return (
         <div>
-            <h4>الإشعارات</h4>
+            <h4>{t('profile.notifications.title')}</h4>
             <div className="mt-2">
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>تفعيل إشعارات سطح المكتب</h5>
-                        <p>حدد ما إذا كنت ترغب في استلام إشعارات للرسائل والتحديثات الجديدة</p>
+                        <h5>{t('profile.notifications.desktop')}</h5>
+                        <p>{t('profile.notifications.desktopHint')}</p>
                     </div>
                     <div>
                         <Switcher
@@ -138,8 +140,8 @@ const SettingsNotification = () => {
                 </div>
                 <div className="flex items-center justify-between py-6 border-b border-gray-200 dark:border-gray-600">
                     <div>
-                        <h5>تفعيل شارة الرسائل غير المقروءة</h5>
-                        <p>عرض مؤشر أحمر على أيقونة الإشعارات عند وجود رسائل غير مقروءة</p>
+                        <h5>{t('profile.notifications.unread')}</h5>
+                        <p>{t('profile.notifications.unreadHint')}</p>
                     </div>
                     <div>
                         <Switcher
@@ -149,7 +151,7 @@ const SettingsNotification = () => {
                     </div>
                 </div>
                 <div className="py-6 border-b border-gray-200 dark:border-gray-600">
-                    <h5>أعلمني عن</h5>
+                    <h5>{t('profile.notifications.notifyAbout')}</h5>
                     <div className="mt-4">
                         <Radio.Group
                             vertical
@@ -167,8 +169,8 @@ const SettingsNotification = () => {
                                             <TbMessageCircleCheck className="text-lg" />
                                         </div>
                                         <div>
-                                            <h6>{option.label}</h6>
-                                            <p>{option.desc}</p>
+                                            <h6>{t(option.labelKey)}</h6>
+                                            <p>{t(option.descKey)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -178,8 +180,8 @@ const SettingsNotification = () => {
                 </div>
                 <div className="flex items-center justify-between py-6">
                     <div>
-                        <h5>إشعارات البريد الإلكتروني</h5>
-                        <p>يمكن لـ Substance إرسال بريد إلكتروني إليك لكل رسالة مباشرة جديدة</p>
+                        <h5>{t('profile.notifications.email')}</h5>
+                        <p>{t('profile.notifications.emailHint')}</p>
                     </div>
                     <div>
                         <Switcher
@@ -200,8 +202,8 @@ const SettingsNotification = () => {
                                 <Checkbox value={option.value} />
                             </div>
                             <div>
-                                <h6>{option.label}</h6>
-                                <p>{option.desc}</p>
+                                <h6>{t(option.labelKey)}</h6>
+                                <p>{t(option.descKey)}</p>
                             </div>
                         </div>
                     ))}
