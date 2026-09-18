@@ -2,8 +2,10 @@ import { AbbreviateNumber, IconText } from "@/components/shared";
 import { Button, Card, Progress } from "@/components/ui";
 import { MdOutlineElectricBolt } from "react-icons/md";
 import { useNavigate } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 export default function Home() {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const handleCreate = () => {
         navigate('/create-center')
@@ -17,14 +19,13 @@ export default function Home() {
                         className="text-xl text-primary-deep font-semibold"
                         icon={<MdOutlineElectricBolt className="text-xl" />}
                     >
-                        أنشئ حجرتك واربح أكثر
+                        {t('home.title')}
                     </IconText>
                     <p className="text-base mt-3 mr-2">
-                        خدماتنا الإعلانية الشاملة تصنع حضورك الرقمی وتضاعف وصولك إلى جمهورك المستهدف.
-                        نحو إبداعٍ مؤثر، نتائج قابلة للقیاس، ونموٍ مستدام لعلامتك التجارية.
+                        {t('home.description')}
                     </p>
                     <div className="mt-2 flex items-center justify-end">
-                        <Button size="sm" variant="solid" onClick={handleCreate}>إنشاء مركز خدمة</Button>
+                        <Button size="sm" variant="solid" onClick={handleCreate}>{t('home.createCenter')}</Button>
                     </div>
                 </Card>
             </div>
@@ -32,8 +33,8 @@ export default function Home() {
             <div>
                 <Card>
                     <div className="flex items-center justify-between mb-4">
-                        <h4>إكمال الملف الشخصي</h4>
-                        <Button variant="plain" size="xs">أكمل حسابك</Button>
+                        <h4>{t('home.completeProfile')}</h4>
+                        <Button variant="plain" size="xs">{t('home.completeAccount')}</Button>
                     </div>
                     <div className="flex items-center justify-between mt-4">
                         <div className="flex flex-col">
@@ -50,7 +51,7 @@ export default function Home() {
                                 </span>
                             </h2>
                             <div className="mt-1">
-                                يرجى إكمال ملفك الشخصي لتحسين الأداء
+                                {t('home.profileHint')}
                             </div>
                         </div>
                         <div>

@@ -378,7 +378,7 @@ export const AgencyServicesStep = ({
 
     const submitRecommendation = async () => {
         if (!newHojraData?.id || !recommendation.name.trim() || !recommendation.body.trim() || Number(recommendation.estimate_time) <= 0 || (recommendation.pricing_type === 'fixed' && recommendation.price.trim() === '')) {
-            toast.push(<Notification type="danger">يرجى تعبئة جميع الحقول المطلوبة.</Notification>)
+            toast.push(<Notification type="danger">{t('center.services.recommendation.required')}</Notification>)
             return
         }
         setRecommendSaving(true)
@@ -386,10 +386,10 @@ export const AgencyServicesStep = ({
             await apiRecommendAgencyService({ ...recommendation, agency_id: newHojraData.id, estimate_time: Number(recommendation.estimate_time), price: recommendation.pricing_type === 'fixed' ? Number(recommendation.price) : null })
             setRecommendOpen(false)
             setRecommendation({ name: '', body: '', estimate_time: '', duration_unit: 'minute', pricing_type: 'fixed', price: '' })
-            toast.push(<Notification type="success">تم إرسال الخدمة للمراجعة ولن تظهر قبل موافقة الإدارة.</Notification>)
+            toast.push(<Notification type="success">{t('center.services.recommendation.sent')}</Notification>)
         } catch (error: unknown) {
             const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-            toast.push(<Notification type="danger">{message || 'تعذر إرسال الاقتراح.'}</Notification>)
+            toast.push(<Notification type="danger">{message || t('center.services.recommendation.sendError')}</Notification>)
         } finally { setRecommendSaving(false) }
     }
 
@@ -732,8 +732,8 @@ export const AgencyServicesStep = ({
                 ) : viewMode === 'picker' ? (
                     <div className="space-y-4">
                         <div className="flex flex-col gap-3 md:flex-row">
-                            <Input value={searchQuery} placeholder="ابحث عن خدمة" onChange={(event) => setSearchQuery(event.target.value)} />
-                            <Button variant="solid" onClick={() => setRecommendOpen(true)}>اقتراح خدمة جديدة</Button>
+                            <Input value={searchQuery} placeholder={t('center.services.recommendation.search')} onChange={(event) => setSearchQuery(event.target.value)} />
+                            <Button variant="solid" onClick={() => setRecommendOpen(true)}>{t('center.services.recommendation.open')}</Button>
                         </div>
                         <div className="grid gap-3">
                             {filteredCatalog.map((catalogItem) => {
@@ -1247,17 +1247,17 @@ export const AgencyServicesStep = ({
                 )}
             </div>
             <Dialog isOpen={recommendOpen} className="max-w-3xl" onClose={() => setRecommendOpen(false)}>
-                <div className="space-y-4" dir="rtl">
-                    <h3>اقتراح خدمة جديدة</h3>
+                <div className="space-y-4">
+                    <h3>{t('center.services.recommendation.title')}</h3>
                     <div className="grid gap-4 md:grid-cols-2">
-                        <FormItem label="اسم الخدمة *"><Input value={recommendation.name} onChange={(e) => setRecommendation((v) => ({ ...v, name: e.target.value }))} /></FormItem>
-                        <FormItem label="المدة *"><Input inputMode="numeric" value={recommendation.estimate_time} onChange={(e) => setRecommendation((v) => ({ ...v, estimate_time: extractDigits(e.target.value) }))} /></FormItem>
-                        <FormItem label="وحدة المدة"><Select options={durationUnitOptionsLocalized} value={getDurationUnitOption(recommendation.duration_unit)} onChange={(option) => setRecommendation((v) => ({ ...v, duration_unit: (option?.value as DurationUnit) ?? 'minute' }))} /></FormItem>
-                        <FormItem label="نوع السعر"><Select options={pricingOptionsLocalized.map((option) => ({ value: option.value, label: option.label }))} value={getPricingOption(recommendation.pricing_type)} onChange={(option) => setRecommendation((v) => ({ ...v, pricing_type: pricingOptionsLocalized.find((item) => item.value === option?.value)?.pricingType ?? 'fixed', price: '' }))} /></FormItem>
-                        <FormItem label="السعر"><Input disabled={recommendation.pricing_type !== 'fixed'} inputMode="numeric" value={recommendation.price} onChange={(e) => setRecommendation((v) => ({ ...v, price: extractDigits(e.target.value) }))} /></FormItem>
+                        <FormItem label={t('center.services.recommendation.name')}><Input value={recommendation.name} onChange={(e) => setRecommendation((v) => ({ ...v, name: e.target.value }))} /></FormItem>
+                        <FormItem label={t('center.services.recommendation.duration')}><Input inputMode="numeric" value={recommendation.estimate_time} onChange={(e) => setRecommendation((v) => ({ ...v, estimate_time: extractDigits(e.target.value) }))} /></FormItem>
+                        <FormItem label={t('center.services.recommendation.durationUnit')}><Select options={durationUnitOptionsLocalized} value={getDurationUnitOption(recommendation.duration_unit)} onChange={(option) => setRecommendation((v) => ({ ...v, duration_unit: (option?.value as DurationUnit) ?? 'minute' }))} /></FormItem>
+                        <FormItem label={t('center.services.recommendation.pricingType')}><Select options={pricingOptionsLocalized.map((option) => ({ value: option.value, label: option.label }))} value={getPricingOption(recommendation.pricing_type)} onChange={(option) => setRecommendation((v) => ({ ...v, pricing_type: pricingOptionsLocalized.find((item) => item.value === option?.value)?.pricingType ?? 'fixed', price: '' }))} /></FormItem>
+                        <FormItem label={t('center.services.recommendation.price')}><Input disabled={recommendation.pricing_type !== 'fixed'} inputMode="numeric" value={recommendation.price} onChange={(e) => setRecommendation((v) => ({ ...v, price: extractDigits(e.target.value) }))} /></FormItem>
                     </div>
-                    <FormItem label="وصف الخدمة *"><Input textArea rows={4} value={recommendation.body} onChange={(e) => setRecommendation((v) => ({ ...v, body: e.target.value }))} /></FormItem>
-                    <div className="flex justify-end gap-2"><Button onClick={() => setRecommendOpen(false)}>إلغاء</Button><Button loading={recommendSaving} variant="solid" onClick={submitRecommendation}>إرسال للمراجعة</Button></div>
+                    <FormItem label={t('center.services.recommendation.description')}><Input textArea rows={4} value={recommendation.body} onChange={(e) => setRecommendation((v) => ({ ...v, body: e.target.value }))} /></FormItem>
+                    <div className="flex justify-end gap-2"><Button onClick={() => setRecommendOpen(false)}>{t('center.services.recommendation.cancel')}</Button><Button loading={recommendSaving} variant="solid" onClick={submitRecommendation}>{t('center.services.recommendation.submit')}</Button></div>
                 </div>
             </Dialog>
         </Card>

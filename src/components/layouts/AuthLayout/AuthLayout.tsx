@@ -1,6 +1,7 @@
 import { useMemo, lazy } from 'react'
 import type { CommonProps } from '@/@types/common'
 import type { LazyExoticComponent, JSX } from 'react'
+import LanguageSelector from '@/components/template/LanguageSelector'
 
 type LayoutType = 'simple' | 'split' | 'side'
 
@@ -22,7 +23,14 @@ const AuthLayout = ({ children }: CommonProps) => {
         return layouts[currentLayoutType]
     }, [])
 
-    return <Layout>{children}</Layout>
+    return (
+        <div className="relative h-full">
+            <div className="absolute end-4 top-4 z-10">
+                <LanguageSelector hoverable={false} />
+            </div>
+            <Layout>{children}</Layout>
+        </div>
+    )
 }
 
 export default AuthLayout

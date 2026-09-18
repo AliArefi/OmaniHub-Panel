@@ -9,6 +9,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
 import { useSessionUser } from '@/store/authStore'
 import useFilteredNavigationConfig from '@/utils/hooks/useFilteredNavigationConfig'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const VerticalMenuContent = lazy(
     () => import('@/components/template/VerticalMenuContent'),
@@ -29,6 +30,7 @@ const MobileNavToggle = withHeaderItem<
 const MobileNav = ({
     translationSetup = appConfig.activeNavTranslation,
 }: MobileNavProps) => {
+    const { t } = useTranslation()
     const [isOpen, setIsOpen] = useState(false)
 
     const handleOpenDrawer = () => {
@@ -51,7 +53,7 @@ const MobileNav = ({
                 <MobileNavToggle toggled={isOpen} />
             </div>
             <Drawer
-                title="قائمة الوصول"
+                title={t('shared.mobileNav.title')}
                 isOpen={isOpen}
                 bodyClass={classNames('p-0')}
                 width={330}

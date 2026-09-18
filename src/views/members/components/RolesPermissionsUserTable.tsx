@@ -25,8 +25,8 @@ type RolesPermissionsUserTableProps = {
 }
 
 const statusColor: Record<string, string> = {
-    'نشط': 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
-    'محظور': 'bg-red-200 dark:bg-red-200 text-gray-900 dark:text-gray-900',
+    active: 'bg-emerald-200 dark:bg-emerald-200 text-gray-900 dark:text-gray-900',
+    blocked: 'bg-red-200 dark:bg-red-200 text-gray-900 dark:text-gray-900',
 }
 
 const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
@@ -123,7 +123,7 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                     return (
                         <div className="flex items-center">
                             <Tag className={statusColor[row.status]}>
-                                <span className="capitalize">{row.status}</span>
+                                <span>{t(`memberManagement.${row.status}`)}</span>
                             </Tag>
                         </div>
                     )

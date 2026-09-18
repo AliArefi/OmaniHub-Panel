@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Download, Share, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type InstallPromptEvent = Event & {
     prompt: () => Promise<void>
@@ -24,6 +25,7 @@ function canPromptNow() {
 }
 
 export default function InstallAppPrompt() {
+    const { t } = useTranslation()
     const [installPrompt, setInstallPrompt] =
         useState<InstallPromptEvent | null>(null)
     const [visible, setVisible] = useState(false)
@@ -95,15 +97,15 @@ export default function InstallAppPrompt() {
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="font-semibold text-gray-900 dark:text-gray-100">
-                        تثبيت تطبيق عماني هاب
+                        {t('shared.install.title')}
                     </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        افتح اللوحة بسرعة من الشاشة الرئيسية.
+                        {t('shared.install.description')}
                     </p>
                     {showIosHelp ? (
                         <p className="mt-3 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
                             <Share aria-hidden className="shrink-0" size={18} />
-                            اضغط زر المشاركة، ثم اختر إضافة إلى الشاشة الرئيسية.
+                            {t('shared.install.iosHelp')}
                         </p>
                     ) : null}
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -119,19 +121,19 @@ export default function InstallAppPrompt() {
                             }
                             onClick={() => void install()}
                         >
-                            {isIos ? 'طريقة التثبيت' : 'تثبيت'}
+                            {isIos ? t('shared.install.howToInstall') : t('shared.install.install')}
                         </Button>
                         <Button
                             size="sm"
                             variant="plain"
                             onClick={() => postpone(CTA_DISMISS_MS)}
                         >
-                            لاحقاً
+                            {t('shared.install.later')}
                         </Button>
                     </div>
                 </div>
                 <button
-                    aria-label="إغلاق"
+                    aria-label={t('shared.install.close')}
                     className="rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
                     type="button"
                     onClick={() => postpone(CTA_DISMISS_MS)}

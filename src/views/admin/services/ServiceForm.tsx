@@ -23,25 +23,7 @@ import {
     apiUpdateAdminService,
 } from '@/services/admin/AdminServicesService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
-
-const STATUS_OPTIONS = [
-    { label: 'Pending', value: 'pending' },
-    { label: 'Draft', value: 'draft' },
-    { label: 'Published', value: 'published' },
-]
-
-const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
-    { name: 'name', label: 'Name', group: 'content' },
-    { name: 'title', label: 'Title', group: 'content' },
-    { name: 'body', label: 'Body', group: 'content', type: 'richtext' },
-    { name: 'body2', label: 'Body 2', group: 'content', type: 'richtext' },
-    { name: 'h1', label: 'H1', group: 'seo', help: 'Use {city} for city pages.' },
-    { name: 'h2', label: 'H2', group: 'seo' },
-    { name: 'meta_title', label: 'Meta title', group: 'seo' },
-    { name: 'meta_description', label: 'Meta description', group: 'seo', type: 'textarea' },
-    { name: 'url_pattern', label: 'URL pattern', group: 'seo', help: 'Example: /occasion-makeup/' },
-    { name: 'city_url_pattern', label: 'City URL pattern', group: 'seo', help: 'Required format: /service-slug/{city}/' }
-]
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type ServiceFormValues = {
     title: string
@@ -59,10 +41,28 @@ type ServiceFormValues = {
 }
 
 const ServiceForm = () => {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const { slug } = useParams<{ slug: string }>()
     const isEditing = Boolean(slug)
     const [submitting, setSubmitting] = useState(false)
+    const statusOptions = [
+        { label: t('adminServiceForm.status.pending'), value: 'pending' },
+        { label: t('adminServiceForm.status.draft'), value: 'draft' },
+        { label: t('adminServiceForm.status.published'), value: 'published' },
+    ]
+    const localizedFields: LocalizedFieldDescriptor[] = [
+        { name: 'name', label: t('adminServiceForm.fields.name'), group: 'content' },
+        { name: 'title', label: t('adminServiceForm.fields.title'), group: 'content' },
+        { name: 'body', label: t('adminServiceForm.fields.body'), group: 'content', type: 'richtext' },
+        { name: 'body2', label: t('adminServiceForm.fields.body2'), group: 'content', type: 'richtext' },
+        { name: 'h1', label: 'H1', group: 'seo', help: t('adminServiceForm.help.cityToken') },
+        { name: 'h2', label: 'H2', group: 'seo' },
+        { name: 'meta_title', label: t('adminServiceForm.fields.metaTitle'), group: 'seo' },
+        { name: 'meta_description', label: t('adminServiceForm.fields.metaDescription'), group: 'seo', type: 'textarea' },
+        { name: 'url_pattern', label: t('adminServiceForm.fields.urlPattern'), group: 'seo', help: t('adminServiceForm.help.urlPattern') },
+        { name: 'city_url_pattern', label: t('adminServiceForm.fields.cityUrlPattern'), group: 'seo', help: t('adminServiceForm.help.cityUrlPattern') },
+    ]
 
     const { data: existing, isLoading: isExistingLoading } = useSWR(
         isEditing ? ['admin-service', slug] : null,
@@ -146,15 +146,15 @@ const ServiceForm = () => {
             }
 
             toast.push(
-                <Notification type="success" title="Saved">
-                    Service saved successfully.
+                <Notification type="success" title={t('adminServiceForm.savedTitle')}>
+                    {t('adminServiceForm.saved')}
                 </Notification>,
             )
             navigate('/admin/services')
         } catch {
             toast.push(
-                <Notification type="danger" title="Failed to save">
-                    Please check the form for errors.
+                <Notification type="danger" title={t('adminServiceForm.saveErrorTitle')}>
+                    {t('adminServiceForm.saveError')}
                 </Notification>,
             )
         } finally {
@@ -170,18 +170,18 @@ const ServiceForm = () => {
     const overviewForm = (
         <AdaptiveCard>
             <h3 className="mb-6">
-                {isEditing ? 'Edit Service' : 'خدمة جديدة'}
+                {isEditing ? t('adminServiceForm.editTitle') : t('adminServiceForm.createTitle')}
             </h3>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <FormItem label="Slug">
+                    <FormItem label={t('adminServiceForm.fields.slug')}>
                         <Controller
                             name="slug"
                             control={control}
                             render={({ field }) => <Input {...field} />}
                         />
                     </FormItem>
-                    <FormItem label="Order number">
+                    <FormItem label={t('adminServiceForm.fields.orderNumber')}>
                         <Controller
                             name="order_number"
                             control={control}
@@ -196,14 +196,14 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Status">
+                    <FormItem label={t('adminServiceForm.fields.status')}>
                         <Controller
                             name="status"
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    options={STATUS_OPTIONS}
-                                    value={STATUS_OPTIONS.find(
+                                    options={statusOptions}
+                                    value={statusOptions.find(
                                         (o) => o.value === field.value,
                                     )}
                                     onChange={(option) =>
@@ -213,7 +213,7 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Parent service">
+                    <FormItem label={t('adminServiceForm.fields.parentService')}>
                         <Controller
                             name="service_id"
                             control={control}
@@ -231,7 +231,7 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Icon">
+                    <FormItem label={t('adminServiceForm.fields.icon')}>
                         <Controller
                             name="icon"
                             control={control}
@@ -244,7 +244,7 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Image">
+                    <FormItem label={t('adminServiceForm.fields.image')}>
                         <Controller
                             name="image"
                             control={control}
@@ -257,7 +257,7 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Featured">
+                    <FormItem label={t('adminServiceForm.fields.featured')}>
                         <Controller
                             name="featured"
                             control={control}
@@ -266,7 +266,7 @@ const ServiceForm = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Use as Filter">
+                    <FormItem label={t('adminServiceForm.fields.useAsFilter')}>
                         <Controller
                             name="use_as_filter"
                             control={control}
@@ -278,7 +278,7 @@ const ServiceForm = () => {
                 </div>
 
                 <LocalizedFieldsTabs
-                    fields={LOCALIZED_FIELDS}
+                    fields={localizedFields}
                     requiredFields={['name', 'title', 'body']}
                     control={control}
                 />
@@ -289,10 +289,10 @@ const ServiceForm = () => {
                         variant="plain"
                         onClick={() => navigate('/admin/services')}
                     >
-                        Cancel
+                        {t('adminServiceForm.cancel')}
                     </Button>
                     <Button type="submit" variant="solid" loading={submitting}>
-                        Save
+                        {t('adminServiceForm.save')}
                     </Button>
                 </div>
             </Form>
@@ -300,7 +300,7 @@ const ServiceForm = () => {
     )
 
     if (isEditing && isExistingLoading) {
-        return <AdminEditLoading label="Loading service..." />
+        return <AdminEditLoading label={t('adminServiceForm.loading')} />
     }
 
     if (!isEditing) {
@@ -311,8 +311,8 @@ const ServiceForm = () => {
         <Container>
             <Tabs defaultValue="overview">
                 <Tabs.TabList>
-                    <Tabs.TabNav value="overview">Overview</Tabs.TabNav>
-                    <Tabs.TabNav value="faqs">FAQs</Tabs.TabNav>
+                    <Tabs.TabNav value="overview">{t('adminServiceForm.overview')}</Tabs.TabNav>
+                    <Tabs.TabNav value="faqs">{t('adminServiceForm.faqs')}</Tabs.TabNav>
                 </Tabs.TabList>
                 <Tabs.TabContent value="overview">{overviewForm}</Tabs.TabContent>
                 <Tabs.TabContent value="faqs">

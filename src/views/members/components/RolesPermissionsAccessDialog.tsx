@@ -145,8 +145,8 @@ const RolesPermissionsAccessDialog = ({
                                     shape="round"
                                 />
                                 <div>
-                                    <h6 className="font-bold">{module.name}</h6>
-                                    <span>{module.description}</span>
+                                    <h6 className="font-bold">{t(module.nameKey)}</h6>
+                                    <span>{t(module.descriptionKey)}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -193,7 +193,7 @@ const RolesPermissionsAccessDialog = ({
                                                             onSegmentItemClick
                                                         }
                                                     >
-                                                        {access.label}
+                                                        {t(`memberAccess.actions.${access.value}`)}
                                                     </Button>
                                                 )
                                             }}

@@ -183,7 +183,7 @@ export const ViewCenterTabAssignServices = () => {
             const createdMember = {
                 id: response.data.id,
                 name: newMemberName.trim(),
-                position: newMemberPosition || 'Team Member',
+                position: newMemberPosition || t('center.members.defaultPosition'),
                 image: newMemberImagePreview,
                 agencyServiceIds: [initialService.id],
             }
@@ -892,7 +892,7 @@ export const ViewCenterTabAssignServices = () => {
                                                                         )
                                                                     }
                                                                 >
-                                                                    إضافة فترة
+                                                                    {t('center.assignments.addTimeSlot')}
                                                                 </Button>
                                                             </div>
                                                         )}
@@ -913,7 +913,7 @@ export const ViewCenterTabAssignServices = () => {
                         loading={isSavingSchedules}
                         onClick={handleNext}
                     >
-                        تعدیل
+                        {t('center.members.saveChanges')}
                     </Button>
                 </div>
             </Card>

@@ -4,22 +4,17 @@ import Dropdown from '@/components/ui/Dropdown'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useLocaleStore } from '@/store/localeStore'
-import { useThemeStore } from '@/store/themeStore'
+import { localeMetadata, supportedLocales } from '@/locales'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { HiCheck } from 'react-icons/hi'
 import type { CommonProps } from '@/@types/common'
-import type { Direction } from '@/@types/theme'
-
-const languageList = [
-    { label: 'العربية', value: 'ar', flag: 'OM', direction: 'rtl' as Direction },
-    { label: 'English', value: 'en', flag: 'US', direction: 'ltr' as Direction },
-]
 
 const _LanguageSelector = ({ className }: CommonProps) => {
+    const { t } = useTranslation()
     const { currentLang: locale, setLang } = useLocaleStore((state) => state)
-    const setDirection = useThemeStore((state) => state.setDirection)
 
     const selectLangFlag = useMemo(() => {
-        return languageList.find((lang) => lang.value === locale)?.flag
+        return localeMetadata[locale]?.flag
     }, [locale])
 
     const selectedLanguage = (
@@ -34,33 +29,29 @@ const _LanguageSelector = ({ className }: CommonProps) => {
 
     return (
         <Dropdown renderTitle={selectedLanguage} placement="bottom-end">
-            {languageList.map((lang) => (
+            {supportedLocales.map((language) => {
+                const metadata = localeMetadata[language]
+                return (
                 <Dropdown.Item
-                    key={lang.label}
+                    key={language}
                     className="justify-between"
-                    eventKey={lang.label}
-                    onClick={() => {
-                        setLang(lang.value)
-                        // Content language and UI direction are decoupled
-                        // everywhere else in the app, but the language picker
-                        // is the one place a human is explicitly choosing a
-                        // language — switching direction to match is expected.
-                        setDirection(lang.direction)
-                    }}
+                    eventKey={language}
+                    onClick={() => setLang(language)}
                 >
                     <span className="flex items-center">
                         <Avatar
                             size={18}
                             shape="circle"
-                            src={`/img/countries/${lang.flag}.png`}
+                            src={`/img/countries/${metadata.flag}.png`}
                         />
-                        <span className="ltr:ml-2 rtl:mr-2">{lang.label}</span>
+                        <span className="ltr:ml-2 rtl:mr-2">{t(metadata.labelKey)}</span>
                     </span>
-                    {locale === lang.value && (
+                    {locale === language && (
                         <HiCheck className="text-emerald-500 text-lg" />
                     )}
                 </Dropdown.Item>
-            ))}
+                )
+            })}
         </Dropdown>
     )
 }

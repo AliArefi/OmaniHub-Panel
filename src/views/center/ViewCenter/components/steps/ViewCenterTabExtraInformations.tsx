@@ -426,7 +426,7 @@ export const ViewCenterTabExtraInformations = () => {
 
             toast.push(
                 <Notification type="success">
-                    تم تحديث المعلومات بنجاح
+                    {t('viewCenterExtra.saved')}
                 </Notification>,
             )
 
@@ -471,7 +471,7 @@ export const ViewCenterTabExtraInformations = () => {
 
             toast.push(
                 <Notification type="success">
-                    {'تم حفظ التغييرات'}
+                    {t('viewCenterExtra.changesSaved')}
                 </Notification>,
             )
         } catch (err: unknown) {
@@ -479,7 +479,7 @@ export const ViewCenterTabExtraInformations = () => {
                 <Notification type="danger">
                     {getApiErrorMessage(err) ||
                         (err instanceof Error ? err.message : undefined) ||
-                        'خطأ في الحفظ'}
+                        t('viewCenterExtra.saveError')}
                 </Notification>,
             )
         }

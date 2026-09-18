@@ -1,95 +1,80 @@
 export const accessModules = [
     {
         id: 'users',
-        name: 'مدیریت کاربران',
-        description: 'کنترل دسترسی برای مدیریت کاربران',
+        nameKey: 'memberAccess.modules.users.name',
+        descriptionKey: 'memberAccess.modules.users.description',
         accessor: [
             {
-                label: 'خواندن',
                 value: 'read',
             },
             {
-                label: 'نوشتن',
                 value: 'write',
             },
             {
-                label: 'حذف',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'products',
-        name: 'مجوز محصولات',
-        description: 'کنترل دسترسی برای عملیات محصولات',
+        nameKey: 'memberAccess.modules.products.name',
+        descriptionKey: 'memberAccess.modules.products.description',
         accessor: [
             {
-                label: 'خواندن',
                 value: 'read',
             },
             {
-                label: 'نوشتن',
                 value: 'write',
             },
             {
-                label: 'حذف',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'configurations',
-        name: 'تنظیمات سیستم',
-        description: 'کنترل دسترسی برای تنظیمات سیستم',
+        nameKey: 'memberAccess.modules.configurations.name',
+        descriptionKey: 'memberAccess.modules.configurations.description',
         accessor: [
             {
-                label: 'خواندن',
                 value: 'read',
             },
             {
-                label: 'نوشتن',
                 value: 'write',
             },
             {
-                label: 'حذف',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'files',
-        name: 'مدیریت فایل',
-        description: 'کنترل دسترسی برای مدیریت فایل',
+        nameKey: 'memberAccess.modules.files.name',
+        descriptionKey: 'memberAccess.modules.files.description',
         accessor: [
             {
-                label: 'خواندن',
                 value: 'read',
             },
             {
-                label: 'نوشتن',
                 value: 'write',
             },
             {
-                label: 'حذف',
                 value: 'delete',
             },
         ],
     },
     {
         id: 'reports',
-        name: 'گزارشات',
-        description: 'کنترل دسترسی برای ایجاد گزارشات',
+        nameKey: 'memberAccess.modules.reports.name',
+        descriptionKey: 'memberAccess.modules.reports.description',
         accessor: [
             {
-                label: 'خواندن',
                 value: 'read',
             },
             {
-                label: 'نوشتن',
                 value: 'write',
             },
             {
-                label: 'حذف',
                 value: 'delete',
             },
         ],

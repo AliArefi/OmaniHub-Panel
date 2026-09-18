@@ -36,7 +36,7 @@ const buildValidationSchema = (
             title: z
                 .string()
                 .min(1, { message: t('centerCreation.form.nameRequired') }),
-            service_id: z.any().nullable().optional(),
+    service_id: z.any().nullable(),
             about_text: z
                 .string()
                 .refine((val) => stripHtml(val).length > 0, {

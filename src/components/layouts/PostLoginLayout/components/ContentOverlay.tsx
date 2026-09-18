@@ -11,8 +11,10 @@ import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_CONTENT_OVERLAY } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
 import type { FooterPageContainerType } from '@/components/template/Footer'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const ContentOverlay = ({ children }: CommonProps) => {
+    const { t } = useTranslation()
     const { isSticky } = useScrollTop()
 
     const { larger, smaller } = useResponsive()
@@ -52,7 +54,7 @@ const ContentOverlay = ({ children }: CommonProps) => {
                                                 typeof header?.title ===
                                                     'string' && (
                                                     <h2 className="mb-2">
-                                                        {header.title}
+                                                        {t(header.title)}
                                                     </h2>
                                                 )}
                                             {header?.description && (

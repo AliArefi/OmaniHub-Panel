@@ -33,7 +33,7 @@ export const protectedRoutes: Routes = [
         meta: {
             pageContainerType: 'contained',
             header: {
-                title: 'انشاء حجرة جدیدة',
+                title: 'pageHeaders.newCenter',
                 contained: true,
             },
         },
@@ -46,7 +46,7 @@ export const protectedRoutes: Routes = [
         meta: {
             pageContainerType: 'contained',
             header: {
-                title: 'مشاهدة الحُجرة',
+                title: 'pageHeaders.viewCenter',
                 contained: true,
             },
         },
@@ -113,7 +113,7 @@ export const protectedRoutes: Routes = [
         meta: {
             pageContainerType: 'contained',
             header: {
-                title: 'تقويم العمل',
+                title: 'pageHeaders.workCalendar',
                 contained: true,
             },
         },

@@ -44,8 +44,16 @@
   },
   "shared": {
     "footer": { "copyright": "Copyright © {{year}} {{app}}. All rights reserved.", "terms": "Terms and conditions", "privacy": "Privacy policy" },
-    "userMenu": { "profile": "Profile", "chat": "Chat", "subscription": "Subscription", "unknown": "Unknown", "noEmail": "No email address", "signOut": "Sign out" }
+    "userMenu": { "profile": "Profile", "chat": "Chat", "subscription": "Subscription", "unknown": "Unknown", "noEmail": "No email address", "signOut": "Sign out" },
+    "install": { "title": "Install OmaniHub", "description": "Open the panel quickly from your home screen.", "iosHelp": "Tap Share, then choose Add to Home Screen.", "howToInstall": "How to install", "install": "Install", "later": "Later", "close": "Close" },
+    "mobileNav": { "title": "Navigation menu" }
   },
+  "languages": { "en": "English", "ar": "Arabic" },
+  "adminServiceForm": { "createTitle": "New service", "editTitle": "Edit service", "savedTitle": "Saved", "saved": "Service saved successfully.", "saveErrorTitle": "Unable to save", "saveError": "Check the form for errors.", "cancel": "Cancel", "save": "Save", "loading": "Loading service...", "overview": "Overview", "faqs": "FAQs", "status": { "pending": "Pending", "draft": "Draft", "published": "Published" }, "fields": { "name": "Name", "title": "Title", "body": "Body", "body2": "Body 2", "metaTitle": "Meta title", "metaDescription": "Meta description", "urlPattern": "URL pattern", "cityUrlPattern": "City URL pattern", "slug": "Slug", "orderNumber": "Order number", "status": "Status", "parentService": "Parent service", "icon": "Icon", "image": "Image", "featured": "Featured", "useAsFilter": "Use as filter" }, "help": { "cityToken": "Use {city} for city pages.", "urlPattern": "Example: /occasion-makeup/", "cityUrlPattern": "Required format: /service-slug/{city}/" } },
+  "cmsMedia": { "uploaded": "Media uploaded", "uploadFailed": "Upload failed", "uploadFailedHint": "Check the file type and size.", "deleted": "Media deleted", "detailsSaved": "Media details saved", "details": "Media details", "cancel": "Cancel", "saveDetails": "Save details", "featuredImage": "Featured image", "gallery": "Gallery", "attachments": "Attachments", "attachmentsHint": "Images and PDF files", "dropGallery": "Drop gallery images here", "galleryHint": "or click to browse · up to 20 images", "dropAttachments": "Drop attachments here", "imagesOnly": "Only image files are allowed.", "fields": { "alt": "Alternative text", "title": "Title", "caption": "Caption", "visibility": "Visibility" }, "visibility": { "public": "Public", "private": "Private", "adminOnly": "Admin only" } },
+  "home": { "title": "Create your center and grow more", "description": "Our comprehensive advertising services build your digital presence and expand your reach to your target audience.", "createCenter": "Create a service center", "completeProfile": "Complete your profile", "completeAccount": "Complete your account", "profileHint": "Complete your profile to improve performance" },
+  "pageHeaders": { "newCenter": "Create a new center", "viewCenter": "View center", "workCalendar": "Work calendar" },
+  "profileIntegration": { "title": "Integrations", "subtitle": "Improve your workflow with these integrations.", "learnMore": "Learn more", "overview": "Overview", "overviewText": "Integration details are provided by the selected service.", "features": "Key features", "featureOne": "Secure account connection", "featureTwo": "Streamlined workflow", "featureThree": "Reliable synchronization", "featureFour": "Controlled access", "confirm": "Confirm" },
   "center": {
     "wizard": {
       "back": "Back",
@@ -62,7 +70,8 @@
       "image": "Image",
       "service": "Service",
       "editTitle": "Edit member",
-      "saveChanges": "Save changes"
+      "saveChanges": "Save changes",
+      "defaultPosition": "Team member"
     },
     "assignments": {
       "title": "Assign services to members",
@@ -111,6 +120,7 @@
     },
     "services": {
       "title": "Services",
+      "recommendation": { "required": "Complete all required fields.", "sent": "The service was sent for review and will appear after approval.", "sendError": "Unable to send the recommendation.", "search": "Search for a service", "open": "Recommend a new service", "title": "Recommend a new service", "name": "Service name *", "duration": "Duration *", "durationUnit": "Duration unit", "pricingType": "Pricing type", "price": "Price", "description": "Service description *", "cancel": "Cancel", "submit": "Send for review" },
       "flow": {
         "title": "Service selection",
         "subtitle": "Switch between the new picker and the classic dropdown flow.",
@@ -259,6 +269,7 @@
   "viewCenterExtraValidation": { "invalidLatitude": "Latitude is invalid.", "invalidLongitude": "Longitude is invalid.", "invalidWebsite": "Website URL is invalid.", "addressTooLong": "Address is too long.", "invalidInstagram": "Instagram URL is invalid.", "invalidYouTube": "YouTube URL is invalid.", "invalidLinkedIn": "LinkedIn URL is invalid.", "invalidFacebook": "Facebook URL is invalid." },
   "memberManagement": { "title": "Member management", "search": "Search...", "status": "Status", "all": "All", "active": "Active", "blocked": "Blocked", "createRole": "Create role", "name": "Name", "lastOnline": "Last online", "role": "Role", "selected": "{{count}} users selected", "delete": "Delete", "deleteUsers": "Delete users", "deleteConfirm": "Are you sure you want to delete these users? This action cannot be undone." },
   "memberRoleDialog": { "editRole": "Edit role", "roleName": "Role name", "description": "Description", "access": "Access", "cancel": "Cancel", "update": "Update", "create": "Create" },
+  "memberAccess": { "actions": { "read": "Read", "write": "Write", "delete": "Delete" }, "modules": { "users": { "name": "User management", "description": "Access control for managing users" }, "products": { "name": "Product permissions", "description": "Access control for product operations" }, "configurations": { "name": "System settings", "description": "Access control for system configuration" }, "files": { "name": "File management", "description": "Access control for file operations" }, "reports": { "name": "Reports", "description": "Access control for report creation" } } },
     "plansFaq": { "title": "Frequently asked questions", "categories": { "subscription": "Subscription", "billing": "Billing and payments", "others": "Other" }, "questions": { "subscriptionHow": { "title": "How do I subscribe?", "content": "Choose a plan above and follow the on-screen checkout instructions." }, "subscriptionCancel": { "title": "Can I cancel my subscription?", "content": "Yes. You can cancel from your subscription area at any time. The cancellation takes effect at the end of the current billing period." }, "subscriptionChange": { "title": "Can I change my subscription plan?", "content": "You can choose another available plan from your subscription area. Upgrades are charged immediately and downgrades take effect at the next renewal." }, "subscriptionTrial": { "title": "Do you offer a free trial?", "content": "Any trial availability is shown on the selected plan before checkout." }, "subscriptionDiscounts": { "title": "Do you offer discounts?", "content": "Available discounts are displayed with the applicable plan or communicated by support." }, "billingMethods": { "title": "Which payment methods do you accept?", "content": "Available payment methods are shown securely in checkout and can vary by provider and location." }, "billingFailed": { "title": "What happens when a payment fails?", "content": "We record the payment result and show a retry option when the provider permits it." }, "billingUpdateDetails": { "title": "How do I update payment details?", "content": "Use the secure provider checkout when updating payment details is supported for your subscription." }, "billingRefund": { "title": "Will I receive a refund if I cancel?", "content": "Refund eligibility depends on the applicable plan and payment policy." }, "otherContact": { "title": "How can I contact support?", "content": "Contact the support team through the available support channels in your account." }, "otherAccount": { "title": "How can I change my account information?", "content": "Open your profile settings to update your account information." }, "otherSecurity": { "title": "Is my personal information secure?", "content": "We use appropriate technical and organizational safeguards to protect account information." } } },
   "profile": {
     "menu": { "profile": "Profile", "security": "Security", "mobileTitle": "Settings navigation" },

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
+import { localeMetadata } from '@/locales'
 import ImageUploadField from '@/components/admin/ImageUploadField'
 import Upload from '@/components/ui/Upload'
 import Avatar from '@/components/ui/Avatar'
@@ -30,19 +32,7 @@ import {
     type CmsMediaItem,
 } from '@/services/admin/AdminCmsService'
 
-const LOCALES: Array<{
-    key: CmsLocale
-    label: string
-    direction: 'rtl' | 'ltr'
-}> = [
-    { key: 'ar', label: 'العربية', direction: 'rtl' },
-    { key: 'en', label: 'English', direction: 'ltr' },
-]
-const VISIBILITY = [
-    { label: 'Public', value: 'public' },
-    { label: 'Private', value: 'private' },
-    { label: 'Admin only', value: 'admin_only' },
-]
+const CMS_LOCALES: CmsLocale[] = ['ar', 'en']
 
 type Props = {
     entryId: number
@@ -57,6 +47,7 @@ type MetadataForm = {
 }
 
 export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
+    const { t } = useTranslation()
     const [busy, setBusy] = useState(false)
     const [editing, setEditing] = useState<CmsMediaItem | null>(null)
     const [metadata, setMetadata] = useState<MetadataForm>({
@@ -75,12 +66,12 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
         setBusy(true)
         try {
             await apiUploadCmsMedia(entryId, locale, collection, files)
-            toast.push(<Notification type="success" title="Media uploaded" />)
+            toast.push(<Notification type="success" title={t('cmsMedia.uploaded')} />)
             await onChanged()
         } catch {
             toast.push(
-                <Notification type="danger" title="Upload failed">
-                    Check the file type and size.
+                <Notification type="danger" title={t('cmsMedia.uploadFailed')}>
+                    {t('cmsMedia.uploadFailedHint')}
                 </Notification>,
             )
         } finally {
@@ -93,7 +84,7 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
         try {
             await apiDeleteCmsMedia(entryId, item.id)
             await onChanged()
-            toast.push(<Notification type="success" title="Media deleted" />)
+            toast.push(<Notification type="success" title={t('cmsMedia.deleted')} />)
         } finally {
             setBusy(false)
         }
@@ -117,7 +108,7 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
             setEditing(null)
             await onChanged()
             toast.push(
-                <Notification type="success" title="Media details saved" />,
+                <Notification type="success" title={t('cmsMedia.detailsSaved')} />,
             )
         } finally {
             setBusy(false)
@@ -149,18 +140,18 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
         <>
             <Tabs defaultValue="ar">
                 <Tabs.TabList>
-                    {LOCALES.map((locale) => (
-                        <Tabs.TabNav key={locale.key} value={locale.key}>
-                            {locale.label}
+                    {CMS_LOCALES.map((locale) => (
+                        <Tabs.TabNav key={locale} value={locale}>
+                            {t(localeMetadata[locale].labelKey)}
                         </Tabs.TabNav>
                     ))}
                 </Tabs.TabList>
-                {LOCALES.map((locale) => (
+                {CMS_LOCALES.map((locale) => (
                     <LocaleMedia
-                        key={locale.key}
-                        locale={locale.key}
-                        direction={locale.direction}
-                        items={entry?.media?.[locale.key] ?? []}
+                        key={locale}
+                        locale={locale}
+                        direction={localeMetadata[locale].direction}
+                        items={entry?.media?.[locale] ?? []}
                         busy={busy}
                         upload={upload}
                         remove={remove}
@@ -175,8 +166,8 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
                 onClose={() => setEditing(null)}
                 onRequestClose={() => setEditing(null)}
             >
-                <h4 className="mb-5">Media details</h4>
-                <FormItem label="Alternative text">
+                <h4 className="mb-5">{t('cmsMedia.details')}</h4>
+                <FormItem label={t('cmsMedia.fields.alt')}>
                     <Input
                         value={metadata.alt}
                         onChange={(event) =>
@@ -187,7 +178,7 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
                         }
                     />
                 </FormItem>
-                <FormItem label="Title">
+                <FormItem label={t('cmsMedia.fields.title')}>
                     <Input
                         value={metadata.title}
                         onChange={(event) =>
@@ -198,7 +189,7 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
                         }
                     />
                 </FormItem>
-                <FormItem label="Caption">
+                <FormItem label={t('cmsMedia.fields.caption')}>
                     <Input
                         textArea
                         rows={3}
@@ -211,10 +202,18 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
                         }
                     />
                 </FormItem>
-                <FormItem label="Visibility">
+                <FormItem label={t('cmsMedia.fields.visibility')}>
                     <Select
-                        options={VISIBILITY}
-                        value={VISIBILITY.find(
+                        options={[
+                            { label: t('cmsMedia.visibility.public'), value: 'public' },
+                            { label: t('cmsMedia.visibility.private'), value: 'private' },
+                            { label: t('cmsMedia.visibility.adminOnly'), value: 'admin_only' },
+                        ]}
+                        value={[
+                            { label: t('cmsMedia.visibility.public'), value: 'public' },
+                            { label: t('cmsMedia.visibility.private'), value: 'private' },
+                            { label: t('cmsMedia.visibility.adminOnly'), value: 'admin_only' },
+                        ].find(
                             (option) => option.value === metadata.visibility,
                         )}
                         onChange={(option) =>
@@ -227,14 +226,14 @@ export default function CmsMediaManager({ entryId, entry, onChanged }: Props) {
                 </FormItem>
                 <div className="flex justify-end gap-2">
                     <Button variant="plain" onClick={() => setEditing(null)}>
-                        Cancel
+                        {t('cmsMedia.cancel')}
                     </Button>
                     <Button
                         variant="solid"
                         loading={busy}
                         onClick={() => void saveMetadata()}
                     >
-                        Save details
+                        {t('cmsMedia.saveDetails')}
                     </Button>
                 </div>
             </Dialog>
@@ -270,6 +269,7 @@ function LocaleMedia({
         offset: number,
     ) => Promise<void>
 }) {
+    const { t } = useTranslation()
     const [galleryUploadKey, setGalleryUploadKey] = useState(0)
     const [attachmentUploadKey, setAttachmentUploadKey] = useState(0)
     const featured = items.find((item) => item.collection === 'featured_image')
@@ -284,7 +284,7 @@ function LocaleMedia({
     const validateImage = (files: FileList | null) =>
         files &&
         Array.from(files).some((file) => !file.type.startsWith('image/'))
-            ? 'Only image files are allowed.'
+            ? t('cmsMedia.imagesOnly')
             : true
 
     return (
@@ -292,7 +292,7 @@ function LocaleMedia({
             <div dir={direction} className="space-y-6 pt-4">
                 <section>
                     <div className="mb-3 flex items-center justify-between">
-                        <h6>Featured image</h6>
+                        <h6>{t('cmsMedia.featuredImage')}</h6>
                         {featured && (
                             <div className="flex gap-1">
                                 <Button
@@ -321,7 +321,7 @@ function LocaleMedia({
                     />
                 </section>
                 <section>
-                    <h6 className="mb-3">Gallery</h6>
+                    <h6 className="mb-3">{t('cmsMedia.gallery')}</h6>
                     <Upload
                         key={galleryUploadKey}
                         draggable
@@ -338,9 +338,9 @@ function LocaleMedia({
                     >
                         <div className="flex min-h-28 flex-col items-center justify-center gap-2 p-5 text-center">
                             <TbPhotoPlus className="text-3xl text-primary" />
-                            <strong>Drop gallery images here</strong>
+                            <strong>{t('cmsMedia.dropGallery')}</strong>
                             <span className="text-xs text-gray-500">
-                                or click to browse · up to 20 images
+                                {t('cmsMedia.galleryHint')}
                             </span>
                         </div>
                     </Upload>
@@ -403,7 +403,7 @@ function LocaleMedia({
                     </div>
                 </section>
                 <section>
-                    <h6 className="mb-3">Attachments</h6>
+                    <h6 className="mb-3">{t('cmsMedia.attachments')}</h6>
                     <Upload
                         key={attachmentUploadKey}
                         draggable
@@ -419,9 +419,9 @@ function LocaleMedia({
                     >
                         <div className="flex min-h-24 flex-col items-center justify-center gap-2 p-4 text-center">
                             <TbUpload className="text-3xl text-primary" />
-                            <strong>Drop attachments here</strong>
+                            <strong>{t('cmsMedia.dropAttachments')}</strong>
                             <span className="text-xs text-gray-500">
-                                Images and PDF files
+                                {t('cmsMedia.attachmentsHint')}
                             </span>
                         </div>
                     </Upload>

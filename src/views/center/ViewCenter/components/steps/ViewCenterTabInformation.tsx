@@ -14,7 +14,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import {
     apiCreateNewAgency,
     apiUpdateMyAgency,
@@ -30,27 +30,6 @@ const stripHtml = (value: string): string =>
         .replace(/\s+/g, ' ')
         .trim()
 
-const validationSchema = z.object({
-    title: z.string().min(1, { message: 'اسم المركز إلزامي' }),
-    service_id: z.any().nullable().optional(),
-    about_text: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'الوصف إلزامي',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'النص قصير',
-        }),
-    about_us: z
-        .string()
-        .refine((val) => stripHtml(val).length > 0, {
-            message: 'About us is required',
-        })
-        .refine((val) => stripHtml(val).length >= 8, {
-            message: 'Text is too short',
-        }),
-})
-
 export const ViewCenterTabInformation = () => {
     const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
         useCreateStore()
@@ -58,6 +37,12 @@ export const ViewCenterTabInformation = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const { t } = useTranslation()
+    const validationSchema = z.object({
+        title: z.string().min(1, { message: t('centerCreation.form.nameRequired') }),
+        service_id: z.any().nullable(),
+        about_text: z.string().refine((value) => stripHtml(value).length > 0, { message: t('centerCreation.form.descriptionRequired') }).refine((value) => stripHtml(value).length >= 8, { message: t('centerCreation.form.textTooShort') }),
+        about_us: z.string().refine((value) => stripHtml(value).length > 0, { message: t('centerCreation.form.aboutUsRequired') }).refine((value) => stripHtml(value).length >= 8, { message: t('centerCreation.form.textTooShort') }),
+    })
 
     const getApiErrorMessage = (err: unknown): string | undefined => {
         if (typeof err !== 'object' || err === null) return undefined
@@ -91,13 +76,13 @@ export const ViewCenterTabInformation = () => {
                 const resp = await getServices()
                 setServicesList(resp.data)
             } catch (err: unknown) {
-                setError(getApiErrorMessage(err) || 'خطا در دریافت اطلاعات')
+                setError(getApiErrorMessage(err) || t('centerCreation.loadError'))
             } finally {
                 setLoading(false)
             }
         }
         fetchServices()
-    }, [])
+    }, [t])
 
     const {
         handleSubmit,
@@ -120,13 +105,13 @@ export const ViewCenterTabInformation = () => {
             if (canUpdate) {
                 const resp = await apiUpdateMyAgency(newHojraData.slug, values)
                 if (!resp?.success) {
-                    throw new Error(resp?.message || 'تعذر تحديث بيانات المركز')
+                    throw new Error(resp?.message || t('viewCenterExtra.saveError'))
                 }
 
                 setHojraInfo(values)
                 toast.push(
                     <Notification type="success">
-                        {'تم حفظ التغييرات'}
+                        {t('viewCenterExtra.changesSaved')}
                     </Notification>,
                 )
                 return
@@ -136,7 +121,7 @@ export const ViewCenterTabInformation = () => {
             const message = err instanceof Error ? err.message : undefined
             toast.push(
                 <Notification type="danger">
-                    {apiMessage || message || 'حدث خطأ أثناء حفظ البيانات'}
+                    {apiMessage || message || t('viewCenterExtra.saveError')}
                 </Notification>,
             )
         }
@@ -158,7 +143,7 @@ export const ViewCenterTabInformation = () => {
                 <div>
                     <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                         <FormItem
-                            label="اسم المركز"
+                            label={t('centerCreation.form.title')}
                             invalid={Boolean(errors.title)}
                             errorMessage={errors.title?.message}
                             className="mb-8"
@@ -170,7 +155,7 @@ export const ViewCenterTabInformation = () => {
                                     <Input
                                         type="text"
                                         autoComplete="off"
-                                        placeholder="اسم المركز"
+                                        placeholder={t('centerCreation.form.title')}
                                         {...field}
                                     />
                                 )}
@@ -178,7 +163,7 @@ export const ViewCenterTabInformation = () => {
                         </FormItem>
 
                         <FormItem
-                            label="نوع الخدمة"
+                            label={t('centerCreation.form.serviceType')}
                             invalid={Boolean(errors.service_id)}
                             errorMessage={errors.service_id?.message}
                             className="mb-8"
@@ -189,7 +174,7 @@ export const ViewCenterTabInformation = () => {
                                 render={({ field }) => (
                                     <Select
                                         size="sm"
-                                        placeholder="اختر"
+                                        placeholder={t('centerCreation.form.select')}
                                         options={servicesList.map(
                                             (service) => ({
                                                 value: service.id,
@@ -217,7 +202,7 @@ export const ViewCenterTabInformation = () => {
                         </FormItem>
 
                         <FormItem
-                            label="الوصف"
+                            label={t('centerCreation.form.description')}
                             invalid={Boolean(errors.about_text)}
                             errorMessage={errors.about_text?.message}
                             className="mb-8"
@@ -238,7 +223,7 @@ export const ViewCenterTabInformation = () => {
                         </FormItem>
 
                         <FormItem
-                            label="معلومات عنّا"
+                            label={t('centerCreation.form.aboutUs')}
                             invalid={Boolean(errors.about_us)}
                             errorMessage={errors.about_us?.message}
                             className="mb-8"
@@ -265,7 +250,7 @@ export const ViewCenterTabInformation = () => {
                                     variant="solid"
                                     type="submit"
                                 >
-                                    تعدیل
+                                    {t('viewCenterExtra.update')}
                                 </Button>
                             </div>
                         </FormItem>

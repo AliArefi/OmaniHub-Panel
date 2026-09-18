@@ -39,6 +39,8 @@ export const useLocaleStore = create<LocaleState>()(
             (set) => ({
                 currentLang: initialLocale(),
                 setLang: (lang: string) => {
+                    if (!supportedLocales.includes(lang)) return
+
                     const formattedLang = lang.replace(
                         /-([a-z])/g,
                         function (g) {
@@ -55,7 +57,10 @@ export const useLocaleStore = create<LocaleState>()(
                             localeMetadata[lang]?.direction ?? 'ltr'
                     }
 
-                    dateLocales[formattedLang]().then(() => {
+                    const loadDateLocale =
+                        dateLocales[formattedLang] ?? dateLocales[appConfig.locale]
+
+                    loadDateLocale?.().then(() => {
                         dayjs.locale(formattedLang)
                     })
 

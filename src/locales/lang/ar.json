@@ -29,8 +29,16 @@
   },
   "shared": {
     "footer": { "copyright": "حقوق الطبع والنشر © {{year}} {{app}}. جميع الحقوق محفوظة.", "terms": "الشروط والأحكام", "privacy": "سياسة الخصوصية" },
-    "userMenu": { "profile": "الملف الشخصي", "chat": "المحادثات", "subscription": "الاشتراك", "unknown": "غير محدد", "noEmail": "لا يوجد بريد إلكتروني", "signOut": "تسجيل الخروج" }
+    "userMenu": { "profile": "الملف الشخصي", "chat": "المحادثات", "subscription": "الاشتراك", "unknown": "غير محدد", "noEmail": "لا يوجد بريد إلكتروني", "signOut": "تسجيل الخروج" },
+    "install": { "title": "تثبيت عماني هاب", "description": "افتح اللوحة بسرعة من الشاشة الرئيسية.", "iosHelp": "اضغط زر المشاركة ثم اختر إضافة إلى الشاشة الرئيسية.", "howToInstall": "طريقة التثبيت", "install": "تثبيت", "later": "لاحقاً", "close": "إغلاق" },
+    "mobileNav": { "title": "قائمة التنقل" }
   },
+  "languages": { "en": "الإنجليزية", "ar": "العربية" },
+  "adminServiceForm": { "createTitle": "خدمة جديدة", "editTitle": "تعديل الخدمة", "savedTitle": "تم الحفظ", "saved": "تم حفظ الخدمة بنجاح.", "saveErrorTitle": "تعذر الحفظ", "saveError": "يرجى التحقق من حقول النموذج.", "cancel": "إلغاء", "save": "حفظ", "loading": "جارٍ تحميل الخدمة...", "overview": "نظرة عامة", "faqs": "الأسئلة الشائعة", "status": { "pending": "قيد الانتظار", "draft": "مسودة", "published": "منشورة" }, "fields": { "name": "الاسم", "title": "العنوان", "body": "المحتوى", "body2": "المحتوى الثاني", "metaTitle": "عنوان الميتا", "metaDescription": "وصف الميتا", "urlPattern": "نمط الرابط", "cityUrlPattern": "نمط رابط المدينة", "slug": "المعرّف", "orderNumber": "رقم الترتيب", "status": "الحالة", "parentService": "الخدمة الرئيسية", "icon": "الأيقونة", "image": "الصورة", "featured": "مميزة", "useAsFilter": "استخدام كعامل تصفية" }, "help": { "cityToken": "استخدم {city} لصفحات المدن.", "urlPattern": "مثال: /occasion-makeup/", "cityUrlPattern": "الصيغة المطلوبة: /service-slug/{city}/" } },
+  "cmsMedia": { "uploaded": "تم رفع الوسائط", "uploadFailed": "فشل الرفع", "uploadFailedHint": "تحقق من نوع الملف وحجمه.", "deleted": "تم حذف الوسائط", "detailsSaved": "تم حفظ تفاصيل الوسائط", "details": "تفاصيل الوسائط", "cancel": "إلغاء", "saveDetails": "حفظ التفاصيل", "featuredImage": "الصورة الرئيسية", "gallery": "المعرض", "attachments": "المرفقات", "attachmentsHint": "ملفات الصور وPDF", "dropGallery": "اسحب صور المعرض هنا", "galleryHint": "أو انقر للاستعراض · حتى 20 صورة", "dropAttachments": "اسحب المرفقات هنا", "imagesOnly": "يسمح بملفات الصور فقط.", "fields": { "alt": "النص البديل", "title": "العنوان", "caption": "التسمية التوضيحية", "visibility": "الظهور" }, "visibility": { "public": "عام", "private": "خاص", "adminOnly": "للمسؤول فقط" } },
+  "home": { "title": "أنشئ مركزك واربح أكثر", "description": "خدماتنا الإعلانية الشاملة تصنع حضورك الرقمي وتضاعف وصولك إلى جمهورك المستهدف.", "createCenter": "إنشاء مركز خدمة", "completeProfile": "إكمال الملف الشخصي", "completeAccount": "أكمل حسابك", "profileHint": "يرجى إكمال ملفك الشخصي لتحسين الأداء" },
+  "pageHeaders": { "newCenter": "إنشاء مركز جديد", "viewCenter": "عرض المركز", "workCalendar": "تقويم العمل" },
+  "profileIntegration": { "title": "التكاملات", "subtitle": "حسّن سير عملك باستخدام هذه التكاملات.", "learnMore": "اعرف المزيد", "overview": "نظرة عامة", "overviewText": "تتوفر تفاصيل التكامل من الخدمة المحددة.", "features": "الميزات الرئيسية", "featureOne": "اتصال آمن بالحساب", "featureTwo": "سير عمل مبسط", "featureThree": "مزامنة موثوقة", "featureFour": "وصول مضبوط", "confirm": "تأكيد" },
   "center": {
     "wizard": {
       "back": "رجوع",
@@ -47,7 +55,8 @@
       "image": "الصورة",
       "service": "الخدمة",
       "editTitle": "تعديل العضو",
-      "saveChanges": "حفظ التعديلات"
+      "saveChanges": "حفظ التعديلات",
+      "defaultPosition": "عضو فريق"
     },
     "assignments": {
       "title": "تخصيص الخدمات للأعضاء",
@@ -103,6 +112,7 @@
     },
     "services": {
       "title": "الخدمات",
+      "recommendation": { "required": "يرجى تعبئة جميع الحقول المطلوبة.", "sent": "تم إرسال الخدمة للمراجعة ولن تظهر قبل موافقة الإدارة.", "sendError": "تعذر إرسال الاقتراح.", "search": "ابحث عن خدمة", "open": "اقتراح خدمة جديدة", "title": "اقتراح خدمة جديدة", "name": "اسم الخدمة *", "duration": "المدة *", "durationUnit": "وحدة المدة", "pricingType": "نوع السعر", "price": "السعر", "description": "وصف الخدمة *", "cancel": "إلغاء", "submit": "إرسال للمراجعة" },
       "flow": {
         "title": "اختيار الخدمات",
         "subtitle": "بدّل بين واجهة الاختيار الجديدة والقائمة الكلاسيكية.",
@@ -244,6 +254,7 @@
   "viewCenterExtraValidation": { "invalidLatitude": "خط العرض غير صالح.", "invalidLongitude": "خط الطول غير صالح.", "invalidWebsite": "رابط الموقع غير صالح.", "addressTooLong": "العنوان طويل جداً.", "invalidInstagram": "رابط Instagram غير صالح.", "invalidYouTube": "رابط YouTube غير صالح.", "invalidLinkedIn": "رابط LinkedIn غير صالح.", "invalidFacebook": "رابط Facebook غير صالح." },
   "memberManagement": { "title": "إدارة الأعضاء", "search": "بحث...", "status": "الحالة", "all": "الكل", "active": "نشط", "blocked": "محظور", "createRole": "إنشاء دور", "name": "الاسم", "lastOnline": "آخر ظهور", "role": "الدور", "selected": "تم اختيار {{count}} مستخدمين", "delete": "حذف", "deleteUsers": "حذف المستخدمين", "deleteConfirm": "هل أنت متأكد من حذف هؤلاء المستخدمين؟ لا يمكن التراجع عن هذا الإجراء." },
   "memberRoleDialog": { "editRole": "تعديل الدور", "roleName": "اسم الدور", "description": "الوصف", "access": "الصلاحيات", "cancel": "إلغاء", "update": "تحديث", "create": "إنشاء" },
+  "memberAccess": { "actions": { "read": "قراءة", "write": "كتابة", "delete": "حذف" }, "modules": { "users": { "name": "إدارة المستخدمين", "description": "التحكم في صلاحيات إدارة المستخدمين" }, "products": { "name": "صلاحيات المنتجات", "description": "التحكم في عمليات المنتجات" }, "configurations": { "name": "إعدادات النظام", "description": "التحكم في إعدادات النظام" }, "files": { "name": "إدارة الملفات", "description": "التحكم في عمليات الملفات" }, "reports": { "name": "التقارير", "description": "التحكم في إنشاء التقارير" } } },
     "plansFaq": { "title": "الأسئلة الشائعة", "categories": { "subscription": "الاشتراك", "billing": "الفوترة والمدفوعات", "others": "أخرى" }, "questions": { "subscriptionHow": { "title": "كيف يمكنني الاشتراك؟", "content": "اختر الخطة المناسبة أعلاه واتبع تعليمات الدفع الظاهرة على الشاشة." }, "subscriptionCancel": { "title": "هل يمكنني إلغاء اشتراكي؟", "content": "نعم، يمكنك الإلغاء من قسم الاشتراك في أي وقت. يسري الإلغاء في نهاية فترة الفوترة الحالية." }, "subscriptionChange": { "title": "هل يمكنني تغيير خطة الاشتراك؟", "content": "يمكنك اختيار خطة متاحة أخرى من قسم الاشتراك. تتم محاسبة الترقية فوراً ويبدأ تخفيض الخطة عند التجديد التالي." }, "subscriptionTrial": { "title": "هل تتوفر فترة تجريبية مجانية؟", "content": "تظهر أي فترة تجريبية متاحة ضمن تفاصيل الخطة قبل الدفع." }, "subscriptionDiscounts": { "title": "هل تقدمون خصومات؟", "content": "تظهر الخصومات المتاحة مع الخطة المعنية أو يتم إبلاغك بها من فريق الدعم." }, "billingMethods": { "title": "ما طرق الدفع المقبولة؟", "content": "تظهر طرق الدفع المتاحة بأمان في صفحة الدفع وقد تختلف حسب المزود والموقع." }, "billingFailed": { "title": "ماذا يحدث إذا فشل الدفع؟", "content": "نسجل نتيجة الدفع ونوفر خيار إعادة المحاولة عندما يسمح مزود الدفع بذلك." }, "billingUpdateDetails": { "title": "كيف أحدث بيانات الدفع؟", "content": "استخدم صفحة الدفع الآمنة للمزود عندما تكون تحديثات بيانات الدفع مدعومة لاشتراكك." }, "billingRefund": { "title": "هل أحصل على استرداد عند الإلغاء؟", "content": "تعتمد أهلية الاسترداد على الخطة وسياسة الدفع المطبقة." }, "otherContact": { "title": "كيف أتواصل مع الدعم؟", "content": "تواصل مع فريق الدعم عبر القنوات المتاحة في حسابك." }, "otherAccount": { "title": "كيف أغير معلومات حسابي؟", "content": "افتح إعدادات الملف الشخصي لتحديث معلومات حسابك." }, "otherSecurity": { "title": "هل معلوماتي الشخصية آمنة؟", "content": "نستخدم وسائل حماية تقنية وتنظيمية مناسبة لحماية معلومات الحساب." } } },
   "profile": {
     "menu": { "profile": "الملف الشخصي", "security": "الأمان", "mobileTitle": "قائمة الإعدادات" },

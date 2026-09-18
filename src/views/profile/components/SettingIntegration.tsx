@@ -12,8 +12,10 @@ import {
 } from 'react-icons/tb'
 import type { GetSettingsIntegrationResponse, Integration } from '../types'
 import { apiGetSettingsIntergration } from '@/services/AccontsService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const SettingIntegration = () => {
+    const { t } = useTranslation()
     const [selectedIntegration, setSelectedIntegration] = useState<{
         integration: Partial<Integration>
         dialogOpen: boolean
@@ -54,8 +56,8 @@ const SettingIntegration = () => {
 
     return (
         <div>
-            <h4>التكامل</h4>
-            <p>قم بتحسين سير عملك باستخدام هذه التكاملات</p>
+            <h4>{t('profileIntegration.title')}</h4>
+            <p>{t('profileIntegration.subtitle')}</p>
             <div className="mt-4">
                 {data.map((app, index) => (
                     <div
@@ -87,7 +89,7 @@ const SettingIntegration = () => {
                                     })
                                 }
                             >
-                                اعرف المزيد
+                                {t('profileIntegration.learnMore')}
                             </Button>
                             <Switcher
                                 checked={app.active}
@@ -122,37 +124,37 @@ const SettingIntegration = () => {
                     </div>
                 </div>
                 <div className="mt-6">
-                    <span className="font-bold heading-text">نظرة عامة</span>
+                    <span className="font-bold heading-text">{t('profileIntegration.overview')}</span>
                     <p className="mt-2">
-                        قهوة عربية فاخرة، سيفون مزدوج، رغوة القرفة الممتازة. لاتيه، ومطحنة تجارة عادلة باريستا، ملعقة كراميل. مخفوقة، مطحنة للاصطحاب، قهوة محضرة بجرعة واحدة نصف ونصف. سيفون الجبل الأزرق، مطحنة الجبل الأزرق كاراخيو، صحن نصف ونصف حليب فوري قوي.
+                        {t('profileIntegration.overviewText')}
                     </p>
                     <div className="mt-6">
                         <span className="font-bold heading-text">
-                            الميزات الرئيسية:
+                            {t('profileIntegration.features')}
                         </span>
                         <ul className="list-disc mt-4 flex flex-col gap-3">
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    تجارة عادلة، كورتادو كون بانا، رغوة كريمة القرفة الممتازة.
+                                    {t('profileIntegration.featureOne')}
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    صحن فنجان مُر، كافيين عضوي كوبي لواك غالاو سيفون.
+                                    {t('profileIntegration.featureTwo')}
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    للاصطحاب، نصف ونصف، مزرعة أحادية المصدر، فرنش بريس.
+                                    {t('profileIntegration.featureThree')}
                                 </span>
                             </li>
                             <li className="flex gap-2">
                                 <TbCircleCheckFilled className="text-xl text-emerald-500" />
                                 <span>
-                                    نكهة موكا لاتيه كورتادو فنجان كوبي لواك.
+                                    {t('profileIntegration.featureFour')}
                                 </span>
                             </li>
                         </ul>
@@ -160,7 +162,7 @@ const SettingIntegration = () => {
                 </div>
                 <div className="mt-6">
                     <Button block onClick={handleDialogClose}>
-                        تأكيد
+                        {t('profileIntegration.confirm')}
                     </Button>
                 </div>
             </Dialog>

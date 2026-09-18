@@ -20,16 +20,6 @@ type RoleOption = {
     value: string
 }
 
-const roleOptions = [
-    { label: 'همه', value: '' },
-    { label: 'مدیر', value: 'admin' },
-    { label: 'سرپرست', value: 'supervisor' },
-    { label: 'پشتیبان', value: 'support' },
-    { label: 'کاربر', value: 'user' },
-    { label: 'حسابرس', value: 'auditor' },
-    { label: 'مهمان', value: 'guest' },
-]
-
 const StatusSelectOption = (props: OptionProps<StatusOption>) => {
     return (
         <DefaultOption<StatusOption>

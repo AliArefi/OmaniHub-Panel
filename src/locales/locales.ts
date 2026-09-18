@@ -7,11 +7,13 @@ import type { Direction } from '@/@types/theme'
 
 export type LocaleMetadata = {
     direction: Direction
+    flag: string
+    labelKey: string
 }
 
 export const localeMetadata: Record<string, LocaleMetadata> = {
-    en: { direction: 'ltr' },
-    ar: { direction: 'rtl' },
+    en: { direction: 'ltr', flag: 'US', labelKey: 'languages.en' },
+    ar: { direction: 'rtl', flag: 'OM', labelKey: 'languages.ar' },
 }
 
 export const supportedLocales = Object.keys(localeMetadata)
