@@ -202,6 +202,9 @@
     "priced": "تم التسعير",
     "unspecified": "غير محدد"
   },
+  "centers": {
+    "title": "مراكزي", "subtitle": "إدارة المراكز وتفاصيلها.", "center": "المركز", "status": "الحالة", "actions": "الإجراءات", "loading": "جارٍ التحميل...", "loadError": "تعذر تحميل المراكز.", "deleteTitle": "تأكيد الحذف", "delete": "حذف", "cancel": "إلغاء", "deleteMessage": "هل أنت متأكد من حذف هذا المركز؟ لا يمكن التراجع عن هذا الإجراء.", "deleteReason": "سبب الحذف", "deleteReasonPlaceholder": "اكتب سبب الحذف هنا...", "deleteFailed": "تعذر حذف المركز.", "deleteSuccess": "تم حذف المركز بنجاح.", "viewEdit": "عرض وتعديل المركز", "edit": "تعديل", "view": "عرض", "bookings": "الحجوزات", "statistics": "إحصائيات", "operations": "العمليات", "viewPublic": "عرض المركز على الموقع", "viewPrivate": "قبل اعتماد فريق عُمانيهاب لهذا المركز، يمكنك فقط أنت رؤيته بعد تسجيل الدخول.", "deleteCenter": "حذف المركز", "statusPublished": "منشور", "statusRejected": "مرفوض", "statusPending": "قيد المراجعة", "reasonPublished": "تمت مراجعة المركز واعتماده من قِبل فريق عُمانيهاب.", "reasonRejected": "تم رفض المركز بسبب نقص في المعلومات. يرجى مراجعة البيانات وإعادة التقديم.", "reasonPending": "مركزك قيد المراجعة من قِبل فريق عُمانيهاب. سيتم إشعارك فور اتخاذ القرار.", "reasonDefault": "لا توجد ملاحظات إضافية.", "emptyTitle": "أنشئ مركزك الأول", "emptyDescription": "ابدأ بإضافة مركز لإتاحة خدماته.", "create": "إنشاء مركز"
+  },
   "workCalendar": {
     "title": "تقويم العمل",
     "labels": {

@@ -217,6 +217,9 @@
     "priced": "Priced",
     "unspecified": "Not specified"
   },
+  "centers": {
+    "title": "My centers", "subtitle": "Manage your centers and their details.", "center": "Center", "status": "Status", "actions": "Actions", "loading": "Loading...", "loadError": "Unable to load centers.", "deleteTitle": "Confirm deletion", "delete": "Delete", "cancel": "Cancel", "deleteMessage": "Are you sure you want to delete this center? This action cannot be undone.", "deleteReason": "Deletion reason", "deleteReasonPlaceholder": "Enter the deletion reason...", "deleteFailed": "Unable to delete the center.", "deleteSuccess": "Center was deleted successfully.", "viewEdit": "View and edit center", "edit": "Edit", "view": "View", "bookings": "Bookings", "statistics": "Statistics", "operations": "Operations", "viewPublic": "View center on the website", "viewPrivate": "Until the OmaniHub team approves this center, only you can view it after signing in.", "deleteCenter": "Delete center", "statusPublished": "Published", "statusRejected": "Rejected", "statusPending": "Under review", "reasonPublished": "This center was reviewed and approved by the OmaniHub team.", "reasonRejected": "This center was rejected because some information is missing. Review the details and submit it again.", "reasonPending": "Your center is under review by the OmaniHub team. You will be notified when a decision is made.", "reasonDefault": "No additional notes.", "emptyTitle": "Create your first center", "emptyDescription": "Start by adding a center to make its services available.", "create": "Create center"
+  },
   "workCalendar": {
     "title": "Work calendar",
     "labels": {

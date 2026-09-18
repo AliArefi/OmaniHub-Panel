@@ -17,7 +17,7 @@ import Notification from '@/components/ui/Notification'
 import toast from '@/components/ui/toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { apiDeleteMyAgency, getMyAgencies } from '@/services/CenterService'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ActionLink } from '@/components/shared'
@@ -32,15 +32,16 @@ import {
 } from 'react-icons/tb'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { HiPlus } from 'react-icons/hi'
+import i18n from '@/locales'
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
 
 type AgencyStatus = 'published' | 'rejected' | 'pending' | string
 
 const STATUS_LABELS: Record<AgencyStatus, string> = {
-    published: 'منشورة',
-    rejected: 'مرفوضة',
-    pending: 'قيد المراجعة',
+    published: 'centers.statusPublished',
+    rejected: 'centers.statusRejected',
+    pending: 'centers.statusPending',
 }
 
 const STATUS_CLASSES: Record<AgencyStatus, string> = {
@@ -50,13 +51,13 @@ const STATUS_CLASSES: Record<AgencyStatus, string> = {
 }
 
 const MOCK_STATUS_REASON: Record<AgencyStatus, string> = {
-    published: 'تمت مراجعة الحجرة واعتمادها من قِبل فريق عُمانيهاب.',
-    rejected: 'تم رفض الحجرة بسبب نقص في المعلومات. يرجى مراجعة البيانات وإعادة التقديم.',
-    pending: 'حجرتك قيد المراجعة من قِبل كارشناس عُمانيهاب. سيتم إشعارك فور اتخاذ القرار.',
+    published: 'centers.reasonPublished',
+    rejected: 'centers.reasonRejected',
+    pending: 'centers.reasonPending',
 }
 
 function statusLabel(status: AgencyStatus) {
-    return STATUS_LABELS[status] ?? status
+    return STATUS_LABELS[status] ? i18n.t(STATUS_LABELS[status]) : status
 }
 
 function statusClass(status: AgencyStatus) {
@@ -64,7 +65,7 @@ function statusClass(status: AgencyStatus) {
 }
 
 function statusReason(status: AgencyStatus) {
-    return MOCK_STATUS_REASON[status] ?? 'لا توجد ملاحظات إضافية.'
+    return i18n.t(MOCK_STATUS_REASON[status] || 'centers.reasonDefault')
 }
 
 // ─── Delete confirm dialog with reason ───────────────────────────────────────
@@ -80,6 +81,7 @@ function DeleteWithReasonDialog({
     onClose: () => void
     onConfirm: (reason: string) => void
 }) {
+    const { t } = useTranslation()
     const [reason, setReason] = useState('')
 
     useEffect(() => {
@@ -90,9 +92,9 @@ function DeleteWithReasonDialog({
         <ConfirmDialog
             type="danger"
             isOpen={isOpen}
-            title="تأكيد الحذف"
-            confirmText="حذف"
-            cancelText="إلغاء"
+            title={t('centers.deleteTitle')}
+            confirmText={t('centers.delete')}
+            cancelText={t('centers.cancel')}
             confirmButtonProps={{
                 loading,
                 disabled: !reason.trim(),
@@ -102,17 +104,16 @@ function DeleteWithReasonDialog({
             onConfirm={() => onConfirm(reason)}
         >
             <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                هل أنت متأكد من حذف هذا المركز؟ لا يمكن التراجع عن هذا الإجراء.
+                {t('centers.deleteMessage')}
             </p>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                سبب الحذف <span className="text-red-500">*</span>
+                {t('centers.deleteReason')} <span className="text-red-500">*</span>
             </label>
             <textarea
-                dir="rtl"
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="اكتب سبب الحذف هنا..."
+                placeholder={t('centers.deleteReasonPlaceholder')}
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
             />
         </ConfirmDialog>
@@ -153,11 +154,12 @@ function AgencyActions({
     onSelect: (url: string) => void
     onDeleteRequest: (slug: string) => void
 }) {
+    const { t } = useTranslation()
     const isPublished = agency.status === 'published'
 
     const desktopActions = (
         <div className="hidden sm:flex items-center justify-center gap-1 flex-wrap">
-            <Tooltip title="تعديل الحجرة">
+            <Tooltip title={t('centers.edit')}>
                 <Button
                     size="xs"
                     variant="plain"
@@ -165,15 +167,15 @@ function AgencyActions({
                     onClick={() => onView(agency.slug)}
                 >
                     <TbEdit size={15} />
-                    <span className="hidden md:inline">تعديل</span>
+                    <span className="hidden md:inline">{t('centers.edit')}</span>
                 </Button>
             </Tooltip>
 
             <Tooltip
                 title={
                     isPublished
-                        ? 'عرض الحجرة على الموقع'
-                        : 'قبل تأكيد كارشناس عُمانيهاب، يمكنك فقط أنت رؤية الحجرة بعد تسجيل الدخول'
+                        ? t('centers.viewPublic')
+                        : t('centers.viewPrivate')
                 }
             >
                 <Button
@@ -183,7 +185,7 @@ function AgencyActions({
                     onClick={() => window.open(`https://omanihub.com/${agency.slug}`, '_blank', 'noopener,noreferrer')}
                 >
                     <TbEye size={15} />
-                    <span className="hidden md:inline">عرض</span>
+                    <span className="hidden md:inline">{t('centers.view')}</span>
                     {!isPublished && (
                         <TbAlertCircle size={13} className="text-amber-500" />
                     )}
@@ -192,7 +194,7 @@ function AgencyActions({
 
             {isPublished && (
                 <>
-                    <Tooltip title="الحجوزات">
+                    <Tooltip title={t('centers.bookings')}>
                         <Button
                             size="xs"
                             variant="plain"
@@ -204,11 +206,11 @@ function AgencyActions({
                             }
                         >
                             <TbCalendar size={15} />
-                            <span className="hidden md:inline">حجوزات</span>
+                            <span className="hidden md:inline">{t('centers.bookings')}</span>
                         </Button>
                     </Tooltip>
 
-                    <Tooltip title="إحصائيات">
+                    <Tooltip title={t('centers.statistics')}>
                         <Button
                             size="xs"
                             variant="plain"
@@ -220,13 +222,13 @@ function AgencyActions({
                             }
                         >
                             <TbChartBar size={15} />
-                            <span className="hidden md:inline">إحصائيات</span>
+                            <span className="hidden md:inline">{t('centers.statistics')}</span>
                         </Button>
                     </Tooltip>
                 </>
             )}
 
-            <Tooltip title="حذف الحجرة">
+            <Tooltip title={t('centers.deleteCenter')}>
                 <Button
                     size="xs"
                     variant="plain"
@@ -235,7 +237,7 @@ function AgencyActions({
                     onClick={() => onDeleteRequest(agency.slug)}
                 >
                     <TbTrash size={15} />
-                    <span className="hidden md:inline">حذف</span>
+                    <span className="hidden md:inline">{t('centers.delete')}</span>
                 </Button>
             </Tooltip>
         </div>
@@ -243,15 +245,15 @@ function AgencyActions({
 
     const mobileActions = (
         <div className="flex sm:hidden items-center justify-center">
-            <Dropdown title="العمليات">
+            <Dropdown title={t('centers.operations')}>
                 <Dropdown.Item
                     onSelect={() => onSelect(`/centers/${agency.slug}/view`)}
                 >
-                    <TbEdit size={16} /> تعديل الحجرة
+                    <TbEdit size={16} /> {t('centers.edit')}
                 </Dropdown.Item>
 
                 <Dropdown.Item onSelect={() => onView(agency.slug)}>
-                    <TbEye size={16} /> عرض
+                    <TbEye size={16} /> {t('centers.view')}
                     {!isPublished && (
                         <TbAlertCircle
                             size={13}
@@ -269,7 +271,7 @@ function AgencyActions({
                                 )
                             }
                         >
-                            <TbCalendar size={16} /> الحجوزات
+                            <TbCalendar size={16} /> {t('centers.bookings')}
                         </Dropdown.Item>
 
                         <Dropdown.Item
@@ -279,14 +281,14 @@ function AgencyActions({
                                 )
                             }
                         >
-                            <TbChartBar size={16} /> إحصائيات
+                            <TbChartBar size={16} /> {t('centers.statistics')}
                         </Dropdown.Item>
                     </>
                 )}
 
                 <Dropdown.Item onClick={() => onDeleteRequest(agency.slug)}>
                     <TbTrash size={16} className="text-red-500" />
-                    <span className="text-red-500">حذف الحجرة</span>
+                    <span className="text-red-500">{t('centers.deleteCenter')}</span>
                 </Dropdown.Item>
             </Dropdown>
         </div>
@@ -373,27 +375,27 @@ export default function Centers() {
                     const message = (data as { message?: unknown }).message
                     return typeof message === 'string' && message.trim() ? message : undefined
                 })()
-                setError(apiMessage || 'حدث خطأ أثناء تحميل المراكز')
+                setError(apiMessage || t('centers.loadError'))
             } finally {
                 setLoading(false)
             }
         }
         fetchAgencies()
-    }, [])
+    }, [t])
 
     const handleDelete = async (slug: string, reason: string) => {
         setDeletingSlug(slug)
         try {
             const resp = await apiDeleteMyAgency(slug)
-            if (!resp?.success) throw new Error(resp?.message || 'فشل حذف المركز')
+            if (!resp?.success) throw new Error(resp?.message || t('centers.deleteFailed'))
             setAgencies((prev) => prev.filter((a) => a.slug !== slug))
             toast.push(
                 <Notification type="success">
-                    {resp?.message || 'تم حذف المركز بنجاح'}
+                    {resp?.message || t('centers.deleteSuccess')}
                 </Notification>,
             )
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'فشل حذف المركز'
+            const message = err instanceof Error ? err.message : t('centers.deleteFailed')
             toast.push(<Notification type="danger">{message}</Notification>)
         } finally {
             setDeletingSlug(null)
@@ -407,7 +409,7 @@ export default function Centers() {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col gap-2">
                 <Spinner />
-                <div>{t('loading')}</div>
+                <div>{t('centers.loading')}</div>
             </div>
         )
     if (error) return <div>{error}</div>
@@ -416,8 +418,8 @@ export default function Centers() {
         <>
             <Card>
                 <div className="mb-10">
-                    <h2 className="mb-2">{t('myAgenciesTitle')}</h2>
-                    <p>{t('myAgenciesSubtitle')}</p>
+                    <h2 className="mb-2">{t('centers.title')}</h2>
+                    <p>{t('centers.subtitle')}</p>
                 </div>
 
                 {/* ── Mobile: card list (hidden on sm+) ── */}
@@ -445,7 +447,7 @@ export default function Centers() {
                                     icon={<HiPlus />}
                                     onClick={() => navigate('/new-center')}
                                 >
-                                    {t('textCallToActionAction')}
+                                    {t('centers.create')}
                                 </Button>
                             </div>
                         )
@@ -459,9 +461,9 @@ export default function Centers() {
                     <Table>
                         <THead>
                             <Tr>
-                                <Th>{t('myAgenciesHojra')}</Th>
-                                <Th>{t('status')}</Th>
-                                <Th className="text-center">{t('operation')}</Th>
+                                <Th>{t('centers.center')}</Th>
+                                <Th>{t('centers.status')}</Th>
+                                <Th className="text-center">{t('centers.actions')}</Th>
                             </Tr>
                         </THead>
                         <TBody>
@@ -478,7 +480,7 @@ export default function Centers() {
                                                     >
                                                         <div className="flex items-center justify-start gap-2">
                                                             <Avatar src={resolveImageUrl(agency.logo)} />
-                                                            <Tooltip title="عرض وتعديل الحُجرة">
+                                                            <Tooltip title={t('centers.viewEdit')}>
                                                                 <div className="font-bold heading-text hover:text-primary group-hover:text-primary">
                                                                     {agency.title}
                                                                 </div>
@@ -507,10 +509,10 @@ export default function Centers() {
                                             <Td colSpan={3} className='text-center space-y-4'>
                                                 <div className="flex-1 text-center space-y-1">
                                                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                                                        {t('textCallToActionTitle')}
+                                                        {t('centers.emptyTitle')}
                                                     </h2>
                                                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {t('textCallToActionSubTitle')}
+                                                        {t('centers.emptyDescription')}
                                                     </p>
                                                 </div>
                                                 <Button
@@ -520,7 +522,7 @@ export default function Centers() {
                                                     icon={<HiPlus />}
                                                     onClick={() => navigate('/new-center')}
                                                 >
-                                                    {t('textCallToActionAction')}
+                                                    {t('centers.create')}
                                                 </Button>
                                             </Td>
                                         </Tr>
