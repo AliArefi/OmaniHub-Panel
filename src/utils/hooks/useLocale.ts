@@ -21,6 +21,24 @@ const useLocale = () => {
         }
     }, [currentLang])
 
+    useEffect(() => {
+        if (typeof document === 'undefined') return
+
+        const syncCookieLocale = () => {
+            const value = document.cookie
+                .split('; ')
+                .find((entry) => entry.startsWith('locale='))
+                ?.split('=')[1]
+
+            if ((value === 'ar' || value === 'en') && value !== currentLang) {
+                useLocaleStore.getState().setLang(value)
+            }
+        }
+
+        const interval = window.setInterval(syncCookieLocale, 750)
+        return () => window.clearInterval(interval)
+    }, [currentLang])
+
     return {
         locale: currentLang,
     }
