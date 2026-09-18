@@ -53,14 +53,10 @@ const extractApiErrorMessage = (error: unknown, fallback: string) => {
 }
 
 const SettingsProfile = () => {
-    const { i18n } = useTranslation()
-    const isArabic = i18n.language.toLowerCase().startsWith('ar')
-    const labels = isArabic
-        ? { title: 'المعلومات الشخصية', image: 'اختيار صورة', remove: 'إزالة', name: 'الاسم', email: 'البريد الإلكتروني', bio: 'نبذة', bioPlaceholder: 'نبذة قصيرة عنك', save: 'حفظ', saveError: 'تعذر حفظ المعلومات', saved: 'تم حفظ الملف الشخصي بنجاح', invalidImage: 'يرجى اختيار صورة بصيغة jpeg / png / webp / gif' }
-        : { title: 'Personal information', image: 'Choose image', remove: 'Remove', name: 'Name', email: 'Email', bio: 'Bio', bioPlaceholder: 'A short bio about you', save: 'Save', saveError: 'Unable to save information', saved: 'Profile saved successfully', invalidImage: 'Please select a jpeg / png / webp / gif image' }
+    const { t } = useTranslation()
     const validationSchema = z.object({
-        name: z.string().trim().min(1, { message: isArabic ? 'الاسم مطلوب' : 'Name is required' }),
-        email: z.string().trim().email({ message: isArabic ? 'البريد الإلكتروني غير صالح' : 'Email is invalid' }).optional(),
+        name: z.string().trim().min(1, { message: t('profile.personal.nameRequired') }),
+        email: z.string().trim().email({ message: t('profile.personal.emailInvalid') }).optional(),
         bio: z.string().trim().max(1024).optional(),
     })
     const user = useSessionUser((state) => state.user)
@@ -84,7 +80,7 @@ const SettingsProfile = () => {
             for (const file of files) {
                 if (!allowedFileType.includes(file.type)) {
                     valid =
-                        labels.invalidImage
+                        t('profile.personal.invalidImage')
                 }
             }
         }
@@ -137,7 +133,7 @@ const SettingsProfile = () => {
             )
 
             if (!resp?.success) {
-                throw new Error(resp?.message || labels.saveError)
+                throw new Error(resp?.message || t('profile.personal.saveError'))
             }
 
             const me = await apiAuthMe()
@@ -147,13 +143,13 @@ const SettingsProfile = () => {
 
             toast.push(
                 <Notification type="success">
-                    {resp?.message || labels.saved}
+                    {resp?.message || t('profile.personal.saved')}
                 </Notification>,
             )
         } catch (err: unknown) {
             toast.push(
                 <Notification type="danger">
-                    {extractApiErrorMessage(err, labels.saveError)}
+                    {extractApiErrorMessage(err, t('profile.personal.saveError'))}
                 </Notification>,
             )
         }
@@ -161,7 +157,7 @@ const SettingsProfile = () => {
 
     return (
         <>
-            <h4 className="mb-8">{labels.title}</h4>
+            <h4 className="mb-8">{t('profile.personal.title')}</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-8">
                     <div className="flex items-center gap-4">
@@ -204,7 +200,7 @@ const SettingsProfile = () => {
                                     type="button"
                                     icon={<TbPlus />}
                                 >
-                                    {labels.image}
+                                    {t('profile.personal.chooseImage')}
                                 </Button>
                             </Upload>
                             <Button
@@ -216,7 +212,7 @@ const SettingsProfile = () => {
                                     setAvatarPreviewUrl('')
                                 }}
                             >
-                                {labels.remove}
+                                {t('profile.personal.removeImage')}
                             </Button>
                         </div>
                     </div>
@@ -224,7 +220,7 @@ const SettingsProfile = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormItem
-                        label={labels.name}
+                        label={t('profile.personal.name')}
                         invalid={Boolean(errors.name)}
                         errorMessage={errors.name?.message}
                     >
@@ -235,7 +231,7 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder={labels.name}
+                                    placeholder={t('profile.personal.name')}
                                     {...field}
                                 />
                             )}
@@ -243,7 +239,7 @@ const SettingsProfile = () => {
                     </FormItem>
 
                     <FormItem
-                        label={labels.email}
+                        label={t('profile.personal.email')}
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -255,7 +251,7 @@ const SettingsProfile = () => {
                                     disabled
                                     type="email"
                                     autoComplete="off"
-                                    placeholder={labels.email}
+                                    placeholder={t('profile.personal.email')}
                                     {...field}
                                 />
                             )}
@@ -263,7 +259,7 @@ const SettingsProfile = () => {
                     </FormItem>
 
                     <FormItem
-                        label={labels.bio}
+                        label={t('profile.personal.bio')}
                         className="md:col-span-2"
                         invalid={Boolean(errors.bio)}
                         errorMessage={errors.bio?.message}
@@ -276,7 +272,7 @@ const SettingsProfile = () => {
                                     textArea
                                     rows={3}
                                     autoComplete="off"
-                                    placeholder={labels.bioPlaceholder}
+                                    placeholder={t('profile.personal.bioPlaceholder')}
                                     {...field}
                                 />
                             )}
@@ -290,7 +286,7 @@ const SettingsProfile = () => {
                         type="submit"
                         loading={isSubmitting}
                     >
-                        {labels.save}
+                        {t('profile.personal.save')}
                     </Button>
                 </div>
             </Form>

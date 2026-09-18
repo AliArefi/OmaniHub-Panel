@@ -20,21 +20,17 @@ type PasswordSchema = {
     confirmNewPassword: string
 }
 const SettingsSecurity = () => {
-    const { i18n } = useTranslation()
-    const isArabic = i18n.language.toLowerCase().startsWith('ar')
-    const labels = isArabic
-        ? { password: 'كلمة المرور', passwordDesc: 'كلمة المرور هي المفتاح الرقمي لحسابك. حافظ عليها آمنة ومحمية.', current: 'كلمة المرور الحالية', next: 'كلمة المرور الجديدة', confirm: 'تأكيد كلمة المرور الجديدة', update: 'تحديث', updateTitle: 'تحديث كلمة المرور', updateConfirm: 'هل أنت متأكد أنك تريد تغيير كلمة المرور الخاصة بك؟', twoFactor: 'التحقق بخطوتين', twoFactorDesc: 'فعّل التحقق بخطوتين لتأمين حسابك.', enabled: 'مُفعّل', enable: 'تفعيل', error: 'تعذر تغيير كلمة المرور', changed: 'تم تغيير كلمة المرور. سجّل الدخول مجدداً.' }
-        : { password: 'Password', passwordDesc: 'Your password is the digital key to your account. Keep it safe and protected.', current: 'Current password', next: 'New password', confirm: 'Confirm new password', update: 'Update', updateTitle: 'Update password', updateConfirm: 'Are you sure you want to change your password?', twoFactor: 'Two-factor authentication', twoFactorDesc: 'Enable two-factor authentication to secure your account.', enabled: 'Enabled', enable: 'Enable', error: 'Unable to change password', changed: 'Password changed. Please sign in again.' }
+    const { t } = useTranslation()
     const authenticatorList = [
-        { label: 'Google Authenticator', value: 'googleAuthenticator', img: '/img/others/google.png', desc: isArabic ? 'يتم إنشاء رموز حساسة للوقت لتسجيل دخول آمن.' : 'Time-based codes for secure sign-in.' },
-        { label: 'Okta Verify', value: 'oktaVerify', img: '/img/others/okta.png', desc: isArabic ? 'إشعارات فورية للتحقق السريع من تسجيل الدخول.' : 'Push notifications for quick sign-in verification.' },
-        { label: isArabic ? 'التحقق عبر البريد الإلكتروني' : 'Email verification', value: 'emailVerification', img: '/img/others/email.png', desc: isArabic ? 'رموز فريدة تُرسل إلى بريدك الإلكتروني للتحقق.' : 'Unique codes sent to your email for verification.' },
+        { label: t('profile.security.googleAuthenticator'), value: 'googleAuthenticator', img: '/img/others/google.png', desc: t('profile.security.googleAuthenticatorDesc') },
+        { label: t('profile.security.oktaVerify'), value: 'oktaVerify', img: '/img/others/okta.png', desc: t('profile.security.oktaVerifyDesc') },
+        { label: t('profile.security.emailVerification'), value: 'emailVerification', img: '/img/others/email.png', desc: t('profile.security.emailVerificationDesc') },
     ]
     const validationSchema = z.object({
-        currentPassword: z.string().min(1, { message: isArabic ? 'يرجى إدخال كلمة المرور الحالية.' : 'Enter your current password.' }),
-        newPassword: z.string().min(1, { message: isArabic ? 'يرجى إدخال كلمة المرور الجديدة.' : 'Enter a new password.' }),
-        confirmNewPassword: z.string().min(1, { message: isArabic ? 'يرجى تأكيد كلمة المرور الجديدة.' : 'Confirm your new password.' }),
-    }).refine((data) => data.confirmNewPassword === data.newPassword, { message: isArabic ? 'كلمات المرور غير متطابقة.' : 'Passwords do not match.', path: ['confirmNewPassword'] })
+        currentPassword: z.string().min(1, { message: t('profile.security.currentPasswordRequired') }),
+        newPassword: z.string().min(1, { message: t('profile.security.newPasswordRequired') }),
+        confirmNewPassword: z.string().min(1, { message: t('profile.security.confirmPasswordRequired') }),
+    }).refine((data) => data.confirmNewPassword === data.newPassword, { message: t('profile.security.passwordMismatch'), path: ['confirmNewPassword'] })
     const [selected2FaType, setSelected2FaType] = useState(
         'googleAuthenticator',
     )
@@ -66,15 +62,15 @@ const SettingsSecurity = () => {
             )
 
             if (!response.success) {
-                throw new Error(response.message || labels.error)
+                throw new Error(response.message || t('profile.security.updateError'))
             }
 
             reset()
             setConfirmationOpen(false)
-            toast.push(<Notification type="success">{labels.changed}</Notification>)
+            toast.push(<Notification type="success">{t('profile.security.changed')}</Notification>)
             window.setTimeout(() => window.location.assign('/sign-in'), 600)
         } catch (error) {
-            toast.push(<Notification type="danger">{error instanceof Error ? error.message : labels.error}</Notification>)
+            toast.push(<Notification type="danger">{error instanceof Error ? error.message : t('profile.security.updateError')}</Notification>)
         } finally {
             setIsSubmitting(false)
         }
@@ -87,8 +83,8 @@ const SettingsSecurity = () => {
     return (
         <div>
             <div className="mb-8">
-                <h4>{labels.password}</h4>
-                <p>{labels.passwordDesc}</p>
+                <h4>{t('profile.security.password')}</h4>
+                <p>{t('profile.security.passwordDesc')}</p>
             </div>
             <Form
                 ref={formRef}
@@ -96,7 +92,7 @@ const SettingsSecurity = () => {
                 onSubmit={handleSubmit(onSubmit)}
             >
                 <FormItem
-                    label={labels.current}
+                    label={t('profile.security.currentPassword')}
                     invalid={Boolean(errors.currentPassword)}
                     errorMessage={errors.currentPassword?.message}
                 >
@@ -114,7 +110,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label={labels.next}
+                    label={t('profile.security.newPassword')}
                     invalid={Boolean(errors.newPassword)}
                     errorMessage={errors.newPassword?.message}
                 >
@@ -132,7 +128,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label={labels.confirm}
+                    label={t('profile.security.confirmNewPassword')}
                     invalid={Boolean(errors.confirmNewPassword)}
                     errorMessage={errors.confirmNewPassword?.message}
                 >
@@ -151,14 +147,14 @@ const SettingsSecurity = () => {
                 </FormItem>
                 <div className="flex justify-end">
                     <Button variant="solid" type="submit">
-                        {labels.update}
+                        {t('profile.security.update')}
                     </Button>
                 </div>
             </Form>
             <ConfirmDialog
                 isOpen={confirmationOpen}
                 type="warning"
-                title={labels.updateTitle}
+                title={t('profile.security.updateTitle')}
                 confirmButtonProps={{
                     loading: isSubmitting,
                     onClick: handlePostSubmit,
@@ -167,11 +163,11 @@ const SettingsSecurity = () => {
                 onRequestClose={() => setConfirmationOpen(false)}
                 onCancel={() => setConfirmationOpen(false)}
             >
-                <p>{labels.updateConfirm}</p>
+                <p>{t('profile.security.updateConfirm')}</p>
             </ConfirmDialog>
             <div className="mb-8">
-                <h4>{labels.twoFactor}</h4>
-                <p>{labels.twoFactorDesc}</p>
+                <h4>{t('profile.security.twoFactor')}</h4>
+                <p>{t('profile.security.twoFactorDesc')}</p>
                 <div className="mt-8">
                     {authenticatorList.map((authOption, index) => (
                         <div
@@ -205,7 +201,7 @@ const SettingsSecurity = () => {
                                                 setSelected2FaType('')
                                             }
                                         >
-                                            {labels.enabled}
+                                            {t('profile.security.enabled')}
                                         </Button>
                                     ) : (
                                         <Button
@@ -216,7 +212,7 @@ const SettingsSecurity = () => {
                                                 )
                                             }
                                         >
-                                            {labels.enable}
+                                            {t('profile.security.enable')}
                                         </Button>
                                     )}
                                 </div>
