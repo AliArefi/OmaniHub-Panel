@@ -14,12 +14,13 @@ import dayjs from 'dayjs'
 import { HiOutlineEye, HiOutlinePencil, HiPlus } from 'react-icons/hi'
 import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
 import ManualReservationModal from './ManualReservationModal'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface AgencyCalendarProps {
     agency: Agency | null
 }
-const formatDateAr = (dateString: string) =>
-    new Intl.DateTimeFormat('ar-SA', {
+const formatDate = (dateString: string, locale: string) =>
+    new Intl.DateTimeFormat(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -28,6 +29,7 @@ const formatDateAr = (dateString: string) =>
 const formatTimeAr = (time: string) => time?.toString().slice(0, 5)
 
 export function AgencyCalendar({ agency }: AgencyCalendarProps) {
+    const { t, i18n } = useTranslation()
     const slug = agency?.slug || ''
     const [initialLoading, setInitialLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -96,7 +98,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                         ? message.trim()
                         : undefined
                 })()
-                setError(apiMessage || 'حدث خطأ أثناء تحميل الإحصائيات')
+                setError(apiMessage || t('workCalendar.errors.loadCalendar'))
             } finally {
                 setInitialLoading(false)
             }
@@ -108,7 +110,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
     const monthEvents = useMemo(() => {
         const reservationEvents = monthReservations.map((reservation) => ({
             id: `reservation-${reservation.id}`,
-            title: reservation.customer.name || 'رزرو',
+            title: reservation.customer.name || t('workCalendar.calendar.newReservation'),
             start: `${reservation.date}T${reservation.start_time}`,
             end: `${reservation.date}T${reservation.end_time}`,
             allDay: false,
@@ -125,7 +127,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
 
         const countEvents = (dailyCounts || []).map((d) => ({
             id: `count-${d.date}`,
-            title: `${d.count} حجز`,
+            title: t('workCalendar.calendar.bookingCount', { count: d.count }),
             start: d.date,
             allDay: true,
             display: 'background',
@@ -133,7 +135,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
         }))
 
         return [...reservationEvents, ...countEvents]
-    }, [dailyCounts, monthReservations])
+    }, [dailyCounts, monthReservations, t])
 
     const reservationEvents = useMemo(() => {
         return dayReservations.map((reservation) => ({
@@ -180,22 +182,22 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
             { label: string; className: string }
         > = {
             pending: {
-                label: 'قيد الانتظار',
+                label: t('workCalendar.calendar.status.pending'),
                 className:
                     'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
             },
             confirmed: {
-                label: 'مؤكد',
+                label: t('workCalendar.calendar.status.confirmed'),
                 className:
                     'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
             },
             completed: {
-                label: 'مكتمل',
+                label: t('workCalendar.calendar.status.completed'),
                 className:
                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
             },
             cancelled: {
-                label: 'ملغي',
+                label: t('workCalendar.calendar.status.cancelled'),
                 className:
                     'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
             },
@@ -214,7 +216,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>جاري التحميل...</div>
+                <div>{t('workCalendar.calendar.loading')}</div>
             </div>
         )
 
@@ -292,9 +294,9 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
             <Card>
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <div>
-                        <h3 className="font-semibold text-lg">حجوزات يوم</h3>
+                        <h3 className="font-semibold text-lg">{t('workCalendar.calendar.bookingsForDay')}</h3>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {formatDateAr(selectedDate)}
+                            {formatDate(selectedDate, i18n.language)}
                         </div>
                     </div>
 
@@ -304,23 +306,23 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                         icon={<HiPlus />}
                         onClick={() => openManualReservation(null)}
                     >
-                        حجز جديد
+                        {t('workCalendar.calendar.newReservation')}
                     </Button>
                 </div>
 
                 {dayReservations.length === 0 ? (
                     <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                        لا توجد حجوزات في هذا اليوم
+                        {t('workCalendar.calendar.noBookings')}
                     </div>
                 ) : (
                     <Table>
                         <THead>
                             <Tr>
-                                <Th>العميل</Th>
-                                <Th>الخدمة</Th>
-                                <Th>الوقت</Th>
-                                <Th>الحالة</Th>
-                                <Th className="text-left">الإجراءات</Th>
+                                <Th>{t('workCalendar.calendar.table.customer')}</Th>
+                                <Th>{t('workCalendar.calendar.table.service')}</Th>
+                                <Th>{t('workCalendar.calendar.table.time')}</Th>
+                                <Th>{t('workCalendar.calendar.table.status')}</Th>
+                                <Th className="text-left">{t('workCalendar.calendar.table.actions')}</Th>
                             </Tr>
                         </THead>
                         <TBody>
@@ -328,7 +330,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                                 <Tr key={r.id}>
                                     <Td>
                                         <div className="font-medium">
-                                            {r.customer?.name || 'غير محدد'}
+                                            {r.customer?.name || t('workCalendar.calendar.unknown')}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
                                             {r.customer?.mobile || ''}
@@ -336,10 +338,10 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                                     </Td>
                                     <Td>
                                         <div className="font-medium">
-                                            {r.service?.title || 'غير محدد'}
+                                            {r.service?.title || t('workCalendar.calendar.unknown')}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                                            {r.member?.name || 'غير محدد'}
+                                            {r.member?.name || t('workCalendar.calendar.unknown')}
                                         </div>
                                     </Td>
                                     <Td>
@@ -359,7 +361,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                                                     openManualReservation(r)
                                                 }
                                             >
-                                                تعديل
+                                                {t('workCalendar.calendar.actions.edit')}
                                             </Button>
                                             <Button
                                                 size="xs"
@@ -369,7 +371,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                                                     openBookingDetails(r)
                                                 }
                                             >
-                                                عرض
+                                                {t('workCalendar.calendar.actions.view')}
                                             </Button>
                                         </div>
                                     </Td>
