@@ -7,6 +7,7 @@ import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { HiOutlineChatAlt, HiOutlineLightningBolt, HiOutlineLogout, HiOutlineUser } from 'react-icons/hi'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type DropdownList = {
     label: string
@@ -14,26 +15,8 @@ type DropdownList = {
     icon: JSX.Element
 }
 
-const dropdownItemList: DropdownList[] = [
-    {
-        label: 'الملف الشخصي',
-        path: '/profile',
-        icon: <HiOutlineUser />,
-    },
-    {
-        label: 'محادثة',
-        path: '/chat',
-        icon: <HiOutlineChatAlt />,
-    },
-    
-    {
-        label: 'اشتراك',
-        path: '/plans',
-        icon: <HiOutlineLightningBolt />,
-    }
-]
-
 const _UserDropdown = () => {
+    const { t } = useTranslation()
     const { avatar, name, email } = useSessionUser((state) => state.user)
 
     const { signOut } = useAuth()
@@ -45,6 +28,11 @@ const _UserDropdown = () => {
     const avatarProps = {
         ...(avatar ? { src: resolveImageUrl(avatar) } : { icon: <HiOutlineUser /> }),
     }
+    const dropdownItemList: DropdownList[] = [
+        { label: t('shared.userMenu.profile'), path: '/profile', icon: <HiOutlineUser /> },
+        { label: t('shared.userMenu.chat'), path: '/chat', icon: <HiOutlineChatAlt /> },
+        { label: t('shared.userMenu.subscription'), path: '/plans', icon: <HiOutlineLightningBolt /> },
+    ]
 
     return (
         <Dropdown
@@ -62,10 +50,10 @@ const _UserDropdown = () => {
                     <Avatar {...avatarProps} />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-gray-100">
-                            {name || 'مجهول'}
+                            {name || t('shared.userMenu.unknown')}
                         </div>
                         <div className="text-xs">
-                            {email || 'لا يوجد بريد إلكتروني'}
+                            {email || t('shared.userMenu.noEmail')}
                         </div>
                     </div>
                 </div>
@@ -86,7 +74,7 @@ const _UserDropdown = () => {
                 </Dropdown.Item>
             ))}
             <Dropdown.Item
-                eventKey="Sign Out"
+                eventKey="sign-out"
                 className='px-2 text-red-400'
 
                 onClick={handleSignOut}
@@ -94,7 +82,7 @@ const _UserDropdown = () => {
                 <span className="text-xl">
                     <HiOutlineLogout />
                 </span>
-                <span>تسجيل الخروج</span>
+                <span>{t('shared.userMenu.signOut')}</span>
             </Dropdown.Item>
         </Dropdown>
     )

@@ -36,7 +36,7 @@ const Faq = () => {
                                     key={questionKey}
                                     border={
                                         !isLastChild(
-                                            questions,
+                                            Array.from(questions),
                                             index,
                                         )
                                     }

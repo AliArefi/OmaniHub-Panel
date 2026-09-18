@@ -15,6 +15,7 @@ import { HiOutlineEye, HiOutlinePencil, HiPlus } from 'react-icons/hi'
 import BookingDetailsModal from '@/views/bookings/components/BookingDetailsModal'
 import ManualReservationModal from './ManualReservationModal'
 import useTranslation from '@/utils/hooks/useTranslation'
+import useLocale from '@/utils/hooks/useLocale'
 
 interface AgencyCalendarProps {
     agency: Agency | null
@@ -29,7 +30,8 @@ const formatDate = (dateString: string, locale: string) =>
 const formatTimeAr = (time: string) => time?.toString().slice(0, 5)
 
 export function AgencyCalendar({ agency }: AgencyCalendarProps) {
-    const { t, i18n } = useTranslation()
+    const { t } = useTranslation()
+    const { locale } = useLocale()
     const slug = agency?.slug || ''
     const [initialLoading, setInitialLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -296,7 +298,7 @@ export function AgencyCalendar({ agency }: AgencyCalendarProps) {
                     <div>
                         <h3 className="font-semibold text-lg">{t('workCalendar.calendar.bookingsForDay')}</h3>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {formatDate(selectedDate, i18n.language)}
+                            {formatDate(selectedDate, locale)}
                         </div>
                     </div>
 

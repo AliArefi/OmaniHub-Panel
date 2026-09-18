@@ -42,6 +42,10 @@
       }
     }
   },
+  "shared": {
+    "footer": { "copyright": "Copyright © {{year}} {{app}}. All rights reserved.", "terms": "Terms and conditions", "privacy": "Privacy policy" },
+    "userMenu": { "profile": "Profile", "chat": "Chat", "subscription": "Subscription", "unknown": "Unknown", "noEmail": "No email address", "signOut": "Sign out" }
+  },
   "center": {
     "wizard": {
       "back": "Back",

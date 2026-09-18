@@ -27,6 +27,10 @@
       "settings": "الإعدادات"
     }
   },
+  "shared": {
+    "footer": { "copyright": "حقوق الطبع والنشر © {{year}} {{app}}. جميع الحقوق محفوظة.", "terms": "الشروط والأحكام", "privacy": "سياسة الخصوصية" },
+    "userMenu": { "profile": "الملف الشخصي", "chat": "المحادثات", "subscription": "الاشتراك", "unknown": "غير محدد", "noEmail": "لا يوجد بريد إلكتروني", "signOut": "تسجيل الخروج" }
+  },
   "center": {
     "wizard": {
       "back": "رجوع",

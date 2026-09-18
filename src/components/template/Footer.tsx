@@ -2,6 +2,7 @@ import Container from '@/components/shared/Container'
 import classNames from '@/utils/classNames'
 import { APP_NAME } from '@/constants/app.constant'
 import { PAGE_CONTAINER_GUTTER_X } from '@/constants/theme.constant'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 export type FooterPageContainerType = 'gutterless' | 'contained'
 
@@ -11,11 +12,11 @@ type FooterProps = {
 }
 
 const FooterContent = () => {
+    const { t } = useTranslation()
     return (
         <div className="flex items-center justify-between flex-auto w-full flex-col lg:flex-row gap-2">
             <div>
-                حقوق الطبع والنشر  &copy; {`${new Date().getFullYear()}`}{' '}
-                <span className="font-semibold">{`${APP_NAME}`}</span> جميع الحقوق محفوظة.
+                {t('shared.footer.copyright', { year: new Date().getFullYear(), app: APP_NAME })}
             </div>
             <div className="">
                 <a
@@ -23,7 +24,7 @@ const FooterContent = () => {
                     href="/#"
                     onClick={(e) => e.preventDefault()}
                 >
-                    الشروط والأحكام
+                    {t('shared.footer.terms')}
                 </a>
                 <span className="mx-2 text-muted"> | </span>
                 <a
@@ -31,7 +32,7 @@ const FooterContent = () => {
                     href="/#"
                     onClick={(e) => e.preventDefault()}
                 >
-                    الخصوصية والسياسات
+                    {t('shared.footer.privacy')}
                 </a>
             </div>
         </div>
