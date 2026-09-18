@@ -12,50 +12,29 @@ import isLastChild from '@/utils/isLastChild'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type PasswordSchema = {
     currentPassword: string
     newPassword: string
     confirmNewPassword: string
 }
-const authenticatorList = [
-    {
-        label: 'Google Authenticator',
-        value: 'googleAuthenticator',
-        img: '/img/others/google.png',
-        desc: 'يتم إنشاء رموز حساسة للوقت باستخدام تطبيق Google Authenticator لتسجيل دخول آمن.',
-    },
-    {
-        label: 'Okta Verify',
-        value: 'oktaVerify',
-        img: '/img/others/okta.png',
-        desc: 'استلام إشعارات فورية من تطبيق Okta Verify على هاتفك للتحقق السريع من تسجيل الدخول.',
-    },
-    {
-        label: 'التحقق عبر البريد الإلكتروني',
-        value: 'emailVerification',
-        img: '/img/others/email.png',
-        desc: 'رموز فريدة يتم إرسالها إلى بريدك الإلكتروني للتحقق من تسجيل الدخول.',
-    },
-];
-
-const validationSchema = z.object({
-        currentPassword: z
-            .string()
-            .min(1, { message: 'يرجى إدخال كلمة المرور الحالية!' }),
-        newPassword: z
-            .string()
-            .min(1, { message: 'يرجى إدخال كلمة المرور الجديدة!' }),
-        confirmNewPassword: z
-            .string()
-            .min(1, { message: 'يرجى تأكيد كلمة المرور الجديدة!' }),
-    })
-    .refine((data) => data.confirmNewPassword === data.newPassword, {
-        message: 'كلمة المرور غير متطابقة',
-        path: ['confirmNewPassword'],
-    })
-
 const SettingsSecurity = () => {
+    const { i18n } = useTranslation()
+    const isArabic = i18n.language.toLowerCase().startsWith('ar')
+    const labels = isArabic
+        ? { password: 'كلمة المرور', passwordDesc: 'كلمة المرور هي المفتاح الرقمي لحسابك. حافظ عليها آمنة ومحمية.', current: 'كلمة المرور الحالية', next: 'كلمة المرور الجديدة', confirm: 'تأكيد كلمة المرور الجديدة', update: 'تحديث', updateTitle: 'تحديث كلمة المرور', updateConfirm: 'هل أنت متأكد أنك تريد تغيير كلمة المرور الخاصة بك؟', twoFactor: 'التحقق بخطوتين', twoFactorDesc: 'فعّل التحقق بخطوتين لتأمين حسابك.', enabled: 'مُفعّل', enable: 'تفعيل', error: 'تعذر تغيير كلمة المرور', changed: 'تم تغيير كلمة المرور. سجّل الدخول مجدداً.' }
+        : { password: 'Password', passwordDesc: 'Your password is the digital key to your account. Keep it safe and protected.', current: 'Current password', next: 'New password', confirm: 'Confirm new password', update: 'Update', updateTitle: 'Update password', updateConfirm: 'Are you sure you want to change your password?', twoFactor: 'Two-factor authentication', twoFactorDesc: 'Enable two-factor authentication to secure your account.', enabled: 'Enabled', enable: 'Enable', error: 'Unable to change password', changed: 'Password changed. Please sign in again.' }
+    const authenticatorList = [
+        { label: 'Google Authenticator', value: 'googleAuthenticator', img: '/img/others/google.png', desc: isArabic ? 'يتم إنشاء رموز حساسة للوقت لتسجيل دخول آمن.' : 'Time-based codes for secure sign-in.' },
+        { label: 'Okta Verify', value: 'oktaVerify', img: '/img/others/okta.png', desc: isArabic ? 'إشعارات فورية للتحقق السريع من تسجيل الدخول.' : 'Push notifications for quick sign-in verification.' },
+        { label: isArabic ? 'التحقق عبر البريد الإلكتروني' : 'Email verification', value: 'emailVerification', img: '/img/others/email.png', desc: isArabic ? 'رموز فريدة تُرسل إلى بريدك الإلكتروني للتحقق.' : 'Unique codes sent to your email for verification.' },
+    ]
+    const validationSchema = z.object({
+        currentPassword: z.string().min(1, { message: isArabic ? 'يرجى إدخال كلمة المرور الحالية.' : 'Enter your current password.' }),
+        newPassword: z.string().min(1, { message: isArabic ? 'يرجى إدخال كلمة المرور الجديدة.' : 'Enter a new password.' }),
+        confirmNewPassword: z.string().min(1, { message: isArabic ? 'يرجى تأكيد كلمة المرور الجديدة.' : 'Confirm your new password.' }),
+    }).refine((data) => data.confirmNewPassword === data.newPassword, { message: isArabic ? 'كلمات المرور غير متطابقة.' : 'Passwords do not match.', path: ['confirmNewPassword'] })
     const [selected2FaType, setSelected2FaType] = useState(
         'googleAuthenticator',
     )
@@ -87,15 +66,15 @@ const SettingsSecurity = () => {
             )
 
             if (!response.success) {
-                throw new Error(response.message || 'خطا در تغییر رمز عبور')
+                throw new Error(response.message || labels.error)
             }
 
             reset()
             setConfirmationOpen(false)
-            toast.push(<Notification type="success">رمز عبور تغییر کرد. دوباره وارد شوید.</Notification>)
+            toast.push(<Notification type="success">{labels.changed}</Notification>)
             window.setTimeout(() => window.location.assign('/sign-in'), 600)
         } catch (error) {
-            toast.push(<Notification type="danger">{error instanceof Error ? error.message : 'خطا در تغییر رمز عبور'}</Notification>)
+            toast.push(<Notification type="danger">{error instanceof Error ? error.message : labels.error}</Notification>)
         } finally {
             setIsSubmitting(false)
         }
@@ -108,11 +87,8 @@ const SettingsSecurity = () => {
     return (
         <div>
             <div className="mb-8">
-                <h4>كلمة المرور</h4>
-                <p>
-                    تذكّر أن كلمة المرور هي المفتاح الرقمي لحسابك.
-                    حافظ عليها آمنة ومحمية!
-                </p>
+                <h4>{labels.password}</h4>
+                <p>{labels.passwordDesc}</p>
             </div>
             <Form
                 ref={formRef}
@@ -120,7 +96,7 @@ const SettingsSecurity = () => {
                 onSubmit={handleSubmit(onSubmit)}
             >
                 <FormItem
-                    label="كلمة المرور الحالية"
+                    label={labels.current}
                     invalid={Boolean(errors.currentPassword)}
                     errorMessage={errors.currentPassword?.message}
                 >
@@ -138,7 +114,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="كلمة المرور الجديدة"
+                    label={labels.next}
                     invalid={Boolean(errors.newPassword)}
                     errorMessage={errors.newPassword?.message}
                 >
@@ -156,7 +132,7 @@ const SettingsSecurity = () => {
                     />
                 </FormItem>
                 <FormItem
-                    label="تأكيد كلمة المرور الجديدة"
+                    label={labels.confirm}
                     invalid={Boolean(errors.confirmNewPassword)}
                     errorMessage={errors.confirmNewPassword?.message}
                 >
@@ -175,14 +151,14 @@ const SettingsSecurity = () => {
                 </FormItem>
                 <div className="flex justify-end">
                     <Button variant="solid" type="submit">
-                        تحديث
+                        {labels.update}
                     </Button>
                 </div>
             </Form>
             <ConfirmDialog
                 isOpen={confirmationOpen}
                 type="warning"
-                title="تحديث كلمة المرور"
+                title={labels.updateTitle}
                 confirmButtonProps={{
                     loading: isSubmitting,
                     onClick: handlePostSubmit,
@@ -191,14 +167,11 @@ const SettingsSecurity = () => {
                 onRequestClose={() => setConfirmationOpen(false)}
                 onCancel={() => setConfirmationOpen(false)}
             >
-                <p>هل أنت متأكد أنك تريد تغيير كلمة المرور الخاصة بك؟</p>
+                <p>{labels.updateConfirm}</p>
             </ConfirmDialog>
             <div className="mb-8">
-                <h4>التحقق بخطوتين</h4>
-                <p>
-                    حسابك ذو قيمة للمخترقين. قم بتفعيل التحقق بخطوتين
-                    لتأمين حسابك!
-                </p>
+                <h4>{labels.twoFactor}</h4>
+                <p>{labels.twoFactorDesc}</p>
                 <div className="mt-8">
                     {authenticatorList.map((authOption, index) => (
                         <div
@@ -232,7 +205,7 @@ const SettingsSecurity = () => {
                                                 setSelected2FaType('')
                                             }
                                         >
-                                            مُفعّل
+                                            {labels.enabled}
                                         </Button>
                                     ) : (
                                         <Button
@@ -243,7 +216,7 @@ const SettingsSecurity = () => {
                                                 )
                                             }
                                         >
-                                            تفعيل
+                                            {labels.enable}
                                         </Button>
                                     )}
                                 </div>
