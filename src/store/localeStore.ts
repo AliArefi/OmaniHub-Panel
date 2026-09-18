@@ -2,7 +2,7 @@ import appConfig from '@/configs/app.config'
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import i18n from 'i18next'
-import { dateLocales, supportedLocales } from '@/locales'
+import { dateLocales, localeMetadata, supportedLocales } from '@/locales'
 import dayjs from 'dayjs'
 
 type LocaleState = {
@@ -51,6 +51,8 @@ export const useLocaleStore = create<LocaleState>()(
                     if (typeof document !== 'undefined') {
                         document.cookie = `locale=${encodeURIComponent(lang)}; path=/; SameSite=Lax`
                         document.documentElement.lang = lang
+                        document.documentElement.dir =
+                            localeMetadata[lang]?.direction ?? 'ltr'
                     }
 
                     dateLocales[formattedLang]().then(() => {

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import i18n from 'i18next'
 import { useLocaleStore } from '@/store/localeStore'
-import { supportedLocales } from '@/locales'
+import { localeMetadata, supportedLocales } from '@/locales'
 
 const useLocale = () => {
     const currentLang = useLocaleStore((state) => state.currentLang)
@@ -9,6 +9,8 @@ const useLocale = () => {
     useEffect(() => {
         if (typeof document !== 'undefined') {
             document.documentElement.lang = currentLang
+            document.documentElement.dir =
+                localeMetadata[currentLang]?.direction ?? 'ltr'
         }
 
         if (i18n.language !== currentLang) {
