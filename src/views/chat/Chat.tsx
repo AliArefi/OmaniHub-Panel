@@ -10,30 +10,31 @@ import {
     apiSendThreadMessage,
 } from '@/services/ChatService'
 import { useSearchParams } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const { TabList, TabNav, TabContent } = Tabs
 
 const POLL_INTERVAL_MS = 5000
 
-function safeDateLabel(date: string | null | undefined) {
+function safeDateLabel(date: string | null | undefined, locale: string) {
     if (!date) return '-'
     const d = new Date(date)
     if (Number.isNaN(d.getTime())) return date
-    return new Intl.DateTimeFormat('ar-SA', {
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-OM' : 'en-OM', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
     }).format(d)
 }
 
-function getThreadTitle(thread: ChatThread) {
-    return thread.agency?.title || thread.service?.title || 'Chat'
+function getThreadTitle(thread: ChatThread, fallback: string) {
+    return thread.agency?.title || thread.service?.title || fallback
 }
 
-function getThreadMeta(thread: ChatThread) {
+function getThreadMeta(thread: ChatThread, locale: string) {
     const parts = [
         thread.service?.title || null,
-        safeDateLabel(thread.reservation?.date),
+        safeDateLabel(thread.reservation?.date, locale),
         thread.reservation?.start_time
             ? `${thread.reservation.start_time} - ${thread.reservation?.end_time ?? '-'}`
             : null,
@@ -52,6 +53,7 @@ function getThreadCustomerMeta(thread: ChatThread) {
 }
 
 export default function Chat() {
+    const { t, i18n } = useTranslation()
     const me = useSessionUser((s) => s.user)
     const myUserId = useMemo(() => {
         return typeof me?.id === 'number' ? me.id : null
@@ -99,7 +101,7 @@ export default function Chat() {
                 return first?.id ?? null
             })
         } catch {
-            setThreadsError('تعذر تحميل المحادثات')
+            setThreadsError(t('chat.loadThreadsError'))
             setThreads([])
             setSelectedThreadId(null)
         } finally {
@@ -126,7 +128,7 @@ export default function Chat() {
             }
         } catch {
             if (activeThreadIdRef.current !== threadId) return
-            setMessagesError('تعذر تحميل الرسائل')
+            setMessagesError(t('chat.loadMessagesError'))
             setMessages([])
         } finally {
             if (activeThreadIdRef.current === threadId) {
@@ -180,7 +182,7 @@ export default function Chat() {
     useEffect(() => {
         void fetchThreads(scope)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [scope])
+    }, [scope, t])
 
     useEffect(() => {
         const raw = searchParams.get('reservation_id')?.trim() ?? ''
@@ -275,7 +277,7 @@ export default function Chat() {
                 )
             }
         } catch {
-            setMessagesError('تعذر إرسال الرسالة. حاول مرة أخرى.')
+            setMessagesError(t('chat.sendError'))
         } finally {
             setSending(false)
         }
@@ -289,17 +291,17 @@ export default function Chat() {
     return (
         <Card className="h-[calc(100vh-140px)]">
             <div className="mb-4">
-                <h2 className="text-xl font-bold">المحادثات</h2>
+                <h2 className="text-xl font-bold">{t('chat.title')}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    تواصل مع العملاء بخصوص مواعيدهم وحجوزاتهم
+                    {t('chat.subtitle')}
                 </p>
             </div>
 
             <Tabs value={scope} onChange={(v) => setScope(v as ChatThreadScope)}>
                 <TabList className="mb-4">
-                    <TabNav value="upcoming">القادمة</TabNav>
-                    <TabNav value="past">السابقة</TabNav>
-                    <TabNav value="all">الكل</TabNav>
+                    <TabNav value="upcoming">{t('chat.upcoming')}</TabNav>
+                    <TabNav value="past">{t('chat.past')}</TabNav>
+                    <TabNav value="all">{t('chat.all')}</TabNav>
                 </TabList>
 
                 <TabContent value={scope} className="h-full">
@@ -309,7 +311,7 @@ export default function Chat() {
                                 {threadsLoading ? (
                                     <div className="p-6 flex items-center justify-center gap-2">
                                         <Spinner />
-                                        <span>جاري التحميل...</span>
+                                        <span>{t('chat.loading')}</span>
                                     </div>
                                 ) : threadsError ? (
                                     <div className="p-6 text-red-600 dark:text-red-400">
@@ -317,32 +319,32 @@ export default function Chat() {
                                     </div>
                                 ) : threads.length === 0 ? (
                                     <div className="p-6 text-gray-500">
-                                        لا توجد محادثات بعد.
+                                        {t('chat.emptyThreads')}
                                     </div>
                                 ) : (
                                     <div>
-                                        {threads.map((t) => {
-                                            const active = t.id === selectedThreadId
-                                            const threadTitle = getThreadTitle(t)
+                                        {threads.map((thread) => {
+                                            const active = thread.id === selectedThreadId
+                                            const threadTitle = getThreadTitle(thread, t('chat.defaultTitle'))
                                             const lastPreview =
-                                                t.last_message?.body?.slice(0, 80) ||
+                                                thread.last_message?.body?.slice(0, 80) ||
                                                 '—'
                                             return (
                                                 <button
-                                                    key={t.id}
+                                                    key={thread.id}
                                                     className={`w-full text-right p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer ${
                                                         active
                                                             ? 'bg-gray-50 dark:bg-gray-800/60'
                                                             : ''
                                                     }`}
                                                     onClick={() =>
-                                                        setSelectedThreadId(t.id)
+                                                        setSelectedThreadId(thread.id)
                                                     }
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
                                                         <div className="flex items-center gap-3 min-w-0">
                                                             <Avatar
-                                                                src={t.agency?.logo || undefined}
+                                                                src={thread.agency?.logo || undefined}
                                                                 alt={threadTitle}
                                                                 className="w-10 h-10"
                                                             />
@@ -351,17 +353,17 @@ export default function Chat() {
                                                                     {threadTitle}
                                                                 </div>
                                                                 <div className="text-xs text-gray-500 truncate">
-                                                                    {getThreadMeta(t)}
+                                                                    {getThreadMeta(thread, i18n.language)}
                                                                 </div>
                                                                 <div className="text-xs text-gray-400 truncate">
-                                                                    {getThreadCustomerMeta(t)}
+                                                                    {getThreadCustomerMeta(thread)}
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        {t.has_unread ? (
+                                                        {thread.has_unread ? (
                                                             <Badge className="bg-indigo-600 text-white">
-                                                                جديد
+                                                                {t('chat.new')}
                                                             </Badge>
                                                         ) : null}
                                                     </div>
@@ -380,7 +382,7 @@ export default function Chat() {
                         <div className="col-span-12 md:col-span-8 h-full overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col">
                             {!selectedThread ? (
                                 <div className="p-6 text-gray-500">
-                                    اختر محادثة من القائمة.
+                                    {t('chat.selectThread')}
                                 </div>
                             ) : (
                                 <>
@@ -391,15 +393,15 @@ export default function Chat() {
                                                     selectedThread.agency?.logo ||
                                                     undefined
                                                 }
-                                                alt={getThreadTitle(selectedThread)}
+                                                alt={getThreadTitle(selectedThread, t('chat.defaultTitle'))}
                                                 className="h-11 w-11 shrink-0"
                                             />
                                             <div className="min-w-0">
                                                 <div className="font-semibold truncate">
-                                                    {getThreadTitle(selectedThread)}
+                                                    {getThreadTitle(selectedThread, t('chat.defaultTitle'))}
                                                 </div>
                                                 <div className="text-xs text-gray-500 truncate">
-                                                    {getThreadMeta(selectedThread)}
+                                                    {getThreadMeta(selectedThread, i18n.language)}
                                                 </div>
                                                 <div className="text-xs text-gray-400 truncate">
                                                     {getThreadCustomerMeta(
@@ -418,7 +420,7 @@ export default function Chat() {
                                         {messagesLoading ? (
                                             <div className="p-6 flex items-center justify-center gap-2">
                                                 <Spinner />
-                                                <span>جاري التحميل...</span>
+                                                <span>{t('chat.loading')}</span>
                                             </div>
                                         ) : messagesError ? (
                                             <div className="text-red-600 dark:text-red-400">
@@ -426,7 +428,7 @@ export default function Chat() {
                                             </div>
                                         ) : messages.length === 0 ? (
                                             <div className="text-gray-500">
-                                                لا توجد رسائل بعد.
+                                                {t('chat.emptyMessages')}
                                             </div>
                                         ) : (
                                             messages.map((m) => {
@@ -445,7 +447,7 @@ export default function Chat() {
                                                     >
                                                         <Avatar
                                                             src={m.sender?.avatar || undefined}
-                                                            alt={m.sender?.name || 'User'}
+                                                            alt={m.sender?.name || t('chat.defaultUser')}
                                                             className="h-9 w-9 shrink-0"
                                                         />
                                                         <div
@@ -474,7 +476,7 @@ export default function Chat() {
                                                                     ? new Date(
                                                                           m.created_at,
                                                                       ).toLocaleTimeString(
-                                                                          'ar-SA',
+                                                                          i18n.language === 'ar' ? 'ar-OM' : 'en-OM',
                                                                           {
                                                                               hour: '2-digit',
                                                                               minute: '2-digit',
@@ -493,7 +495,7 @@ export default function Chat() {
                                     <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3 bg-white dark:bg-gray-800">
                                         <Input
                                             value={composer}
-                                            placeholder="اكتب رسالة..."
+                                            placeholder={t('chat.messagePlaceholder')}
                                             disabled={sending}
                                             onChange={(e) =>
                                                 setComposer(e.target.value)
@@ -510,7 +512,7 @@ export default function Chat() {
                                             disabled={sending || !composer.trim()}
                                             onClick={() => void onSend()}
                                         >
-                                            إرسال
+                                            {t('chat.send')}
                                         </Button>
                                     </div>
                                 </>
