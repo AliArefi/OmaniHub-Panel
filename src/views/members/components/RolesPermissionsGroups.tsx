@@ -3,12 +3,14 @@ import { useRolePermissionsStore } from '../store/rolePermissionsStore'
 import UsersAvatarGroup from '@/components/shared/UsersAvatarGroup'
 import { TbArrowRight } from 'react-icons/tb'
 import type { Roles } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type RolesPermissionsGroupsProps = {
     roleList: Roles
 }
 
 const RolesPermissionsGroups = ({ roleList }: RolesPermissionsGroupsProps) => {
+    const { t } = useTranslation()
     const { setSelectedRole, setRoleDialog } = useRolePermissionsStore()
 
     const handleEditRoleClick = (id: string) => {
@@ -53,7 +55,7 @@ const RolesPermissionsGroups = ({ roleList }: RolesPermissionsGroupsProps) => {
                             iconAlignment="end"
                             onClick={() => handleEditRoleClick(role.id)}
                         >
-                           نقش را ویرایش کنید
+                           {t('memberRoleDialog.editRole')}
                         </Button>
                     </div>
                 </div>

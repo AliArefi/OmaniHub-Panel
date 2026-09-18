@@ -22,6 +22,7 @@ import {
 } from 'react-icons/tb'
 import type { MutateRolesPermissionsRolesResponse, Roles } from '../types'
 import type { ReactNode } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type RolesPermissionsAccessDialog = {
     roleList: Roles
@@ -42,6 +43,7 @@ const RolesPermissionsAccessDialog = ({
     roleList,
     mutate,
 }: RolesPermissionsAccessDialog) => {
+    const { t } = useTranslation()
     const { selectedRole, setSelectedRole, setRoleDialog, roleDialog } =
         useRolePermissionsStore()
 
@@ -110,19 +112,19 @@ const RolesPermissionsAccessDialog = ({
             onClose={handleClose}
             onRequestClose={handleClose}
         >
-            <h4>{roleDialog.type === 'new' ? 'نقش ایجاد کنید' : modules?.name}</h4>
+            <h4>{roleDialog.type === 'new' ? t('memberManagement.createRole') : modules?.name}</h4>
             <ScrollBar className="mt-6 max-h-[600px] overflow-y-auto">
                 <div className="px-4">
                     {roleDialog.type === 'new' && (
                         <>
-                            <FormItem label="نام نقش">
+                            <FormItem label={t('memberRoleDialog.roleName')}>
                                 <Input ref={roleNameRef} />
                             </FormItem>
-                            <FormItem label="توضیحات">
+                            <FormItem label={t('memberRoleDialog.description')}>
                                 <Input ref={descriptionRef} textArea />
                             </FormItem>
                             <span className="font-semibold mb-2">
-                                دسترسی
+                                {t('memberRoleDialog.access')}
                             </span>
                         </>
                     )}
@@ -207,7 +209,7 @@ const RolesPermissionsAccessDialog = ({
                             variant="plain"
                             onClick={handleClose}
                         >
-                            لغو کنید
+                            {t('memberRoleDialog.cancel')}
                         </Button>
                         <Button
                             variant="solid"
@@ -217,7 +219,9 @@ const RolesPermissionsAccessDialog = ({
                                     : handleSubmit
                             }
                         >
-                            {roleDialog.type === 'edit' ? 'بروزرسانی' : 'ایجاد'}
+                            {roleDialog.type === 'edit'
+                                ? t('memberRoleDialog.update')
+                                : t('memberRoleDialog.create')}
                         </Button>
                     </div>
                 </div>

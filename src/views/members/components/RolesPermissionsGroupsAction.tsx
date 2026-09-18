@@ -1,7 +1,9 @@
 import Button from '@/components/ui/Button'
 import { useRolePermissionsStore } from '../store/rolePermissionsStore'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const RolesPermissionsGroupsAction = () => {
+    const { t } = useTranslation()
     const { setRoleDialog } = useRolePermissionsStore()
 
     return (
@@ -15,7 +17,7 @@ const RolesPermissionsGroupsAction = () => {
                     })
                 }
             >
-                نقش ایجاد کنید
+                {t('memberManagement.createRole')}
             </Button>
         </div>
     )

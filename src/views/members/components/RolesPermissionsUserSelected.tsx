@@ -5,6 +5,7 @@ import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { useRolePermissionsStore } from '../store/rolePermissionsStore'
 import { TbChecks } from 'react-icons/tb'
 import type { MutateRolesPermissionsUsersResponse, Users } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type RolesPermissionsUserSelectedProps = {
     mutate: MutateRolesPermissionsUsersResponse
@@ -17,6 +18,7 @@ const RolesPermissionsUserSelected = ({
     userList,
     userListTotal,
 }: RolesPermissionsUserSelectedProps) => {
+    const { t } = useTranslation()
     const { selectedUser, setSelectAllUser } = useRolePermissionsStore()
 
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false)
@@ -59,9 +61,8 @@ const RolesPermissionsUserSelected = ({
                                         </span>
                                         <span className="font-semibold flex items-center gap-1">
                                             <span className="heading-text">
-                                                {selectedUser.length} کاربران
+                                                {t('memberManagement.selected', { count: selectedUser.length })}
                                             </span>
-                                            <span>انتخاب شده است</span>
                                         </span>
                                     </span>
                                 )}
@@ -77,7 +78,7 @@ const RolesPermissionsUserSelected = ({
                                     }
                                     onClick={handleDelete}
                                 >
-                                    حذف
+                                    {t('memberManagement.delete')}
                                 </Button>
                             </div>
                         </div>
@@ -87,16 +88,14 @@ const RolesPermissionsUserSelected = ({
             <ConfirmDialog
                 isOpen={deleteConfirmationOpen}
                 type="danger"
-                title="حذف کاربران"
+                title={t('memberManagement.deleteUsers')}
                 onClose={handleCancel}
                 onRequestClose={handleCancel}
                 onCancel={handleCancel}
                 onConfirm={handleConfirmDelete}
             >
                 <p>
-                    {''}
-                    آیا مطمئن هستید که می خواهید این کاربران را حذف کنید؟ این اقدام
-                    قابل واگرد نیست.{' '}
+                    {t('memberManagement.deleteConfirm')}
                 </p>
             </ConfirmDialog>
         </>

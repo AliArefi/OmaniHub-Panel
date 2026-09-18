@@ -4,8 +4,6 @@ import Tag from '@/components/ui/Tag'
 import Dropdown from '@/components/ui/Dropdown'
 import DataTable from '@/components/shared/DataTable'
 import { useRolePermissionsStore } from '../store/rolePermissionsStore'
-import dayjs from 'dayjs'
-import 'dayjs/locale/ar' // استيراد اللغة العربية
 import cloneDeep from 'lodash/cloneDeep'
 import { TbChevronDown } from 'react-icons/tb'
 import type {
@@ -16,8 +14,7 @@ import type {
 } from '../types'
 import type { OnSortParam, ColumnDef, Row } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
-
-dayjs.locale('ar') // تعيين اللغة العربية بشكل افتراضي
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type RolesPermissionsUserTableProps = {
     isLoading: boolean
@@ -33,6 +30,7 @@ const statusColor: Record<string, string> = {
 }
 
 const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
+    const { t, i18n } = useTranslation()
     const { userList, userListTotal, isLoading, roleList, mutate } = props
 
     const {
@@ -100,7 +98,7 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
     const columns: ColumnDef<User>[] = useMemo(
         () => [
             {
-                header: 'الاسم',
+                header: t('memberManagement.name'),
                 accessorKey: 'name',
                 cell: (props) => {
                     const row = props.row.original
@@ -118,7 +116,7 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                 },
             },
             {
-                header: 'الحالة',
+                header: t('memberManagement.status'),
                 accessorKey: 'status',
                 cell: (props) => {
                     const row = props.row.original
@@ -132,24 +130,28 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
                 },
             },
             {
-                header: 'آخر ظهور',
+                header: t('memberManagement.lastOnline'),
                 accessorKey: 'lastOnline',
                 cell: (props) => {
                     const row = props.row.original
                     return (
                         <div className="flex flex-col">
                             <span className="font-semibold">
-                                {dayjs.unix(row.lastOnline).format('MMMM, D YYYY')}
+                                {new Intl.DateTimeFormat(i18n.language, {
+                                    year: 'numeric', month: 'long', day: 'numeric',
+                                }).format(new Date(row.lastOnline * 1000))}
                             </span>
                             <small>
-                                {dayjs.unix(row.lastOnline).format('hh:mm A')}
+                                {new Intl.DateTimeFormat(i18n.language, {
+                                    hour: 'numeric', minute: '2-digit',
+                                }).format(new Date(row.lastOnline * 1000))}
                             </small>
                         </div>
                     )
                 },
             },
             {
-                header: 'الدور',
+                header: t('memberManagement.role'),
                 accessorKey: 'role',
                 size: 70,
                 cell: (props) => {
@@ -191,7 +193,7 @@ const RolesPermissionsUserTable = (props: RolesPermissionsUserTableProps) => {
             },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [roleList, userList],
+        [i18n.language, roleList, t, userList],
     )
 
     return (

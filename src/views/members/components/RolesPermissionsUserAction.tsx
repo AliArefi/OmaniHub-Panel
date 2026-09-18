@@ -5,6 +5,7 @@ import { useRolePermissionsStore } from '../store/rolePermissionsStore'
 import { TbSearch } from 'react-icons/tb'
 import { components } from 'react-select'
 import type { ControlProps, OptionProps } from 'react-select'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const { Control } = components
 
@@ -19,11 +20,6 @@ type RoleOption = {
     value: string
 }
 
-const statusOptions = [
-    { label: 'الكل', value: '', dotBackground: 'bg-gray-200' },
-    { label: 'نشط', value: 'active', dotBackground: 'bg-success' },
-    { label: 'محظور', value: 'blocked', dotBackground: 'bg-error' },
-]
 const roleOptions = [
     { label: 'همه', value: '' },
     { label: 'مدیر', value: 'admin' },
@@ -72,6 +68,7 @@ const CustomControl = ({ children, ...props }: ControlProps<StatusOption>) => {
 }
 
 const RolesPermissionsUserAction = () => {
+    const { t } = useTranslation()
     const { tableData, filterData, setFilterData, setTableData } =
         useRolePermissionsStore()
 
@@ -86,12 +83,17 @@ const RolesPermissionsUserAction = () => {
     const handleInputChange = (query: string) => {
         setTableData({ ...tableData, query })
     }
+    const statusOptions: StatusOption[] = [
+        { label: t('memberManagement.all'), value: '', dotBackground: 'bg-gray-200' },
+        { label: t('memberManagement.active'), value: 'active', dotBackground: 'bg-success' },
+        { label: t('memberManagement.blocked'), value: 'blocked', dotBackground: 'bg-error' },
+    ]
 
     return (
         <div className="flex items-center justify-between">
             <DebouceInput
                 className="max-w-[300px]"
-                placeholder="بحث..."
+                placeholder={t('memberManagement.search')}
                 type="text"
                 size="sm"
                 prefix={<TbSearch className="text-lg" />}
@@ -106,9 +108,9 @@ const RolesPermissionsUserAction = () => {
                     }}
                     options={statusOptions}
                     size="sm"
-                    placeholder="Status"
+                    placeholder={t('memberManagement.status')}
                     defaultValue={{
-                        label: 'الکل',
+                        label: t('memberManagement.all'),
                         value: '',
                         dotBackground: 'bg-gray-200',
                     }}
