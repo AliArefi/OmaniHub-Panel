@@ -1,5 +1,5 @@
-import { Language, TEXT_CONSTANT } from '@/constants/text.constant'
-import { useState } from 'react'
+import { TEXT_CONSTANT } from '@/constants/text.constant'
+import { useLocaleStore } from '@/store/localeStore'
 
 type TextConstant = typeof TEXT_CONSTANT
 type PlainKey = {
@@ -9,8 +9,10 @@ type FnKey = {
     [K in keyof TextConstant]: TextConstant[K] extends (...args: any[]) => Record<string, string> ? K : never
 }[keyof TextConstant]
 
-export function useTranslation(defaultLang: Language = 'AR') {
-    const [lang, setLang] = useState<Language>(defaultLang)
+export function useTranslation() {
+    const locale = useLocaleStore((state) => state.currentLang)
+    const setLocale = useLocaleStore((state) => state.setLang)
+    const lang = locale.toLowerCase().startsWith('ar') ? 'AR' : 'EN'
 
     function t(key: PlainKey): string
     function t<K extends FnKey>(key: K, ...args: Parameters<TextConstant[K]>): string
@@ -32,5 +34,10 @@ export function useTranslation(defaultLang: Language = 'AR') {
         return record[lang] ?? record.EN ?? Object.values(record)[0] ?? key
     }
 
-    return { t, lang, setLang }
+    return {
+        t,
+        lang,
+        setLang: (next: keyof typeof TEXT_CONSTANT.loading) =>
+            setLocale(next.toLowerCase() === 'ar' ? 'ar' : 'en'),
+    }
 }
