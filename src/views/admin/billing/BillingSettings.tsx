@@ -93,7 +93,7 @@ const BillingSettings = () => {
         setMessage(null)
         try {
             const response = await apiCheckBillingProviderHealth(provider.id)
-            setMessage(response.health.reachable ? t('billingAdmin.healthReachable') : t('billingAdmin.healthUnreachable'))
+            setMessage(!response.health.configured ? t('billingHealth.incomplete') : !response.health.authorized ? t('billingHealth.unauthorized') : response.health.reachable ? t('billingAdmin.healthReachable') : t('billingAdmin.healthUnreachable'))
         } catch {
             setMessage(t('billingAdmin.healthError'))
         } finally {
@@ -137,7 +137,15 @@ const BillingSettings = () => {
         } : current)
 
     if (isLoading) return <div className="flex justify-center py-16"><Spinner /></div>
-    if (error) return <AdaptiveCard>{t('billingAdmin.loadError')}</AdaptiveCard>
+    if (error) {
+        const status = (error as { response?: { status?: number } }).response?.status
+        const message = status === 401
+            ? t('billingHealth.authRequired')
+            : status === 403
+                ? t('billingHealth.forbidden')
+                : t('billingAdmin.loadError')
+        return <AdaptiveCard>{message}</AdaptiveCard>
+    }
 
     return <div className="space-y-4">
         <div><h3>{t('billingAdmin.title')}</h3><p className="text-sm text-gray-500">{t('billingAdmin.subtitle')}</p></div>
