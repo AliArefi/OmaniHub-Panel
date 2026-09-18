@@ -7,12 +7,12 @@ import { questionList, questionCategory } from '../constants'
 import isLastChild from '@/utils/isLastChild'
 
 const Faq = () => {
-    const { i18n } = useTranslation()
+    const { t } = useTranslation()
     const [selectedCategory, setSelectedCategory] = useState('subscription')
 
     return (
         <Card>
-            <h3 className="mt-2">{i18n.language.toLowerCase().startsWith('ar') ? 'الأسئلة الشائعة' : 'Frequently asked questions'}</h3>
+            <h3 className="mt-2">{t('plansFaq.title')}</h3>
             <div className="flex flex-col md:flex-row gap-4 md:gap-20 mt-8">
                 <div className="min-w-[230px] mb-3 sm:mb-0 pb-3 sm:pb-3 border-b sm:border-b-0 border-gray-300 ">
                     <Menu className='flex sm:block items-center'>

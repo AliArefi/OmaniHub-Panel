@@ -37,7 +37,7 @@ const Question = (props: QuestionProps) => {
             <AnimatePresence>
                 {expand && (
                     <motion.div
-                        className="mt-4 ltr:ml-10"
+                        className="mt-4 ltr:ml-10 rtl:mr-10"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
