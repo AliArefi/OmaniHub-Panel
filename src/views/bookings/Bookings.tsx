@@ -15,34 +15,30 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { HiOutlineEye } from 'react-icons/hi'
 import BookingDetailsModal from './components/BookingDetailsModal'
 import { useNavigate, useSearchParams } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type BookingsTab = 'my' | 'agency'
 
 // ── status config ─────────────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<
-    Booking['status'],
-    { label: string; className: string }
-> = {
+const STATUS_CONFIG: Record<Booking['status'], { className: string }> = {
     pending: {
-        label: 'قيد الانتظار',
         className:
             'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
     },
     confirmed: {
-        label: 'مؤكد',
         className:
             'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
     cancelled: {
-        label: 'ملغي',
         className:
             'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     },
 }
 
 function StatusBadge({ status }: { status: Booking['status'] }) {
+    const { t } = useTranslation()
     const cfg = STATUS_CONFIG[status]
-    return <Badge className={cfg.className}>{cfg.label}</Badge>
+    return <Badge className={cfg.className}>{t(`bookings.status.${status}`)}</Badge>
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -53,8 +49,8 @@ function normalizeTab(value: string | null, hasActiveAgency: boolean): BookingsT
     return hasActiveAgency ? 'agency' : 'my'
 }
 
-function formatDate(dateString: string) {
-    return new Intl.DateTimeFormat('ar-OM', {
+function formatDate(dateString: string, locale: string) {
+    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar-OM' : 'en-OM', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -87,6 +83,7 @@ interface BookingCardProps {
 }
 
 function BookingMobileCard({ booking, firstColumnMode, onView }: BookingCardProps) {
+    const { t, i18n } = useTranslation()
     const avatarSrc =
         booking.agency?.logo?.thumb ||
         booking.agency?.logo?.original ||
@@ -130,28 +127,28 @@ function BookingMobileCard({ booking, firstColumnMode, onView }: BookingCardProp
 
             <div className="mt-3 space-y-1.5 border-t border-gray-100 pt-3 text-sm dark:border-gray-800">
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">الخدمة</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('bookings.columns.service')}</span>
                     <span className="truncate font-medium text-gray-900 dark:text-gray-100">
                         {booking.service?.title || '-'}
                     </span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">مقدم الخدمة</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('bookings.columns.provider')}</span>
                     <span className="truncate text-gray-700 dark:text-gray-300">
-                        {booking.member?.name || 'غير محدد'}
+                        {booking.member?.name || t('bookings.unassigned')}
                     </span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">الموعد</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('bookings.columns.appointment')}</span>
                     <span
                         className="whitespace-nowrap text-gray-700 dark:text-gray-300"
                         dir="ltr"
                     >
-                        {formatDate(booking.date)} · {booking.start_time}–{booking.end_time}
+                        {formatDate(booking.date, i18n.language)} · {booking.start_time}–{booking.end_time}
                     </span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                    <span className="text-gray-500 dark:text-gray-400">التسعير</span>
+                    <span className="text-gray-500 dark:text-gray-400">{t('bookings.columns.pricing')}</span>
                     <div className="text-right">
                         <p className="font-medium text-gray-900 dark:text-gray-100">
                             {getReservationPricingLabel(booking)}
@@ -170,7 +167,7 @@ function BookingMobileCard({ booking, firstColumnMode, onView }: BookingCardProp
                     icon={<HiOutlineEye />}
                     onClick={() => onView(booking)}
                 >
-                    عرض التفاصيل
+                    {t('bookings.viewDetails')}
                 </Button>
             </div>
         </div>
@@ -195,6 +192,7 @@ function BookingsTabBody({
     firstColumnMode,
     onView,
 }: TabBodyProps) {
+    const { t, i18n } = useTranslation()
     if (loading) {
         return (
             <div className="flex items-center justify-center py-16">
@@ -214,7 +212,7 @@ function BookingsTabBody({
     if (bookings.length === 0) {
         return (
             <div className="py-16 text-center text-sm text-gray-500 dark:text-gray-400">
-                لا توجد حجوزات
+                {t('bookings.empty')}
             </div>
         )
     }
@@ -239,11 +237,11 @@ function BookingsTabBody({
                     <THead>
                         <Tr>
                             <Th>{firstColumnLabel}</Th>
-                            <Th>الخدمة</Th>
-                            <Th>الموعد</Th>
-                            <Th>التسعير</Th>
-                            <Th>الحالة</Th>
-                            <Th className="text-left">الإجراءات</Th>
+                            <Th>{t('bookings.columns.service')}</Th>
+                            <Th>{t('bookings.columns.appointment')}</Th>
+                            <Th>{t('bookings.columns.pricing')}</Th>
+                            <Th>{t('bookings.columns.status')}</Th>
+                            <Th>{t('bookings.columns.actions')}</Th>
                         </Tr>
                     </THead>
                     <TBody>
@@ -295,13 +293,13 @@ function BookingsTabBody({
                                             {booking.service?.title || '-'}
                                         </p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {booking.member?.name || 'غير محدد'}
+                                            {booking.member?.name || t('bookings.unassigned')}
                                         </p>
                                     </Td>
 
                                     <Td>
                                         <p className="whitespace-nowrap text-sm">
-                                            {formatDate(booking.date)}
+                                            {formatDate(booking.date, i18n.language)}
                                         </p>
                                         <p
                                             className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400"
@@ -335,7 +333,7 @@ function BookingsTabBody({
                                                 className="cursor-pointer"
                                                 onClick={() => onView(booking)}
                                             >
-                                                عرض
+                                                {t('bookings.view')}
                                             </Button>
                                         </div>
                                     </Td>
@@ -360,6 +358,7 @@ const INITIAL_TAB_STATE: TabState = { bookings: [], loading: false, error: null 
 
 // ── page component ────────────────────────────────────────────────────────────
 export default function Bookings() {
+    const { t } = useTranslation()
     const sessionUser = useSessionUser((s) => s.user)
     const hasActiveAgency = Boolean(sessionUser?.has_active_agency)
     const navigate = useNavigate()
@@ -438,7 +437,7 @@ export default function Bookings() {
                 setTabState({
                     bookings: [],
                     loading: false,
-                    error: apiMessage || 'حدث خطأ أثناء تحميل الحجوزات',
+                    error: apiMessage || t('bookings.loadError'),
                 })
             }
         }
@@ -446,7 +445,7 @@ export default function Bookings() {
         void fetchBookings()
 
         return () => controller.abort()
-    }, [tab, agencySlug, navigate]) // openReservationId intentionally excluded
+    }, [tab, agencySlug, navigate, t]) // openReservationId intentionally excluded
 
     // handle deep-link modal open — runs once after first successful load
     useEffect(() => {
@@ -476,12 +475,12 @@ export default function Bookings() {
 
     return (
         <>
-            <Card bordered className="p-3 sm:p-4" bodyClass="p-0" dir="rtl">
+            <Card bordered className="p-3 sm:p-4" bodyClass="p-0">
                 <Tabs value={tab} onChange={(v) => setTabAndUrl(v as BookingsTab)}>
                     <TabList>
-                        <TabNav value="my">حجوزاتي</TabNav>
+                        <TabNav value="my">{t('bookings.tabs.my')}</TabNav>
                         {hasActiveAgency ? (
-                            <TabNav value="agency">حجوزات مراكزي</TabNav>
+                            <TabNav value="agency">{t('bookings.tabs.agency')}</TabNav>
                         ) : null}
                     </TabList>
 
@@ -491,7 +490,7 @@ export default function Bookings() {
                                 loading={myState.loading}
                                 error={myState.error}
                                 bookings={myState.bookings}
-                                firstColumnLabel="المركز"
+                                firstColumnLabel={t('bookings.columns.center')}
                                 firstColumnMode="agency"
                                 onView={handleView}
                             />
@@ -505,7 +504,7 @@ export default function Bookings() {
                                     loading={agencyState.loading}
                                     error={agencyState.error}
                                     bookings={agencyState.bookings}
-                                    firstColumnLabel="العميل"
+                                    firstColumnLabel={t('bookings.columns.customer')}
                                     firstColumnMode="customer"
                                     onView={handleView}
                                 />

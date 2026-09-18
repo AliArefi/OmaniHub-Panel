@@ -194,6 +194,29 @@
       "schedulesSaved": "Schedules saved."
     }
   },
+  "bookings": {
+    "tabs": { "my": "My bookings", "agency": "My center bookings" },
+    "columns": { "center": "Center", "customer": "Customer", "service": "Service", "provider": "Provider", "appointment": "Appointment", "pricing": "Pricing", "status": "Status", "actions": "Actions" },
+    "status": { "pending": "Pending", "confirmed": "Confirmed", "cancelled": "Cancelled" },
+    "unassigned": "Not assigned",
+    "empty": "No bookings found",
+    "view": "View",
+    "viewDetails": "View details",
+    "loadError": "Unable to load bookings",
+    "details": {
+      "title": "Booking details", "customer": "Customer details", "centerService": "Center and service", "dateTime": "Date and time", "name": "Name", "phone": "Phone", "email": "Email", "center": "Center", "service": "Service", "provider": "Provider", "date": "Date", "time": "Time", "status": "Status", "pricing": "Pricing", "price": "Price", "notes": "Notes", "pricingUpdate": "Update pricing", "finalPrice": "Final price", "bookingStatus": "Booking status", "savePricing": "Save pricing", "close": "Close", "chat": "Chat", "chatUnavailable": "Chat is unavailable for bookings without an account.", "validPrice": "Enter a valid price before saving.", "pricingSaved": "Pricing was saved successfully.", "pricingSaveError": "Unable to save pricing."
+    }
+  },
+  "pricing": {
+    "coordination": "By arrangement",
+    "range": "From {{min}} to {{max}} {{currency}}",
+    "startsFrom": "Starts from {{min}} {{currency}}",
+    "fixed": "Fixed price",
+    "memberBased": "Member based",
+    "needsQuote": "Awaiting a quote",
+    "priced": "Priced",
+    "unspecified": "Not specified"
+  },
   "workCalendar": {
     "title": "Work calendar",
     "labels": {

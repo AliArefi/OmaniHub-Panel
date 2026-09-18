@@ -9,6 +9,7 @@ import {
 import { HiCalendar, HiChatAlt2, HiOfficeBuilding, HiUser } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface BookingDetailsModalProps {
     isOpen: boolean
@@ -77,6 +78,7 @@ export default function BookingDetailsModal({
     canQuote = false,
     onBookingUpdated,
 }: BookingDetailsModalProps) {
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
     const chatAvailable = Boolean(booking.customer.user?.id)
 
@@ -89,7 +91,7 @@ export default function BookingDetailsModal({
     const [isSubmittingQuote, setIsSubmittingQuote] = useState(false)
 
     const formatDate = (dateString: string) =>
-        new Intl.DateTimeFormat('ar-OM', {
+        new Intl.DateTimeFormat(i18n.language === 'ar' ? 'ar-OM' : 'en-OM', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -98,7 +100,7 @@ export default function BookingDetailsModal({
     const handleQuoteSave = async () => {
         const parsed = Number(quotePrice)
         if (!Number.isFinite(parsed) || parsed < 0) {
-            setQuoteError('أدخل سعراً صحيحاً قبل الحفظ.')
+            setQuoteError(t('bookings.details.validPrice'))
             setQuoteSuccess(null)
             return
         }
@@ -123,7 +125,7 @@ export default function BookingDetailsModal({
             }
 
             onBookingUpdated?.(updatedBooking)
-            setQuoteSuccess(response.message || 'تم حفظ التسعير بنجاح.')
+            setQuoteSuccess(response.message || t('bookings.details.pricingSaved'))
         } catch (error: unknown) {
             const message =
                 typeof error === 'object' &&
@@ -134,9 +136,9 @@ export default function BookingDetailsModal({
                     ).response?.data?.message === 'string'
                     ? (error as { response?: { data?: { message?: string } } })
                         .response?.data?.message
-                    : 'تعذر حفظ التسعير.'
+                    : t('bookings.details.pricingSaveError')
 
-            setQuoteError(message || 'تعذر حفظ التسعير.')
+            setQuoteError(message || t('bookings.details.pricingSaveError'))
         } finally {
             setIsSubmittingQuote(false)
         }
@@ -147,7 +149,7 @@ export default function BookingDetailsModal({
             {/* ── header ── */}
             <div className="border-b border-gray-100g py-4 dark:border-gray-800">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    تفاصيل الحجز
+                    {t('bookings.details.title')}
                 </h3>
                 <p className="mt-0.5 text-xs text-gray-400">
                     #{booking.id}
@@ -162,17 +164,17 @@ export default function BookingDetailsModal({
                 {/* customer */}
                 <Section
                     icon={<HiUser className="w-4 h-4" />}
-                    title="بيانات العميل"
+                    title={t('bookings.details.customer')}
                 >
-                    <InfoRow label="الاسم" value={booking.customer.name} />
+                    <InfoRow label={t('bookings.details.name')} value={booking.customer.name} />
                     <InfoRow
-                        label="رقم الهاتف"
+                        label={t('bookings.details.phone')}
                         value={booking.customer.mobile}
                         dir="ltr"
                     />
                     {booking.customer.user?.email ? (
                         <InfoRow
-                            label="البريد الإلكتروني"
+                            label={t('bookings.details.email')}
                             value={booking.customer.user.email}
                         />
                     ) : null}
@@ -181,38 +183,38 @@ export default function BookingDetailsModal({
                 {/* center & service */}
                 <Section
                     icon={<HiOfficeBuilding className="w-4 h-4" />}
-                    title="المركز والخدمة"
+                    title={t('bookings.details.centerService')}
                 >
-                    <InfoRow label="المركز" value={booking.agency?.title} />
-                    <InfoRow label="الخدمة" value={booking.service?.title} />
+                    <InfoRow label={t('bookings.details.center')} value={booking.agency?.title} />
+                    <InfoRow label={t('bookings.details.service')} value={booking.service?.title} />
                     <InfoRow
-                        label="مقدم الخدمة"
-                        value={booking.member?.name || 'غير محدد'}
+                        label={t('bookings.details.provider')}
+                        value={booking.member?.name || t('bookings.unassigned')}
                     />
                 </Section>
 
                 {/* date, time & status */}
                 <Section
                     icon={<HiCalendar className="w-4 h-4" />}
-                    title="التاريخ والوقت"
+                    title={t('bookings.details.dateTime')}
                 >
-                    <InfoRow label="التاريخ" value={formatDate(booking.date)} />
+                    <InfoRow label={t('bookings.details.date')} value={formatDate(booking.date)} />
                     <InfoRow
-                        label="الوقت"
+                        label={t('bookings.details.time')}
                         value={`${booking.start_time} - ${booking.end_time}`}
                         dir="ltr"
                     />
-                    <InfoRow label="الحالة" value={booking.status} />
+                    <InfoRow label={t('bookings.details.status')} value={t(`bookings.status.${booking.status}`)} />
                     <InfoRow
-                        label="التسعير"
+                        label={t('bookings.details.pricing')}
                         value={getReservationPricingStatusLabel(booking.pricing_status)}
                     />
                     <InfoRow
-                        label="السعر"
+                        label={t('bookings.details.price')}
                         value={getReservationPricingLabel(booking)}
                     />
                     {booking.note ? (
-                        <InfoRow label="الملاحظات" value={booking.note} />
+                        <InfoRow label={t('bookings.details.notes')} value={booking.note} />
                     ) : null}
                 </Section>
 
@@ -220,7 +222,7 @@ export default function BookingDetailsModal({
                 {canQuote ? (
                     <div>
                         <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            تحديث التسعير
+                            {t('bookings.details.pricingUpdate')}
                         </h4>
                         <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-4 space-y-4 dark:border-indigo-900 dark:bg-indigo-950/20">
                             {quoteError ? (
@@ -233,7 +235,7 @@ export default function BookingDetailsModal({
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        السعر النهائي
+                                        {t('bookings.details.finalPrice')}
                                     </label>
                                     <Input
                                         value={quotePrice}
@@ -248,7 +250,7 @@ export default function BookingDetailsModal({
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        حالة الحجز
+                                        {t('bookings.details.bookingStatus')}
                                     </label>
                                     <select
                                         value={quoteStatus}
@@ -259,9 +261,9 @@ export default function BookingDetailsModal({
                                             )
                                         }
                                     >
-                                        <option value="pending">قيد الانتظار</option>
-                                        <option value="confirmed">مؤكد</option>
-                                        <option value="cancelled">ملغي</option>
+                                        <option value="pending">{t('bookings.status.pending')}</option>
+                                        <option value="confirmed">{t('bookings.status.confirmed')}</option>
+                                        <option value="cancelled">{t('bookings.status.cancelled')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -272,7 +274,7 @@ export default function BookingDetailsModal({
                                     loading={isSubmittingQuote}
                                     onClick={handleQuoteSave}
                                 >
-                                    حفظ التسعير
+                                    {t('bookings.details.savePricing')}
                                 </Button>
                             </div>
                         </div>
@@ -284,14 +286,14 @@ export default function BookingDetailsModal({
             <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-800">
                 {!chatAvailable ? (
                     <p className="text-xs text-gray-400">
-                        الدردشة غير متاحة للحجوزات بدون حساب.
+                        {t('bookings.details.chatUnavailable')}
                     </p>
                 ) : (
                     <span />
                 )}
                 <div className="flex items-center gap-2">
                     <Button variant="plain" onClick={onClose}>
-                        إغلاق
+                        {t('bookings.details.close')}
                     </Button>
                     <Button
                         variant="solid"
@@ -302,7 +304,7 @@ export default function BookingDetailsModal({
                             onClose()
                         }}
                     >
-                        المحادثة
+                        {t('bookings.details.chat')}
                     </Button>
                 </div>
             </div>

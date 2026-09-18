@@ -179,6 +179,29 @@
       }
     }
   },
+  "bookings": {
+    "tabs": { "my": "حجوزاتي", "agency": "حجوزات مراكزي" },
+    "columns": { "center": "المركز", "customer": "العميل", "service": "الخدمة", "provider": "مقدم الخدمة", "appointment": "الموعد", "pricing": "التسعير", "status": "الحالة", "actions": "الإجراءات" },
+    "status": { "pending": "قيد الانتظار", "confirmed": "مؤكد", "cancelled": "ملغي" },
+    "unassigned": "غير محدد",
+    "empty": "لا توجد حجوزات",
+    "view": "عرض",
+    "viewDetails": "عرض التفاصيل",
+    "loadError": "حدث خطأ أثناء تحميل الحجوزات",
+    "details": {
+      "title": "تفاصيل الحجز", "customer": "بيانات العميل", "centerService": "المركز والخدمة", "dateTime": "التاريخ والوقت", "name": "الاسم", "phone": "رقم الهاتف", "email": "البريد الإلكتروني", "center": "المركز", "service": "الخدمة", "provider": "مقدم الخدمة", "date": "التاريخ", "time": "الوقت", "status": "الحالة", "pricing": "التسعير", "price": "السعر", "notes": "الملاحظات", "pricingUpdate": "تحديث التسعير", "finalPrice": "السعر النهائي", "bookingStatus": "حالة الحجز", "savePricing": "حفظ التسعير", "close": "إغلاق", "chat": "المحادثة", "chatUnavailable": "الدردشة غير متاحة للحجوزات بدون حساب.", "validPrice": "أدخل سعراً صحيحاً قبل الحفظ.", "pricingSaved": "تم حفظ التسعير بنجاح.", "pricingSaveError": "تعذر حفظ التسعير."
+    }
+  },
+  "pricing": {
+    "coordination": "بحسب التنسيق",
+    "range": "من {{min}} إلى {{max}} {{currency}}",
+    "startsFrom": "يبدأ من {{min}} {{currency}}",
+    "fixed": "سعر ثابت",
+    "memberBased": "بحسب العضو",
+    "needsQuote": "بانتظار التسعير",
+    "priced": "تم التسعير",
+    "unspecified": "غير محدد"
+  },
   "workCalendar": {
     "title": "تقويم العمل",
     "labels": {
