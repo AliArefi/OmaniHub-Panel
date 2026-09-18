@@ -13,6 +13,7 @@ import {
 } from 'react-number-format'
 import { useNavigate } from 'react-router'
 import { PaymentCycle } from '../types'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 function limit(val: string, max: string) {
     if (val.length === 1 && val[0] > max[0]) {
@@ -38,6 +39,8 @@ function cardExpiryFormat(val: string) {
 }
 
 const PaymentDialog = () => {
+    const { i18n } = useTranslation()
+    const isArabic = i18n.language.toLowerCase().startsWith('ar')
     const [loading, setLoading] = useState(false)
     const [paymentSuccessful, setPaymentSuccessful] = useState(false)
 
@@ -86,28 +89,28 @@ const PaymentDialog = () => {
                             <TbCheck className="text-5xl text-white" />
                         </div>
                         <div className="mt-6">
-                            <h4>شكراً لك على شرائك!</h4>
+                            <h4>{isArabic ? 'شكراً لك على شرائك!' : 'Thank you for your purchase!'}</h4>
                             <p className="text-base max-w-[400px] mx-auto mt-4 leading-relaxed">
-                                تم استلام طلبك وهو قيد المعالجة. ستتلقى قريباً بريداً إلكترونياً يتضمن تفاصيل طلبك.
+                                {isArabic ? 'تم استلام طلبك وهو قيد المعالجة. ستتلقى قريباً بريداً إلكترونياً يتضمن تفاصيل طلبك.' : 'Your order has been received and is being processed. You will receive an email with the details shortly.'}
                             </p>
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-8">
                             <Button block onClick={handleManageSubscription}>
-                                إدارة الاشتراك
+                                {isArabic ? 'إدارة الاشتراك' : 'Manage subscription'}
                             </Button>
                             <Button
                                 block
                                 variant="solid"
                                 onClick={handleDialogClose}
                             >
-                                إغلاق
+                                {isArabic ? 'إغلاق' : 'Close'}
                             </Button>
                         </div>
                     </div>
                 </>
             ) : (
                 <>
-                    <h4>خطة {selectedPlan.planName}</h4>
+                    <h4>{isArabic ? 'خطة' : 'Plan'} {selectedPlan.planName}</h4>
                     <div className="mt-6">
                         <Segment
                             defaultValue={selectedPlan.paymentCycle}
@@ -133,10 +136,10 @@ const PaymentDialog = () => {
                                                 >
                                                     <div>
                                                         <div className="heading-text mb-0.5">
-                                                            دفع{' '}
+                                                            {isArabic ? 'دفع' : 'Pay'}{' '}
                                                             {key === 'monthly'
-                                                                ? 'شهري'
-                                                                : 'سنوي'}
+                                                                ? (isArabic ? 'شهري' : 'monthly')
+                                                                : (isArabic ? 'سنوي' : 'annually')}
                                                         </div>
                                                         <span className="text-2xl font-bold heading-text items-center flex gap-0.5">
                                                             <NumericFormat
@@ -165,12 +168,12 @@ const PaymentDialog = () => {
                     <div className="mt-6 border border-gray-200 dark:border-gray-600 rounded-lg">
                         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
                             <div className="w-full">
-                                <span>البريد الإلكتروني للفاتورة</span>
+                                <span>{isArabic ? 'البريد الإلكتروني للفاتورة' : 'Billing email'}</span>
                                 <div className="flex items-center gap-2 mt-2">
                                     <TbMail className="text-2xl" />
                                     <input
                                         className="focus:outline-none heading-text flex-1"
-                                        placeholder="أدخل البريد الإلكتروني"
+                                        placeholder={isArabic ? 'أدخل البريد الإلكتروني' : 'Enter email address'}
                                         type="email"
                                     />
                                 </div>
@@ -178,14 +181,14 @@ const PaymentDialog = () => {
                         </div>
                         <div className="flex items-center justify-between p-4">
                             <div className="w-full">
-                                <span>بطاقة الائتمان</span>
+                            <span>{isArabic ? 'بطاقة الائتمان' : 'Credit card'}</span>
                                 <div className="flex items-center gap-2 mt-2">
                                     <div className="flex-1">
                                         <TbCreditCard className="text-2xl" />
                                     </div>
                                     <PatternFormat
                                         className="focus:outline-none heading-text w-full"
-                                        placeholder="رقم بطاقة الائتمان"
+                                        placeholder={isArabic ? 'رقم بطاقة الائتمان' : 'Card number'}
                                         format="#### #### #### ####"
                                     />
                                     <NumberFormatBase
@@ -204,7 +207,7 @@ const PaymentDialog = () => {
                     </div>
                     <div className="mt-6 flex flex-col items-start">
                         <h4 className='flex items-center gap-1'>
-                            <span>الفاتورة الآن: </span>
+                            <span>{isArabic ? 'الفاتورة الآن:' : 'Due now:'}</span>
                             <div className='text-2xl'>
                                 <NumericFormat
                                     displayType="text"
@@ -222,7 +225,7 @@ const PaymentDialog = () => {
                         </h4>
                         <div className="max-w-[350px] text-start leading-none mt-2 opacity-80">
                             <small>
-                                بالنقر على "الدفع"، فإنك توافق على خصم مبلغ 399 منك كل شهر، ويمكنك إلغاء هذا الاشتراك في أي وقت.
+                                {isArabic ? 'بالنقر على الدفع، فإنك توافق على الخصم الدوري ويمكنك إلغاء الاشتراك في أي وقت.' : 'By clicking Pay, you authorize recurring charges and can cancel your subscription at any time.'}
                             </small>
                         </div>
 
@@ -234,7 +237,7 @@ const PaymentDialog = () => {
                             loading={loading}
                             onClick={handlePay}
                         >
-                            الدفع
+                            {isArabic ? 'الدفع' : 'Pay'}
                         </Button>
                     </div>
                 </>

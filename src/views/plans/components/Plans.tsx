@@ -13,8 +13,11 @@ import type { GetPricingPanResponse } from '../types'
 import { Card, Tooltip } from '@/components/ui'
 import { HiOutlineInformationCircle } from 'react-icons/hi'
 import { useState } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const Plans = () => {
+    const { i18n } = useTranslation()
+    const isArabic = i18n.language.toLowerCase().startsWith('ar')
     const { paymentCycle, setPaymentDialog, setSelectedPlan } =
         usePricingStore()
 
@@ -48,9 +51,10 @@ const Plans = () => {
         plans: [
             {
                 id: 'basic',
-                name: 'أساسي',
-                description:
-                    'مناسب للأفراد أو الفرق الصغيرة. يشمل الميزات الأساسية لإدارة المهام والمشاريع.',
+                name: isArabic ? 'أساسي' : 'Basic',
+                description: isArabic
+                    ? 'مناسب للأفراد أو الفرق الصغيرة. يشمل الميزات الأساسية لإدارة المهام والمشاريع.'
+                    : 'For individuals and small teams. Includes essential task and project management features.',
                 price: {
                     monthly: 59,
                     annually: 500,
@@ -65,9 +69,10 @@ const Plans = () => {
             },
             {
                 id: 'standard',
-                name: 'قياسي',
-                description:
-                    'مناسب للفرق النامية. ميزات متقدمة لزيادة الإنتاجية وتعزيز التعاون.',
+                name: isArabic ? 'قياسي' : 'Standard',
+                description: isArabic
+                    ? 'مناسب للفرق النامية. ميزات متقدمة لزيادة الإنتاجية وتعزيز التعاون.'
+                    : 'For growing teams. Advanced features to increase productivity and collaboration.',
                 price: {
                     monthly: 79,
                     annually: 700,
@@ -83,9 +88,10 @@ const Plans = () => {
             },
             {
                 id: 'pro',
-                name: 'احترافي',
-                description:
-                    'مناسب للفرق الكبيرة. يشمل ميزات متقدمة ودعماً مخصصاً لتحسين سير العمل.',
+                name: isArabic ? 'احترافي' : 'Professional',
+                description: isArabic
+                    ? 'مناسب للفرق الكبيرة. يشمل ميزات متقدمة ودعماً مخصصاً لتحسين سير العمل.'
+                    : 'For larger teams. Includes advanced features and dedicated support.',
                 price: {
                     monthly: 129,
                     annually: 1000,
@@ -122,7 +128,7 @@ const Plans = () => {
                                     <span>{plan.name}</span>
                                     {plan.recommended && (
                                         <Tag className="rounded-full bg-green-200 font-bold">
-                                            مُستَحسَن
+                                            {isArabic ? 'مُستَحسَن' : 'Recommended'}
                                         </Tag>
                                     )}
                                 </h5>
@@ -136,7 +142,7 @@ const Plans = () => {
                                     />
                                     <div className="text-lg font-bold px-1">
                                         <img className='w-6 block' src='./img/others/rial.webp' alt='rial' />
-                                        <div className='text-sm'>{paymentCycle === 'monthly' ? 'شهريا' : 'سنوي'}</div>
+                                        <div className='text-sm'>{paymentCycle === 'monthly' ? (isArabic ? 'شهرياً' : 'monthly') : (isArabic ? 'سنوياً' : 'annually')}</div>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-4 border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
@@ -187,8 +193,8 @@ const Plans = () => {
                                     }}
                                 >
                                     {subcription === plan.id && cycle === paymentCycle
-                                        ? 'الخطة الحالية'
-                                        : 'اختر الخطة'}
+                                        ? (isArabic ? 'الخطة الحالية' : 'Current plan')
+                                        : (isArabic ? 'اختر الخطة' : 'Choose plan')}
                                 </Button>
                             </div>
                         </div>
@@ -217,7 +223,7 @@ const Plans = () => {
                                     </Tooltip>
                                     {plan.recommended && (
                                         <Tag className="w-auto text-xs rounded-full bg-green-200">
-                                            مقترح
+                                            {isArabic ? 'مقترح' : 'Recommended'}
                                         </Tag>
                                     )}
                                 </h5>
@@ -232,7 +238,7 @@ const Plans = () => {
                                     />
                                     <div className="text-lg font-bold px-1">
                                         <img className='w-6 block' src='./img/others/rial.webp' alt='rial' />
-                                        <div className='text-xs'>{paymentCycle === 'monthly' ? 'شهريا' : 'سنوي'}</div>
+                                        <div className='text-xs'>{paymentCycle === 'monthly' ? (isArabic ? 'شهرياً' : 'monthly') : (isArabic ? 'سنوياً' : 'annually')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -241,7 +247,7 @@ const Plans = () => {
                                     onClick={() => togglePlan(plan.id)}
                                     className="flex items-center justify-between w-full py-2 text-sm font-semibold text-gray-600 dark:text-gray-300"
                                 >
-                                    <span>عرض الميزات</span>
+                                    <span>{isArabic ? 'عرض الميزات' : 'View features'}</span>
                                     <TbChevronDown
                                         className={classNames(
                                             'transition-transform duration-200',
@@ -285,8 +291,8 @@ const Plans = () => {
                                     }}
                                 >
                                     {subcription === plan.id && cycle === paymentCycle
-                                        ? 'الخطة الحالية'
-                                        : 'اختر الخطة'}
+                                        ? (isArabic ? 'الخطة الحالية' : 'Current plan')
+                                        : (isArabic ? 'اختر الخطة' : 'Choose plan')}
                                 </Button>
                             </div>
                         </div>
