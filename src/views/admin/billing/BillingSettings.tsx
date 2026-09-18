@@ -14,6 +14,7 @@ import {
     type BillingPlanPayload,
 } from '@/services/admin/AdminBillingService'
 import useTranslation from '@/utils/hooks/useTranslation'
+import usePermission from '@/utils/hooks/usePermission'
 import { useState } from 'react'
 import useSWR from 'swr'
 
@@ -46,6 +47,9 @@ const toPlanPayload = (plan: AdminBillingPlan): BillingPlanPayload => ({
 
 const BillingSettings = () => {
     const { t } = useTranslation()
+    const { can } = usePermission()
+    const canManageProviders = can('billing.providers.manage')
+    const canManagePlans = can('billing.plans.manage')
     const { data, error, isLoading, mutate } = useSWR('/admin/billing/settings', apiGetBillingSettings)
     const [forms, setForms] = useState<Record<number, ProviderForm>>({})
     const [saving, setSaving] = useState<number | null>(null)
@@ -142,16 +146,18 @@ const BillingSettings = () => {
             const form = formFor(provider)
             return <AdaptiveCard key={provider.id}>
                 <div className="mb-4 flex items-center justify-between"><h4>{provider.name}</h4><span className="text-sm text-gray-500">{provider.key}</span></div>
-                <div className="mb-4 flex gap-6"><Switcher checked={Boolean(form.enabled)} onChange={(value) => updateField(provider, 'enabled', value)}>{t('billingAdmin.enabled')}</Switcher><Switcher checked={Boolean(form.test_mode)} onChange={(value) => updateField(provider, 'test_mode', value)}>{t('billingAdmin.testMode')}</Switcher></div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {fieldNames.map((field) => <label key={field} className="text-sm"><span className="mb-1 block">{t(`billingAdmin.fields.${field}`)}</span><Input type={field.includes('secret') ? 'password' : 'text'} value={String(form[field] || '')} onChange={(event) => updateField(provider, field, event.target.value)} /></label>)}
-                </div>
-                <div className="mt-5 flex gap-3"><Button variant="solid" loading={saving === provider.id} onClick={() => save(provider)}>{t('billingAdmin.save')}</Button><Button loading={checking === provider.id} onClick={() => checkHealth(provider)}>{t('billingAdmin.testConnection')}</Button></div>
+                {canManageProviders ? <>
+                    <div className="mb-4 flex gap-6"><Switcher checked={Boolean(form.enabled)} onChange={(value) => updateField(provider, 'enabled', value)}>{t('billingAdmin.enabled')}</Switcher><Switcher checked={Boolean(form.test_mode)} onChange={(value) => updateField(provider, 'test_mode', value)}>{t('billingAdmin.testMode')}</Switcher></div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {fieldNames.map((field) => <label key={field} className="text-sm"><span className="mb-1 block">{t(`billingAdmin.fields.${field}`)}</span><Input type={field.includes('secret') ? 'password' : 'text'} value={String(form[field] || '')} onChange={(event) => updateField(provider, field, event.target.value)} /></label>)}
+                    </div>
+                    <div className="mt-5 flex gap-3"><Button variant="solid" loading={saving === provider.id} onClick={() => save(provider)}>{t('billingAdmin.save')}</Button><Button loading={checking === provider.id} onClick={() => checkHealth(provider)}>{t('billingAdmin.testConnection')}</Button></div>
+                </> : null}
             </AdaptiveCard>
         })}
         <AdaptiveCard>
-            <div className="flex items-center justify-between gap-3"><h4>{t('billingAdmin.plans')}</h4><Button size="sm" variant="solid" onClick={() => { setPlan(emptyPlan()); setEditingPlanId(null) }}>{t('billingAdmin.addPlan')}</Button></div>
-            {plan ? <div className="mt-5 space-y-4 border-t pt-5">
+            <div className="flex items-center justify-between gap-3"><h4>{t('billingAdmin.plans')}</h4>{canManagePlans ? <Button size="sm" variant="solid" onClick={() => { setPlan(emptyPlan()); setEditingPlanId(null) }}>{t('billingAdmin.addPlan')}</Button> : null}</div>
+            {plan && canManagePlans ? <div className="mt-5 space-y-4 border-t pt-5">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.key')}</span><Input disabled={editingPlanId !== null} value={plan.key} onChange={(event) => updatePlan('key', event.target.value)} /></label>
                     <label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.currency')}</span><Input maxLength={3} value={plan.currency} onChange={(event) => updatePlan('currency', event.target.value.toUpperCase())} /></label>
@@ -165,7 +171,7 @@ const BillingSettings = () => {
                 <div><p className="mb-2 text-sm font-semibold">{t('billingAdmin.prices')}</p><div className="space-y-2">{plan.prices.map((price, index) => <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3" key={`${price.interval}-${index}`}><label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.interval')}</span><select className="input input-md h-11 w-full rounded-md" value={price.interval} onChange={(event) => updatePrice(index, 'interval', event.target.value)}><option value="monthly">{t('billingAdmin.intervals.monthly')}</option><option value="annually">{t('billingAdmin.intervals.annually')}</option><option value="one_time">{t('billingAdmin.intervals.oneTime')}</option></select></label><label className="text-sm"><span className="mb-1 block">{t('billingAdmin.planFields.amountMinor')}</span><Input type="number" min={0} value={String(price.amount_minor)} onChange={(event) => updatePrice(index, 'amount_minor', event.target.value)} /></label><Button size="sm" disabled={plan.prices.length === 1} onClick={() => updatePlan('prices', plan.prices.filter((_, priceIndex) => priceIndex !== index))}>{t('billingAdmin.remove')}</Button></div>)}</div><Button size="sm" className="mt-3" onClick={() => updatePlan('prices', [...plan.prices, { interval: 'one_time', amount_minor: 0 }])}>{t('billingAdmin.addPrice')}</Button></div>
                 <div className="flex gap-3"><Button variant="solid" loading={savingPlan} onClick={savePlan}>{t('billingAdmin.savePlan')}</Button><Button onClick={() => { setPlan(null); setEditingPlanId(null) }}>{t('billingAdmin.cancel')}</Button></div>
             </div> : null}
-            <ul className="mt-4 space-y-2">{data?.plans.map((billingPlan) => <li className="flex items-center justify-between gap-3 rounded border p-3" key={billingPlan.id}><span>{billingPlan.key} · {billingPlan.currency} · {billingPlan.prices.filter((price) => price.active !== false).map((price) => `${price.interval}: ${price.amount_minor}`).join(', ')}</span><Button size="sm" onClick={() => { setPlan(toPlanPayload(billingPlan)); setEditingPlanId(billingPlan.id) }}>{t('billingAdmin.edit')}</Button></li>)}</ul>
+            <ul className="mt-4 space-y-2">{data?.plans.map((billingPlan) => <li className="flex items-center justify-between gap-3 rounded border p-3" key={billingPlan.id}><span>{billingPlan.key} · {billingPlan.currency} · {billingPlan.prices.filter((price) => price.active !== false).map((price) => `${price.interval}: ${price.amount_minor}`).join(', ')}</span>{canManagePlans ? <Button size="sm" onClick={() => { setPlan(toPlanPayload(billingPlan)); setEditingPlanId(billingPlan.id) }}>{t('billingAdmin.edit')}</Button> : null}</li>)}</ul>
         </AdaptiveCard>
     </div>
 }

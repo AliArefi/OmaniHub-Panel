@@ -279,7 +279,7 @@ const navigationConfig: NavigationTree[] = [
                 icon: 'groupMenu',
                 type: NAV_ITEM_TYPE_ITEM,
                 authority: [],
-                permissions: ['general settings'],
+                permissions: ['billing.view'],
                 subMenu: [],
             },
             {
