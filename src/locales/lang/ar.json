@@ -219,6 +219,9 @@
   "billingAdmin": {
     "title": "إعدادات الفوترة", "subtitle": "إعداد مزودي الدفع ومراجعة خطط الفوترة المفعلة.", "enabled": "مفعل", "testMode": "وضع الاختبار", "save": "حفظ المزود", "saved": "تم حفظ إعدادات مزود الدفع.", "saveError": "تعذر حفظ إعدادات مزود الدفع.", "loadError": "تعذر تحميل إعدادات الفوترة.", "plans": "خطط الفوترة", "fields": { "base_url": "الرابط الأساسي", "public_key": "المفتاح العام", "secret_key": "المفتاح السري", "hmac_secret": "سر HMAC", "payment_methods": "معرفات طرق الدفع", "checkout_url": "رابط صفحة الدفع المستضافة" }
   },
+  "dashboard": {
+    "centerStatus": { "title": "حالة مركزك", "published": "منشور", "profileCompletion": "اكتمال الملف الشخصي", "profileCompletionAria": "اكتمال الملف الشخصي {{progress}}٪", "completionHint": "أكمل معلومات مركزك للحصول على زيارات أكثر.", "viewCenter": "عرض المركز", "editCenter": "تعديل معلومات المركز", "manageServices": "إدارة الخدمات" }
+  },
   "workCalendar": {
     "title": "تقويم العمل",
     "labels": {

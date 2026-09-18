@@ -234,6 +234,9 @@
   "billingAdmin": {
     "title": "Billing configuration", "subtitle": "Configure payment providers and review active billing plans.", "enabled": "Enabled", "testMode": "Test mode", "save": "Save provider", "saved": "Provider configuration was saved.", "saveError": "Unable to save provider configuration.", "loadError": "Unable to load billing configuration.", "plans": "Billing plans", "fields": { "base_url": "Base URL", "public_key": "Public key", "secret_key": "Secret key", "hmac_secret": "HMAC secret", "payment_methods": "Payment method IDs", "checkout_url": "Hosted checkout URL" }
   },
+  "dashboard": {
+    "centerStatus": { "title": "Your center status", "published": "Published", "profileCompletion": "Profile completion", "profileCompletionAria": "{{progress}}% profile completion", "completionHint": "Complete your center details to receive more visits.", "viewCenter": "View center", "editCenter": "Edit center information", "manageServices": "Manage services" }
+  },
   "workCalendar": {
     "title": "Work calendar",
     "labels": {

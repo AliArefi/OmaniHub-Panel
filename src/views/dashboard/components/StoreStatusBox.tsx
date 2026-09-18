@@ -7,28 +7,29 @@ import {
     HiChevronLeft,
 } from 'react-icons/hi'
 import { useNavigate } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const CIRCUMFERENCE = 2 * Math.PI * 26 // ≈ 163.36
-
-const links = [
-    { icon: <HiOutlineEye className="w-5 h-5" />, label: 'عرض الحجرة', url: '/centers' },
-    { icon: <HiOutlinePencil className="w-5 h-5" />, label: 'تعديل معلومات الحجرة', url: '/centers' },
-    { icon: <HiOutlineCube className="w-5 h-5" />, label: 'إدارة الخدمات', url: '/centers' },
-] as const
 
 // Moved outside component — stable reference, no re-creation per render
 const PROGRESS = 78
 
 const StoreStatusBox = memo(() => {
+    const { t } = useTranslation()
     const navigate = useNavigate()
+    const links = [
+        { icon: <HiOutlineEye className="w-5 h-5" />, label: t('dashboard.centerStatus.viewCenter'), url: '/centers' },
+        { icon: <HiOutlinePencil className="w-5 h-5" />, label: t('dashboard.centerStatus.editCenter'), url: '/centers' },
+        { icon: <HiOutlineCube className="w-5 h-5" />, label: t('dashboard.centerStatus.manageServices'), url: '/centers' },
+    ]
 
     return (
         <Card className="flex flex-col gap-5 p-5 h-full">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">حالة حجرتك</h2>
+                <h2 className="text-base font-semibold">{t('dashboard.centerStatus.title')}</h2>
                 <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                    منشورة
+                    {t('dashboard.centerStatus.published')}
                 </span>
             </div>
 
@@ -38,7 +39,7 @@ const StoreStatusBox = memo(() => {
                 <div
                     className="relative flex-shrink-0 w-[72px] h-[72px]"
                     role="img"
-                    aria-label={`${PROGRESS}% اكتمال الملف الشخصي`}
+                    aria-label={t('dashboard.centerStatus.profileCompletionAria', { progress: PROGRESS })}
                 >
                     <svg
                         className="w-full h-full -rotate-90"
@@ -67,9 +68,9 @@ const StoreStatusBox = memo(() => {
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-sm font-medium">اكتمال الملف الشخصي</p>
+                    <p className="text-sm font-medium">{t('dashboard.centerStatus.profileCompletion')}</p>
                     <p className="text-xs opacity-50 mt-0.5 leading-relaxed">
-                        أكمل معلومات حجرتك للحصول على زيارات أكثر
+                        {t('dashboard.centerStatus.completionHint')}
                     </p>
                 </div>
             </div>
