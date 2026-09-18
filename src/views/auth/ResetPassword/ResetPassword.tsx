@@ -5,6 +5,7 @@ import ActionLink from '@/components/shared/ActionLink'
 import ResetPasswordForm from './components/ResetPasswordForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useNavigate } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type ResetPasswordProps = {
     signInUrl?: string
@@ -13,6 +14,7 @@ type ResetPasswordProps = {
 export const ResetPasswordBase = ({
     signInUrl = '/sign-in',
 }: ResetPasswordProps) => {
+    const { t } = useTranslation()
     const [resetComplete, setResetComplete] = useState(false)
 
     const [message, setMessage] = useTimeOutMessage()
@@ -28,16 +30,16 @@ export const ResetPasswordBase = ({
             <div className="mb-6">
                 {resetComplete ? (
                     <>
-                        <h3 className="mb-1">تنظیم مجدد انجام شد</h3>
+                        <h3 className="mb-1">{t('auth.resetPassword.completeTitle')}</h3>
                         <p className="font-semibold heading-text">
-                            رمز عبور شما با موفقیت تنظیم مجدد شد
+                            {t('auth.resetPassword.completeSubtitle')}
                         </p>
                     </>
                 ) : (
                     <>
-                        <h3 className="mb-1">رمز عبور جدید را وارد کنید</h3>
+                        <h3 className="mb-1">{t('auth.resetPassword.title')}</h3>
                         <p className="font-semibold heading-text">
-                            رمز عبور جدید شما باید با رمز عبور قبلی متفاوت باشد
+                            {t('auth.resetPassword.subtitle')}
                         </p>
                     </>
                 )}
@@ -58,17 +60,17 @@ export const ResetPasswordBase = ({
                     type="button"
                     onClick={handleContinue}
                 >
-                    ادامه
+                    {t('auth.resetPassword.continue')}
                 </Button>
             </ResetPasswordForm>
             <div className="mt-4 text-center">
-                <span>بازگشت به </span>
+                <span>{t('auth.resetPassword.back')} </span>
                 <ActionLink
                     to={signInUrl}
                     className="heading-text font-bold"
                     themeColor={false}
                 >
-                    ورود
+                    {t('auth.resetPassword.signIn')}
                 </ActionLink>
             </div>
         </div>

@@ -5,12 +5,13 @@ import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { apiResendOtp , apiAuthConfig } from '@/services/AuthService'
 import { Navigate } from 'react-router'
 import { useEffect, useState } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
-const otpDeliveryText = (deliveryChannel?: string) => {
-    if (deliveryChannel === 'whatsapp') return 'يرجى إدخال رمز التحقق المرسل عبر واتساب.'
-    if (deliveryChannel === 'sms') return 'يرجى إدخال رمز التحقق المرسل عبر الرسائل القصيرة.'
-    if (deliveryChannel === 'email') return 'يرجى إدخال رمز التحقق المرسل عبر البريد الإلكتروني.'
-    return 'يرجى إدخال رمز التحقق المرسل إليك.'
+const otpDeliveryKey = (deliveryChannel?: string) => {
+    if (deliveryChannel === 'whatsapp') return 'auth.otp.whatsappDelivery'
+    if (deliveryChannel === 'sms') return 'auth.otp.smsDelivery'
+    if (deliveryChannel === 'email') return 'auth.otp.emailDelivery'
+    return 'auth.otp.defaultDelivery'
 }
 
 const maskIdentifier = (identifier: string) => {
@@ -29,6 +30,7 @@ const maskIdentifier = (identifier: string) => {
 }
 
 export const OtpVerificationBase = () => {
+    const { t } = useTranslation()
     const [otpVerified, setOtpVerified] = useTimeOutMessage()
     const [otpResend, setOtpResend] = useTimeOutMessage()
     const [message, setMessage] = useTimeOutMessage()
@@ -48,7 +50,7 @@ export const OtpVerificationBase = () => {
 
     const handleResendOtp = async () => {
         if (!pending?.challenge_id) {
-            setMessage('No active challenge found. Please sign in again.')
+            setMessage(t('auth.otp.noChallenge'))
             return
         }
 
@@ -64,9 +66,9 @@ export const OtpVerificationBase = () => {
                 })
             }
 
-            setOtpResend(resp?.message || 'OTP resent.')
+            setOtpResend(resp?.message || t('auth.otp.resent'))
         } catch (errors) {
-            setMessage(typeof errors === 'string' ? errors : 'An error occurred!')
+            setMessage(typeof errors === 'string' ? errors : t('auth.otp.verifyError'))
         }
     }
 
@@ -86,9 +88,9 @@ export const OtpVerificationBase = () => {
     return (
         <div>
             <div className="mb-8">
-                <h3 className="mb-2">تأكيد رمز التحقق</h3>
+                <h3 className="mb-2">{t('auth.otp.title')}</h3>
                 <p className="font-semibold heading-text">
-                    {otpDeliveryText(deliveryChannel)}
+                    {t(otpDeliveryKey(deliveryChannel))}
                 </p>
                 {pending.meta &&
                 typeof pending.meta === 'object' &&
@@ -115,7 +117,7 @@ export const OtpVerificationBase = () => {
             {deliveryDriver === 'static_code' && staticHint ? (
                 <Alert showIcon className="mb-4" type="info">
                     <span className="break-all">
-                        رمز تجريبي للتطوير: {staticHint}
+                        {t('auth.otp.devCode', { code: staticHint })}
                     </span>
                 </Alert>
             ) : null}
@@ -129,9 +131,9 @@ export const OtpVerificationBase = () => {
             <OtpVerificationForm setMessage={setMessage} setOtpVerified={setOtpVerified} />
 
             <div className="mt-4 text-center">
-                <span className="font-semibold">لم تستلم رمز التحقق؟ </span>
+                <span className="font-semibold">{t('auth.otp.notReceived')} </span>
                 <button className="heading-text font-bold underline" onClick={handleResendOtp}>
-                    إعادة الإرسال
+                    {t('auth.otp.resend')}
                 </button>
             </div>
         </div>

@@ -7,6 +7,7 @@ import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { apiAuthConfig, apiVerifyOtp } from '@/services/AuthService'
 import { useAuth } from '@/auth'
 import { extractDigits } from '@/utils/normalizeDigits'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface OtpVerificationFormProps {
     setOtpVerified?: (message: string) => void
@@ -18,6 +19,7 @@ type OtpFormSchema = {
 }
 
 const OtpVerificationForm = (props: OtpVerificationFormProps) => {
+    const { t } = useTranslation()
     const { setMessage, setOtpVerified } = props
     const [isSubmitting, setSubmitting] = useState(false)
     const [otpLength, setOtpLength] = useState(6)
@@ -56,13 +58,13 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
 
     const onSubmit = async (values: OtpFormSchema) => {
         if (!pending?.challenge_id) {
-            setMessage?.('No active challenge found. Please sign in again.')
+            setMessage?.(t('auth.otp.noChallenge'))
             return
         }
 
         const otp = extractDigits(String(values.otp || '').trim())
         if (otp.length !== otpLength) {
-            setError('otp', { type: 'manual', message: 'Please enter a valid OTP.' })
+            setError('otp', { type: 'manual', message: t('auth.otp.validCode') })
             return
         }
         clearErrors('otp')
@@ -77,12 +79,12 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
             if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
                 clearPending()
                 reset()
-                setOtpVerified?.(resp.message || 'OTP verified successfully.')
+                setOtpVerified?.(resp.message || t('auth.otp.verified'))
                 completeAuth(resp)
                 return
             }
 
-            setMessage?.(resp?.message || 'Unable to verify OTP.')
+            setMessage?.(resp?.message || t('auth.otp.verifyError'))
         } catch (err: unknown) {
             const response = (err as {
                 response?: {
@@ -95,22 +97,22 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
 
             if (status === 410) {
                 clearPending()
-                setMessage?.(serverMessage || 'This OTP challenge has expired. Please sign in again.')
+                setMessage?.(serverMessage || t('auth.otp.expired'))
                 return
             }
 
             if (status === 429) {
-                setMessage?.(serverMessage || 'Too many attempts. Please wait and try again.')
+                setMessage?.(serverMessage || t('auth.otp.tooManyAttempts'))
                 return
             }
 
             if (status === 409) {
                 clearPending()
-                setMessage?.(serverMessage || 'This challenge is already completed. Please sign in again.')
+                setMessage?.(serverMessage || t('auth.otp.alreadyCompleted'))
                 return
             }
 
-            setMessage?.(serverMessage || 'An error occurred while verifying OTP.')
+            setMessage?.(serverMessage || t('auth.otp.verifyError'))
         } finally {
             setSubmitting(false)
         }
@@ -134,7 +136,7 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
                     />
                 </FormItem>
                 <Button block loading={isSubmitting} variant="solid" type="submit">
-                    {isSubmitting ? 'Verifying...' : 'Verify OTP'}
+                    {isSubmitting ? t('auth.otp.verifying') : t('auth.otp.verify')}
                 </Button>
             </Form>
         </div>

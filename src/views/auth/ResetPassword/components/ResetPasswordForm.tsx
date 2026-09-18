@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Button from '@/components/ui/Button'
 import { FormItem, Form } from '@/components/ui/Form'
 import PasswordInput from '@/components/shared/PasswordInput'
@@ -7,6 +7,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { CommonProps } from '@/@types/common'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface ResetPasswordFormProps extends CommonProps {
     resetComplete: boolean
@@ -19,18 +20,16 @@ type ResetPasswordFormSchema = {
     confirmPassword: string
 }
 
-const validationSchema = z
-    .object({
-        newPassword: z.string().min(1, 'الرجاء إدخال كلمة المرور الخاصة بك'),
-        confirmPassword: z.string().min(1, 'يلزم تأكيد كلمة المرور'),
-    })
-    .refine((data) => data.newPassword === data.confirmPassword, {
-        message: "كلمات المرور غير متطابقة",
-        path: ['confirmPassword'],
-    })
-
 const ResetPasswordForm = (props: ResetPasswordFormProps) => {
+    const { t } = useTranslation()
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
+
+    const validationSchema = useMemo(() => z.object({
+        newPassword: z.string().min(1, t('auth.resetPassword.passwordRequired')),
+        confirmPassword: z.string().min(1, t('auth.resetPassword.confirmRequired')),
+    }).refine((data) => data.newPassword === data.confirmPassword, {
+        message: t('auth.resetPassword.mismatch'), path: ['confirmPassword'],
+    }), [t])
 
     const { className, setMessage, setResetComplete, resetComplete, children } =
         props
@@ -58,7 +57,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
             setMessage?.(
                 typeof errors === 'string'
                     ? errors
-                    : 'Failed to reset password',
+                    : t('auth.resetPassword.error'),
             )
             setSubmitting(false)
         }
@@ -71,7 +70,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
             {!resetComplete ? (
                 <Form onSubmit={handleSubmit(onResetPassword)}>
                     <FormItem
-                        label="رمز عبور"
+                        label={t('auth.resetPassword.password')}
                         invalid={Boolean(errors.newPassword)}
                         errorMessage={errors.newPassword?.message}
                     >
@@ -88,7 +87,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                         />
                     </FormItem>
                     <FormItem
-                        label="تأكيد كلمة المرور"
+                        label={t('auth.resetPassword.confirmPassword')}
                         invalid={Boolean(errors.confirmPassword)}
                         errorMessage={errors.confirmPassword?.message}
                     >
@@ -98,7 +97,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                             render={({ field }) => (
                                 <PasswordInput
                                     autoComplete="off"
-                                    placeholder="تأكيد كلمة المرور"
+                                    placeholder={t('auth.resetPassword.confirmPassword')}
                                     {...field}
                                 />
                             )}
@@ -110,7 +109,7 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
                         variant="solid"
                         type="submit"
                     >
-                        {isSubmitting ? 'جاري الإرسال...' : 'إرسال'}
+                        {isSubmitting ? t('auth.resetPassword.submitting') : t('auth.resetPassword.submit')}
                     </Button>
                 </Form>
             ) : (
