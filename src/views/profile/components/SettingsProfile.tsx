@@ -19,6 +19,7 @@ import {
     apiUpdateProfile,
     toUpdateProfileFormData,
 } from '@/services/ProfileService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type ProfileSchema = {
     name: string
@@ -26,15 +27,9 @@ type ProfileSchema = {
     bio?: string
 }
 
-const validationSchema = z.object({
-    name: z.string().trim().min(1, { message: 'نام الزامی است' }),
-    email: z.string().trim().email({ message: 'ایمیل معتبر نیست' }).optional(),
-    bio: z.string().trim().max(1024).optional(),
-})
-
-const extractApiErrorMessage = (error: unknown) => {
+const extractApiErrorMessage = (error: unknown, fallback: string) => {
     if (!axios.isAxiosError(error)) {
-        return error instanceof Error ? error.message : 'خطا در ذخیره اطلاعات'
+        return error instanceof Error ? error.message : fallback
     }
 
     const data = error.response?.data as unknown
@@ -54,10 +49,20 @@ const extractApiErrorMessage = (error: unknown) => {
         }
     }
 
-    return 'خطا در ذخیره اطلاعات'
+    return fallback
 }
 
 const SettingsProfile = () => {
+    const { i18n } = useTranslation()
+    const isArabic = i18n.language.toLowerCase().startsWith('ar')
+    const labels = isArabic
+        ? { title: 'المعلومات الشخصية', image: 'اختيار صورة', remove: 'إزالة', name: 'الاسم', email: 'البريد الإلكتروني', bio: 'نبذة', bioPlaceholder: 'نبذة قصيرة عنك', save: 'حفظ', saveError: 'تعذر حفظ المعلومات', saved: 'تم حفظ الملف الشخصي بنجاح', invalidImage: 'يرجى اختيار صورة بصيغة jpeg / png / webp / gif' }
+        : { title: 'Personal information', image: 'Choose image', remove: 'Remove', name: 'Name', email: 'Email', bio: 'Bio', bioPlaceholder: 'A short bio about you', save: 'Save', saveError: 'Unable to save information', saved: 'Profile saved successfully', invalidImage: 'Please select a jpeg / png / webp / gif image' }
+    const validationSchema = z.object({
+        name: z.string().trim().min(1, { message: isArabic ? 'الاسم مطلوب' : 'Name is required' }),
+        email: z.string().trim().email({ message: isArabic ? 'البريد الإلكتروني غير صالح' : 'Email is invalid' }).optional(),
+        bio: z.string().trim().max(1024).optional(),
+    })
     const user = useSessionUser((state) => state.user)
     const setUser = useSessionUser((state) => state.setUser)
 
@@ -79,7 +84,7 @@ const SettingsProfile = () => {
             for (const file of files) {
                 if (!allowedFileType.includes(file.type)) {
                     valid =
-                        'لطفاً یک تصویر با فرمت jpeg / png / webp / gif انتخاب کنید'
+                        labels.invalidImage
                 }
             }
         }
@@ -132,7 +137,7 @@ const SettingsProfile = () => {
             )
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'خطا در ذخیره اطلاعات')
+                throw new Error(resp?.message || labels.saveError)
             }
 
             const me = await apiAuthMe()
@@ -142,13 +147,13 @@ const SettingsProfile = () => {
 
             toast.push(
                 <Notification type="success">
-                    {resp?.message || 'پروفایل با موفقیت ذخیره شد'}
+                    {resp?.message || labels.saved}
                 </Notification>,
             )
         } catch (err: unknown) {
             toast.push(
                 <Notification type="danger">
-                    {extractApiErrorMessage(err)}
+                    {extractApiErrorMessage(err, labels.saveError)}
                 </Notification>,
             )
         }
@@ -156,7 +161,7 @@ const SettingsProfile = () => {
 
     return (
         <>
-            <h4 className="mb-8">اطلاعات شخصی</h4>
+            <h4 className="mb-8">{labels.title}</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-8">
                     <div className="flex items-center gap-4">
@@ -199,7 +204,7 @@ const SettingsProfile = () => {
                                     type="button"
                                     icon={<TbPlus />}
                                 >
-                                    انتخاب تصویر
+                                    {labels.image}
                                 </Button>
                             </Upload>
                             <Button
@@ -211,7 +216,7 @@ const SettingsProfile = () => {
                                     setAvatarPreviewUrl('')
                                 }}
                             >
-                                حذف
+                                {labels.remove}
                             </Button>
                         </div>
                     </div>
@@ -219,7 +224,7 @@ const SettingsProfile = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormItem
-                        label="نام"
+                        label={labels.name}
                         invalid={Boolean(errors.name)}
                         errorMessage={errors.name?.message}
                     >
@@ -230,7 +235,7 @@ const SettingsProfile = () => {
                                 <Input
                                     type="text"
                                     autoComplete="off"
-                                    placeholder="نام"
+                                    placeholder={labels.name}
                                     {...field}
                                 />
                             )}
@@ -238,7 +243,7 @@ const SettingsProfile = () => {
                     </FormItem>
 
                     <FormItem
-                        label="ایمیل"
+                        label={labels.email}
                         invalid={Boolean(errors.email)}
                         errorMessage={errors.email?.message}
                     >
@@ -250,7 +255,7 @@ const SettingsProfile = () => {
                                     disabled
                                     type="email"
                                     autoComplete="off"
-                                    placeholder="ایمیل"
+                                    placeholder={labels.email}
                                     {...field}
                                 />
                             )}
@@ -258,7 +263,7 @@ const SettingsProfile = () => {
                     </FormItem>
 
                     <FormItem
-                        label="نبذة"
+                        label={labels.bio}
                         className="md:col-span-2"
                         invalid={Boolean(errors.bio)}
                         errorMessage={errors.bio?.message}
@@ -271,7 +276,7 @@ const SettingsProfile = () => {
                                     textArea
                                     rows={3}
                                     autoComplete="off"
-                                    placeholder="نبذة مختصرة عنك"
+                                    placeholder={labels.bioPlaceholder}
                                     {...field}
                                 />
                             )}
@@ -285,7 +290,7 @@ const SettingsProfile = () => {
                         type="submit"
                         loading={isSubmitting}
                     >
-                        ذخیره
+                        {labels.save}
                     </Button>
                 </div>
             </Form>

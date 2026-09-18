@@ -8,18 +8,20 @@ import {
 } from 'react-icons/tb'
 import type { View } from '../types'
 import type { ReactNode } from 'react'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const { MenuItem } = Menu
 
 // 'notification' and 'integration' point at template-leftover endpoints
 // (/setting/notification, /setting/intergration) the backend doesn't serve —
 // left out until those are real features.
-const menuList: { label: string; value: View; icon: ReactNode }[] = [
-    { label: 'الملف الشخصي', value: 'profile', icon: <TbUserSquare /> },
-    { label: 'الأمان', value: 'security', icon: <TbLock /> },
-]
-
 export const SettingsMenu = ({ onChange }: { onChange?: () => void }) => {
+    const { i18n } = useTranslation()
+    const isArabic = i18n.language.toLowerCase().startsWith('ar')
+    const menuList: { label: string; value: View; icon: ReactNode }[] = [
+        { label: isArabic ? 'الملف الشخصي' : 'Profile', value: 'profile', icon: <TbUserSquare /> },
+        { label: isArabic ? 'الأمان' : 'Security', value: 'security', icon: <TbLock /> },
+    ]
     const query = useQuery()
 
     const { currentView, setCurrentView } = useSettingsStore()
