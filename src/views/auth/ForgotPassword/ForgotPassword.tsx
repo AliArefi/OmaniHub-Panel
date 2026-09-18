@@ -5,6 +5,7 @@ import ActionLink from '@/components/shared/ActionLink'
 import ForgotPasswordForm from './components/ForgotPasswordForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useNavigate } from 'react-router'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type ForgotPasswordProps = {
     signInUrl?: string
@@ -13,6 +14,7 @@ type ForgotPasswordProps = {
 export const ForgotPasswordBase = ({
     signInUrl = '/sign-in',
 }: ForgotPasswordProps) => {
+    const { t } = useTranslation()
     const [emailSent, setEmailSent] = useState(false)
     const [message, setMessage] = useTimeOutMessage()
 
@@ -27,16 +29,16 @@ export const ForgotPasswordBase = ({
             <div className="mb-6">
                 {emailSent ? (
                     <>
-                        <h3 className="mb-2">تحقق من بريدك الإلكتروني</h3>
+                        <h3 className="mb-2">{t('auth.forgotPassword.sentTitle')}</h3>
                         <p className="font-semibold heading-text">
-                           لقد أرسلنا رسالة بريد إلكتروني لاستعادة كلمة المرور إلى عنوان بريدك الإلكتروني.
+                           {t('auth.forgotPassword.sentSubtitle')}
                         </p>
                     </>
                 ) : (
                     <>
-                        <h3 className="mb-2">هل نسيت كلمة السر؟</h3>
+                        <h3 className="mb-2">{t('auth.forgotPassword.title')}</h3>
                         <p className="font-semibold heading-text">
-                           يرجى إدخال بريدك الإلكتروني لتلقي رمز التحقق.
+                           {t('auth.forgotPassword.subtitle')}
                         </p>
                     </>
                 )}
@@ -57,17 +59,17 @@ export const ForgotPasswordBase = ({
                     type="button"
                     onClick={handleContinue}
                 >
-                    يكمل
+                    {t('auth.forgotPassword.continue')}
                 </Button>
             </ForgotPasswordForm>
             <div className="mt-4 text-center">
-                <span>العودة إلى </span>
+                <span>{t('auth.forgotPassword.back')} </span>
                 <ActionLink
                     to={signInUrl}
                     className="heading-text font-bold"
                     themeColor={false}
                 >
-                    تسجيل الدخول
+                    {t('auth.forgotPassword.signIn')}
                 </ActionLink>
             </div>
         </div>

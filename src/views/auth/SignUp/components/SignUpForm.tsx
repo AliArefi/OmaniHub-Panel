@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router'
 import PasswordInput from '@/components/shared/PasswordInput'
 import PhoneNumberInput from '@/components/shared/PhoneNumberInput'
 import { extractDigits } from '@/utils/normalizeDigits'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface SignUpFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -29,27 +30,6 @@ type SignUpFormValues = {
     mobile_local_number: string
 }
 
-const normalValidationSchema = z
-    .object({
-        name: z.string().min(1, { message: 'الاسم مطلوب.' }),
-        email: z.string().email({ message: 'يرجى إدخال بريد إلكتروني صحيح.' }),
-        mobile_country_code: z.string().min(1, { message: 'مقدمة الدولة مطلوبة.' }),
-        mobile_local_number: z.string().min(4, { message: 'رقم الهاتف مطلوب.' }),
-        password: z.string().min(8, { message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.' }),
-        password_confirmation: z
-            .string()
-            .min(1, { message: 'تأكيد كلمة المرور مطلوب.' }),
-    })
-    .refine((data) => data.password === data.password_confirmation, {
-        message: 'كلمتا المرور غير متطابقتين.',
-        path: ['password_confirmation'],
-    })
-
-const googleValidationSchema = z.object({
-    mobile_country_code: z.string().min(1, { message: 'مقدمة الدولة مطلوبة.' }),
-    mobile_local_number: z.string().min(4, { message: 'رقم الهاتف مطلوب.' }),
-})
-
 const passwordChecks = (password: string) => {
     const value = password || ''
     return {
@@ -62,6 +42,7 @@ const passwordChecks = (password: string) => {
 }
 
 const SignUpForm = (props: SignUpFormProps) => {
+    const { t } = useTranslation()
     const { disableSubmit = false, className, setMessage } = props
     const [isSubmitting, setSubmitting] = useState(false)
     const navigate = useNavigate()
@@ -74,10 +55,21 @@ const SignUpForm = (props: SignUpFormProps) => {
 
     const isGoogleSignup = Boolean(googleIdToken)
 
-    const schema = useMemo(
-        () => (isGoogleSignup ? googleValidationSchema : normalValidationSchema),
-        [isGoogleSignup],
-    )
+    const schema = useMemo(() => {
+        const google = z.object({
+            mobile_country_code: z.string().min(1, { message: t('auth.signUp.countryCodeRequired') }),
+            mobile_local_number: z.string().min(4, { message: t('auth.signUp.phoneRequired') }),
+        })
+        if (isGoogleSignup) return google
+        return z.object({
+            name: z.string().min(1, { message: t('auth.signUp.nameRequired') }),
+            email: z.string().email({ message: t('auth.signUp.emailInvalid') }),
+            mobile_country_code: z.string().min(1, { message: t('auth.signUp.countryCodeRequired') }),
+            mobile_local_number: z.string().min(4, { message: t('auth.signUp.phoneRequired') }),
+            password: z.string().min(8, { message: t('auth.signUp.passwordMin') }),
+            password_confirmation: z.string().min(1, { message: t('auth.signUp.confirmationRequired') }),
+        }).refine((data) => data.password === data.password_confirmation, { message: t('auth.signUp.passwordMismatch'), path: ['password_confirmation'] })
+    }, [isGoogleSignup, t])
 
     const {
         handleSubmit,
@@ -147,13 +139,13 @@ const SignUpForm = (props: SignUpFormProps) => {
                         return
                     }
 
-                    setMessage?.(resp?.message || 'Unable to complete Google sign up.')
+                    setMessage?.(resp?.message || t('auth.signUp.googleSignupError'))
                     return
                 } catch (err: unknown) {
                     const data = (err as { response?: { data?: unknown } } | null)?.response?.data
 
                     if (!data || typeof data !== 'object') {
-                        setMessage?.('Unable to complete Google sign up.')
+                        setMessage?.(t('auth.signUp.googleSignupError'))
                         return
                     }
 
@@ -164,7 +156,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         setMessage?.(
                             typeof failure.message === 'string'
                                 ? failure.message
-                                : 'This account already exists. Please sign in to continue.',
+                                : t('auth.signUp.existingAccount'),
                         )
                         navigate('/sign-in')
                         return
@@ -182,7 +174,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     setMessage?.(
                         typeof failure.message === 'string'
                             ? failure.message
-                            : 'Unable to complete Google sign up.',
+                            : t('auth.signUp.googleSignupError'),
                     )
                     return
                 }
@@ -215,7 +207,7 @@ const SignUpForm = (props: SignUpFormProps) => {
         } catch (err: unknown) {
             const serverMessage = (err as { response?: { data?: { message?: unknown } } } | null)?.response
                 ?.data?.message
-            setMessage?.(typeof serverMessage === 'string' ? serverMessage : 'تعذر إتمام التسجيل.')
+            setMessage?.(typeof serverMessage === 'string' ? serverMessage : t('auth.signUp.signupError'))
         } finally {
             setSubmitting(false)
         }
@@ -236,7 +228,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 ) : null}
 
                 <Form onSubmit={handleSubmit(onSubmit)}>
-                    <FormItem label="الاسم">
+                    <FormItem label={t('auth.signUp.name')}>
                         <Input
                             disabled
                             type="text"
@@ -245,7 +237,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         />
                     </FormItem>
 
-                    <FormItem label="البريد الإلكتروني">
+                    <FormItem label={t('auth.signUp.email')}>
                         <Input
                             disabled
                             type="email"
@@ -255,7 +247,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     </FormItem>
 
                     <FormItem
-                        label="رقم الهاتف"
+                        label={t('auth.signUp.phone')}
                         invalid={Boolean(errors.mobile_local_number)}
                         errorMessage={errors.mobile_local_number?.message}
                     >
@@ -285,7 +277,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     </FormItem>
 
                     <Button block loading={isSubmitting} variant="solid" type="submit">
-                        {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
+                        {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
                     </Button>
 
                     <div className="mt-4 text-center">
@@ -296,7 +288,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                                 clearGoogleSignup()
                             }}
                         >
-                            استخدام التسجيل العادي
+                            {t('auth.signUp.normalSignup')}
                         </button>
                     </div>
                 </Form>
@@ -308,7 +300,7 @@ const SignUpForm = (props: SignUpFormProps) => {
         <div className={className}>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <FormItem
-                    label="الاسم"
+                    label={t('auth.signUp.name')}
                     invalid={Boolean(errors.name)}
                     errorMessage={errors.name?.message}
                 >
@@ -318,7 +310,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <Input
                                 type="text"
-                                placeholder="الاسم"
+                                placeholder={t('auth.signUp.name')}
                                 autoComplete="off"
                                 {...field}
                             />
@@ -327,7 +319,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="رقم الهاتف"
+                    label={t('auth.signUp.phone')}
                     invalid={Boolean(errors.mobile_local_number)}
                     errorMessage={errors.mobile_local_number?.message}
                 >
@@ -357,7 +349,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="البريد الإلكتروني"
+                    label={t('auth.signUp.email')}
                     invalid={Boolean(errors.email)}
                     errorMessage={errors.email?.message}
                 >
@@ -367,7 +359,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <Input
                                 type="email"
-                                placeholder="البريد الإلكتروني"
+                                placeholder={t('auth.signUp.email')}
                                 autoComplete="off"
                                 {...field}
                             />
@@ -376,7 +368,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label="كلمة المرور"
+                    label={t('auth.signUp.password')}
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
                 >
@@ -386,7 +378,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <PasswordInput
                                 autoComplete="new-password"
-                                placeholder="كلمة المرور"
+                                placeholder={t('auth.signUp.password')}
                                 {...field}
                             />
                         )}
@@ -402,27 +394,27 @@ const SignUpForm = (props: SignUpFormProps) => {
                             />
                         </div>
                         <span className="text-xs text-gray-600 dark:text-gray-400 w-14 text-right">
-                            {strengthScore <= 2 ? 'ضعيفة' : strengthScore === 3 ? 'متوسطة' : 'قوية'}
+                            {strengthScore <= 2 ? t('auth.signUp.passwordWeak') : strengthScore === 3 ? t('auth.signUp.passwordMedium') : t('auth.signUp.passwordStrong')}
                         </span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-700 dark:text-gray-300">
                         <div className={checks.minLength ? 'text-emerald-600' : ''}>
-                            8 أحرف على الأقل
+                            {t('auth.signUp.passwordLength')}
                         </div>
                         <div className={checks.hasNumber ? 'text-emerald-600' : ''}>
-                            تحتوي رقمًا
+                            {t('auth.signUp.passwordNumber')}
                         </div>
                         <div className={checks.hasUpper ? 'text-emerald-600' : ''}>
-                            تحتوي حرفًا كبيرًا
+                            {t('auth.signUp.passwordUpper')}
                         </div>
                         <div className={checks.hasSymbol ? 'text-emerald-600' : ''}>
-                            تحتوي رمزًا خاصًا
+                            {t('auth.signUp.passwordSymbol')}
                         </div>
                     </div>
                 </div>
 
                 <FormItem
-                    label="تأكيد كلمة المرور"
+                    label={t('auth.signUp.confirmPassword')}
                     invalid={Boolean(errors.password_confirmation)}
                     errorMessage={errors.password_confirmation?.message}
                 >
@@ -432,7 +424,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                         render={({ field }) => (
                             <PasswordInput
                                 autoComplete="new-password"
-                                placeholder="تأكيد كلمة المرور"
+                                placeholder={t('auth.signUp.confirmPassword')}
                                 {...field}
                             />
                         )}
@@ -440,7 +432,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <Button block loading={isSubmitting} variant="solid" type="submit">
-                    {isSubmitting ? 'جاري إنشاء الحساب...' : 'تسجيل'}
+                    {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
                 </Button>
             </Form>
         </div>
