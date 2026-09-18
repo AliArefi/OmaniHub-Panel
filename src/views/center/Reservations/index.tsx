@@ -5,7 +5,7 @@ import Th from '@/components/ui/Table/Th'
 import THead from '@/components/ui/Table/THead'
 import Tr from '@/components/ui/Table/Tr'
 import Notification from '@/components/ui/Notification'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import {
     getReservationPricingLabel,
     getReservationPricingStatusLabel,
@@ -23,7 +23,7 @@ export default function Reservations() {
     const [error, setError] = useState<string | null>(null)
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const { agencySlug } = useParams()
     const navigate = useNavigate()
 
@@ -46,7 +46,7 @@ export default function Reservations() {
                         ? message
                         : undefined
                 })()
-                setError(apiMessage || 'حدث خطأ أثناء تحميل الحجوزات')
+                setError(apiMessage || t('centerReservations.loadError'))
             } finally {
                 setLoading(false)
             }
@@ -54,7 +54,7 @@ export default function Reservations() {
 
         fetchBookings()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [agencySlug, t])
 
     const handleViewDetails = (booking: Booking) => {
         setSelectedBooking(booking)
@@ -62,25 +62,25 @@ export default function Reservations() {
     }
 
     const getStatusBadge = (status: string) => {
-        const statusConfig: Record<string, { label: string; className: string }> =
+        const statusConfig: Record<string, { labelKey: string; className: string }> =
             {
                 pending: {
-                    label: 'قيد الانتظار',
+                    labelKey: 'centerReservations.statusPending',
                     className:
                         'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
                 },
                 confirmed: {
-                    label: 'مؤكد',
+                    labelKey: 'centerReservations.statusConfirmed',
                     className:
                         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
                 },
                 completed: {
-                    label: 'مكتمل',
+                    labelKey: 'centerReservations.statusCompleted',
                     className:
                         'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
                 },
                 cancelled: {
-                    label: 'ملغي',
+                    labelKey: 'centerReservations.statusCancelled',
                     className:
                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
                 },
@@ -90,14 +90,14 @@ export default function Reservations() {
             <Badge
                 className={`${config.className} px-3 py-1 rounded-full text-xs font-medium`}
             >
-                {config.label}
+                {t(config.labelKey)}
             </Badge>
         )
     }
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
-        return new Intl.DateTimeFormat('ar-SA', {
+        return new Intl.DateTimeFormat(i18n.language === 'ar' ? 'ar-OM' : 'en-OM', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -108,7 +108,7 @@ export default function Reservations() {
         return (
             <div className="w-full text-center flex items-center justify-center flex-col">
                 <Spinner />
-                <div>{t('loading')}</div>
+                <div>{t('chat.loading')}</div>
             </div>
         )
     if (error) return <div className="text-red-600 dark:text-red-400">{error}</div>
@@ -117,26 +117,26 @@ export default function Reservations() {
         <>
             <Card>
                 <div className="mb-10">
-                    <h2 className="mb-2">إدارة الحجوزات</h2>
+                    <h2 className="mb-2">{t('centerReservations.title')}</h2>
                     <p className="text-gray-500 dark:text-gray-400">
-                        عرض وإدارة جميع حجوزات المركز
+                        {t('centerReservations.subtitle')}
                     </p>
                 </div>
 
                 {bookings.length === 0 ? (
                     <Notification type="info">
-                        لا توجد حجوزات حتى الآن
+                        {t('centerReservations.empty')}
                     </Notification>
                 ) : (
                     <Table>
                         <THead>
                             <Tr>
-                                <Th>العميل</Th>
-                                <Th>الخدمة</Th>
-                                <Th>التاريخ/الوقت</Th>
-                                <Th>التسعير</Th>
-                                <Th>الحالة</Th>
-                                <Th>الإجراءات</Th>
+                                <Th>{t('centerReservations.customer')}</Th>
+                                <Th>{t('centerReservations.service')}</Th>
+                                <Th>{t('centerReservations.dateTime')}</Th>
+                                <Th>{t('centerReservations.pricing')}</Th>
+                                <Th>{t('centerReservations.status')}</Th>
+                                <Th>{t('centerReservations.actions')}</Th>
                             </Tr>
                         </THead>
                         <TBody>
@@ -155,7 +155,7 @@ export default function Reservations() {
                                             <div>
                                                 <div className="font-semibold text-gray-900 dark:text-gray-100">
                                                     {booking.customer?.name ||
-                                                        'غير محدد'}
+                                                        t('centerReservations.unassigned')}
                                                 </div>
                                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                                     {booking.customer?.mobile ||
@@ -167,11 +167,11 @@ export default function Reservations() {
                                     <Td>
                                         <div className="font-medium text-gray-900 dark:text-gray-100">
                                             {booking.service?.title ||
-                                                'غير محدد'}
+                                                t('centerReservations.unassigned')}
                                         </div>
                                         <div className="text-xs text-gray-500 dark:text-gray-400">
                                             {booking.member?.name ||
-                                                'غير محدد'}
+                                                t('centerReservations.unassigned')}
                                         </div>
                                     </Td>
                                     <Td>
@@ -203,7 +203,7 @@ export default function Reservations() {
                                                     handleViewDetails(booking)
                                                 }
                                             >
-                                                عرض
+                                                {t('centerReservations.view')}
                                             </Button>
                                             <Button
                                                 disabled={!booking.customer.user?.id}
@@ -217,7 +217,7 @@ export default function Reservations() {
                                                     )
                                                 }
                                             >
-                                                محادثة
+                                                {t('centerReservations.chat')}
                                             </Button>
                                         </div>
                                     </Td>
