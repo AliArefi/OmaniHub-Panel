@@ -20,7 +20,7 @@ import useSWR from 'swr'
 
 type ProviderForm = Record<string, string | boolean>
 
-const fieldNames = ['base_url', 'public_key', 'secret_key', 'hmac_secret', 'payment_methods', 'checkout_url'] as const
+const fieldNames = ['base_url', 'public_key', 'secret_key', 'hmac_secret', 'payment_methods', 'checkout_url', 'subscription_endpoint', 'subscription_plan_id', 'moto_integration_id', 'subscription_frequency'] as const
 
 const emptyPlan = (): BillingPlanPayload => ({
     key: '',
@@ -62,7 +62,7 @@ const BillingSettings = () => {
     const formFor = (provider: AdminBillingProvider): ProviderForm => forms[provider.id] || {
         enabled: provider.enabled,
         test_mode: provider.test_mode,
-        base_url: '', public_key: '', secret_key: '', hmac_secret: '', payment_methods: '', checkout_url: '',
+        base_url: '', public_key: '', secret_key: '', hmac_secret: '', payment_methods: '', checkout_url: '', subscription_endpoint: '', subscription_plan_id: '', moto_integration_id: '', subscription_frequency: 'monthly',
     }
 
     const updateField = (provider: AdminBillingProvider, field: string, value: string | boolean) =>
