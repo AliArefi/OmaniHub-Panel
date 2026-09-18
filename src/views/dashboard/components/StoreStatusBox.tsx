@@ -15,7 +15,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 26 // ≈ 163.36
 const PROGRESS = 78
 
 const StoreStatusBox = memo(() => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const navigate = useNavigate()
     const links = [
         { icon: <HiOutlineEye className="w-5 h-5" />, label: t('dashboard.centerStatus.viewCenter'), url: '/centers' },
@@ -63,7 +63,10 @@ const StoreStatusBox = memo(() => {
                         />
                     </svg>
                     <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-                        {PROGRESS}٪
+                        {new Intl.NumberFormat(i18n.language, {
+                            style: 'percent',
+                            maximumFractionDigits: 0,
+                        }).format(PROGRESS / 100)}
                     </span>
                 </div>
 
