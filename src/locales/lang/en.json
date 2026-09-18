@@ -223,6 +223,9 @@
   "auth": {
     "signIn": { "title": "Welcome to OmaniHub", "subtitle": "Enter your email address and password to sign in.", "email": "Email", "password": "Password", "emailRequired": "Enter your email address.", "passwordRequired": "Enter your password.", "submit": "Sign in", "submitting": "Signing in...", "forgotPassword": "Forgot your password?", "orContinueWith": "Or continue with", "noAccount": "Don't have an account yet?", "signUp": "Sign up" }
   },
+  "billing": {
+    "title": "Subscription plans", "monthly": "Monthly", "annually": "Annual", "choosePlan": "Choose plan", "recommended": "Recommended", "loadPlansError": "Unable to load plans. Please try again.", "emptyPlans": "No plans are currently available.", "priceUnavailable": "Price unavailable", "checkoutTitle": "Continue to payment", "hostedCheckoutNotice": "You will be redirected to our secure payment provider to complete payment.", "continueToPayment": "Continue to payment", "cancel": "Cancel", "checkoutUnavailable": "Checkout is not available for this plan.", "checkoutError": "Unable to start checkout. Please try again."
+  },
   "workCalendar": {
     "title": "Work calendar",
     "labels": {

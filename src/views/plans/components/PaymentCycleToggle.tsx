@@ -4,8 +4,7 @@ import useTranslation from '@/utils/hooks/useTranslation'
 import type { PaymentCycle } from '../types'
 
 const PaymentCycleToggle = () => {
-    const { i18n } = useTranslation()
-    const isArabic = i18n.language.toLowerCase().startsWith('ar')
+    const { t } = useTranslation()
     const { paymentCycle, setPaymentCycle } = usePricingStore()
 
     return (
@@ -13,8 +12,8 @@ const PaymentCycleToggle = () => {
             value={paymentCycle}
             onChange={(val) => setPaymentCycle(val as PaymentCycle)}
         >
-            <Segment.Item value="monthly">{isArabic ? 'شهری' : 'Monthly'}</Segment.Item>
-            <Segment.Item value="annually">{isArabic ? 'سنوی' : 'Annual'}</Segment.Item>
+            <Segment.Item value="monthly">{t('billing.monthly')}</Segment.Item>
+            <Segment.Item value="annually">{t('billing.annually')}</Segment.Item>
         </Segment>
     )
 }

@@ -208,6 +208,9 @@
   "auth": {
     "signIn": { "title": "أهلاً بك في عُماني هَب", "subtitle": "يرجى إدخال بريدك الإلكتروني وكلمة المرور لتسجيل الدخول.", "email": "البريد الإلكتروني", "password": "كلمة المرور", "emailRequired": "يرجى إدخال بريدك الإلكتروني.", "passwordRequired": "يرجى إدخال كلمة المرور.", "submit": "تسجيل الدخول", "submitting": "جارٍ تسجيل الدخول...", "forgotPassword": "هل نسيت كلمة المرور؟", "orContinueWith": "أو المتابعة باستخدام", "noAccount": "ليس لديك حساب بعد؟", "signUp": "إنشاء حساب" }
   },
+  "billing": {
+    "title": "خطط الاشتراك", "monthly": "شهري", "annually": "سنوي", "choosePlan": "اختر الخطة", "recommended": "موصى بها", "loadPlansError": "تعذر تحميل الخطط. يرجى المحاولة مرة أخرى.", "emptyPlans": "لا توجد خطط متاحة حالياً.", "priceUnavailable": "السعر غير متاح", "checkoutTitle": "المتابعة إلى الدفع", "hostedCheckoutNotice": "سيتم تحويلك إلى مزود الدفع الآمن لإتمام الدفع.", "continueToPayment": "المتابعة إلى الدفع", "cancel": "إلغاء", "checkoutUnavailable": "الدفع غير متاح لهذه الخطة.", "checkoutError": "تعذر بدء عملية الدفع. يرجى المحاولة مرة أخرى."
+  },
   "workCalendar": {
     "title": "تقويم العمل",
     "labels": {

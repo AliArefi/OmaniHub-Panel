@@ -1,5 +1,15 @@
 import { create } from 'zustand'
-import type { PaymentCycle, SelectedPlan } from '../types'
+import type { BillingInterval } from '@/services/BillingService'
+
+export type PaymentCycle = Extract<BillingInterval, 'monthly' | 'annually'>
+
+export type SelectedPlan = {
+    id: number
+    name: string
+    interval: BillingInterval
+    amountMinor: number
+    currency: string
+}
 
 type PricingState = {
     paymentCycle: PaymentCycle
