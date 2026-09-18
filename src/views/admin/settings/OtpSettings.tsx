@@ -14,6 +14,7 @@ import {
     apiGetSingletonSettings,
     apiUpdateSingletonSettings,
 } from '@/services/admin/AdminSettingsService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const DRIVER_OPTIONS = [
     'static_code',
@@ -62,6 +63,7 @@ const selectField = (
 ) => options.find((o) => o.value === value)
 
 const OtpSettings = () => {
+    const { t } = useTranslation()
     const { can } = usePermission()
     const canEdit = can('update otp settings')
     const { data, mutate } = useSWR('admin-settings-otp', () =>
@@ -80,10 +82,10 @@ const OtpSettings = () => {
         setSubmitting(true)
         try {
             await apiUpdateSingletonSettings('otp', values)
-            toast.push(<Notification type="success" title="Saved" />)
+            toast.push(<Notification type="success" title={t('adminSettings.saved')} />)
             mutate()
         } catch {
-            toast.push(<Notification type="danger" title="Failed to save" />)
+            toast.push(<Notification type="danger" title={t('adminSettings.saveError')} />)
         } finally {
             setSubmitting(false)
         }
@@ -91,10 +93,10 @@ const OtpSettings = () => {
 
     return (
         <AdaptiveCard>
-            <h4 className="mb-6">OTP settings</h4>
+            <h4 className="mb-6">{t('adminSettings.otp.title')}</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormItem label="Enabled">
+                    <FormItem label={t('adminSettings.enabled')}>
                         <Controller
                             name="enabled"
                             control={control}
@@ -103,7 +105,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Default driver">
+                    <FormItem label={t('adminSettings.otp.defaultDriver')}>
                         <Controller
                             name="default_driver"
                             control={control}
@@ -117,7 +119,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Code length">
+                    <FormItem label={t('adminSettings.otp.codeLength')}>
                         <Controller
                             name="code_length"
                             control={control}
@@ -126,7 +128,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Expires in (seconds)">
+                    <FormItem label={t('adminSettings.otp.expires')}>
                         <Controller
                             name="expires_in_seconds"
                             control={control}
@@ -135,7 +137,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Resend cooldown (seconds)">
+                    <FormItem label={t('adminSettings.otp.resendCooldown')}>
                         <Controller
                             name="resend_cooldown_seconds"
                             control={control}
@@ -144,7 +146,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Max attempts">
+                    <FormItem label={t('adminSettings.otp.maxAttempts')}>
                         <Controller
                             name="max_attempts"
                             control={control}
@@ -153,7 +155,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Max resends">
+                    <FormItem label={t('adminSettings.otp.maxResends')}>
                         <Controller
                             name="max_resends"
                             control={control}
@@ -162,7 +164,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Block for (seconds)">
+                    <FormItem label={t('adminSettings.otp.blockFor')}>
                         <Controller
                             name="block_for_seconds"
                             control={control}
@@ -171,7 +173,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Registration flow mode">
+                    <FormItem label={t('adminSettings.otp.registrationFlow')}>
                         <Controller
                             name="registration_flow_mode"
                             control={control}
@@ -185,7 +187,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Login flow mode">
+                    <FormItem label={t('adminSettings.otp.loginFlow')}>
                         <Controller
                             name="login_flow_mode"
                             control={control}
@@ -199,7 +201,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Default identifier mode">
+                    <FormItem label={t('adminSettings.otp.identifierMode')}>
                         <Controller
                             name="default_auth_identifier_mode"
                             control={control}
@@ -213,7 +215,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Registration OTP channel">
+                    <FormItem label={t('adminSettings.otp.registrationChannel')}>
                         <Controller
                             name="registration_otp_channel"
                             control={control}
@@ -227,7 +229,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Login OTP channel">
+                    <FormItem label={t('adminSettings.otp.loginChannel')}>
                         <Controller
                             name="login_otp_channel"
                             control={control}
@@ -241,7 +243,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Require verified profile">
+                    <FormItem label={t('adminSettings.otp.requireVerified')}>
                         <Controller
                             name="require_verified_user_profile"
                             control={control}
@@ -250,7 +252,7 @@ const OtpSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="MFA enabled">
+                    <FormItem label={t('adminSettings.otp.mfa')}>
                         <Controller
                             name="mfa_enabled"
                             control={control}
@@ -263,7 +265,7 @@ const OtpSettings = () => {
                 {canEdit && (
                     <div className="flex justify-end mt-6">
                         <Button type="submit" variant="solid" loading={submitting}>
-                            Save
+                            {t('adminSettings.save')}
                         </Button>
                     </div>
                 )}

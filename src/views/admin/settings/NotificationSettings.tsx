@@ -13,6 +13,7 @@ import {
     apiGetSingletonSettings,
     apiUpdateSingletonSettings,
 } from '@/services/admin/AdminSettingsService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type EventTarget = { enabled: boolean; channels: Record<string, boolean> }
 type NotificationEvents = Record<string, Record<string, EventTarget>>
@@ -25,6 +26,7 @@ type NotificationFormValues = {
 }
 
 const NotificationSettings = () => {
+    const { t } = useTranslation()
     const { can } = usePermission()
     const canEdit = can('update notification settings')
     const { data, mutate } = useSWR('admin-settings-notifications', () =>
@@ -68,10 +70,10 @@ const NotificationSettings = () => {
         setSubmitting(true)
         try {
             await apiUpdateSingletonSettings('notifications', values)
-            toast.push(<Notification type="success" title="Saved" />)
+            toast.push(<Notification type="success" title={t('adminSettings.saved')} />)
             mutate()
         } catch {
-            toast.push(<Notification type="danger" title="Failed to save" />)
+            toast.push(<Notification type="danger" title={t('adminSettings.saveError')} />)
         } finally {
             setSubmitting(false)
         }
@@ -81,10 +83,10 @@ const NotificationSettings = () => {
 
     return (
         <AdaptiveCard>
-            <h4 className="mb-6">Notification settings</h4>
+            <h4 className="mb-6">{t('adminSettings.notifications.title')}</h4>
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <FormItem label="Enabled">
+                    <FormItem label={t('adminSettings.enabled')}>
                         <Controller
                             name="enabled"
                             control={control}
@@ -94,7 +96,7 @@ const NotificationSettings = () => {
                         />
                     </FormItem>
                     <div />
-                    <FormItem label="Admin emails (one per line)">
+                    <FormItem label={t('adminSettings.notifications.emails')}>
                         <Controller
                             name="admin_emails"
                             control={control}
@@ -103,7 +105,7 @@ const NotificationSettings = () => {
                             )}
                         />
                     </FormItem>
-                    <FormItem label="Admin WhatsApp numbers (one per line)">
+                    <FormItem label={t('adminSettings.notifications.whatsapp')}>
                         <Controller
                             name="admin_whatsapp_numbers"
                             control={control}
@@ -116,7 +118,7 @@ const NotificationSettings = () => {
 
                 {eventKeys.length > 0 && (
                     <div className="flex flex-col gap-3">
-                        <h6>Events</h6>
+                        <h6>{t('adminSettings.notifications.events')}</h6>
                         {eventKeys.map((eventKey) => (
                             <div
                                 key={eventKey}
@@ -136,7 +138,7 @@ const NotificationSettings = () => {
                                                         disabled={!canEdit}
                                                         onChange={onChange}
                                                     />
-                                                    {target}
+                                                    {t(`adminSettings.notifications.targets.${target}`)}
                                                 </label>
                                             )}
                                         />
@@ -150,7 +152,7 @@ const NotificationSettings = () => {
                 {canEdit && (
                     <div className="flex justify-end mt-6">
                         <Button type="submit" variant="solid" loading={submitting}>
-                            Save
+                            {t('adminSettings.save')}
                         </Button>
                     </div>
                 )}
