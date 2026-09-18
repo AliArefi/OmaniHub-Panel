@@ -1,5 +1,6 @@
 import { Button, Card, FormItem, Select } from "@/components/ui";
 import { useState } from "react";
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface HojraWorkScheduleProps {
     changeState: (value: number) => void;
@@ -18,25 +19,15 @@ interface SelectOption {
     label: string;
 }
 
-const generateNext30Days = (): SelectOption[] => {
+const generateNext30Days = (locale: string): SelectOption[] => {
     const days: SelectOption[] = [];
     const today = new Date();
-
-    const dayNames = [
-        "الأحد",
-        "الإثنين",
-        "الثلاثاء",
-        "الأربعاء",
-        "الخميس",
-        "الجمعة",
-        "السبت",
-    ];
 
     for (let i = 0; i < 30; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
 
-        const dayName = dayNames[date.getDay()];
+        const dayName = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(date);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const day = String(date.getDate()).padStart(2, "0");
@@ -62,12 +53,13 @@ const generateTimeOptions = (): SelectOption[] => {
 };
 
 export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
+    const { t, i18n } = useTranslation()
     const [selectedDate, setSelectedDate] = useState<string>("");
     const [startTime, setStartTime] = useState<string>("");
     const [endTime, setEndTime] = useState<string>("");
     const [schedules, setSchedules] = useState<WorkSchedule[]>([]);
 
-    const DATES = generateNext30Days();
+    const DATES = generateNext30Days(i18n.language);
     const TIME_OPTIONS = generateTimeOptions();
 
     const isDuplicateDate = (value: string) =>
@@ -105,15 +97,15 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
     const availableDates = DATES.filter((d) => !isDuplicateDate(d.value));
 
     return (
-        <Card header={{ content: "أوقات العمل", bordered: false }}>
+        <Card header={{ content: t('centerCreationSchedule.title'), bordered: false }}>
             <div className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-                    حدد التواريخ والأوقات التي تقدم فيها خدماتك (30 يومًا القادمة)
+                    {t('centerCreationSchedule.hint')}
                 </div>
 
-                <FormItem label="التاريخ">
+                <FormItem label={t('centerCreationSchedule.date')}>
                     <Select
-                        placeholder="اختر التاريخ"
+                        placeholder={t('centerCreationSchedule.chooseDate')}
                         value={selectedDate}
                         options={availableDates as any}
                         onChange={(val: any) => setSelectedDate(val?.value ?? "")}
@@ -121,7 +113,7 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
                 </FormItem>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <FormItem label="من الساعة">
+                    <FormItem label={t('centerCreationSchedule.from')}>
                         <Select
                             placeholder="--:--"
                             value={startTime}
@@ -130,7 +122,7 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
                         />
                     </FormItem>
 
-                    <FormItem label="إلى الساعة">
+                    <FormItem label={t('centerCreationSchedule.to')}>
                         <Select
                             placeholder="--:--"
                             value={endTime}
@@ -142,13 +134,13 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
 
                 <FormItem>
                     <Button block disabled={!isFormComplete()} onClick={handleAdd}>
-                        إضافة وقت عمل
+                        {t('centerCreationSchedule.add')}
                     </Button>
                 </FormItem>
 
                 {schedules.length > 0 && (
                     <div className="space-y-3">
-                        <h3 className="font-semibold text-lg">الأوقات المضافة</h3>
+                        <h3 className="font-semibold text-lg">{t('centerCreationSchedule.added')}</h3>
 
                         {schedules.map((item) => (
                             <Card key={item.id}>
@@ -185,7 +177,7 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
                                         className="bg-red-300 hover:bg-red-400"
                                         onClick={() => handleDelete(item.id)}
                                     >
-                                        حذف
+                                        {t('centerCreationSchedule.delete')}
                                     </Button>
                                 </div>
                             </Card>
@@ -195,12 +187,12 @@ export const HojraWorkSchedule = ({ changeState }: HojraWorkScheduleProps) => {
 
                 <div className="flex justify-end gap-3">
                     <Button size="md" variant="default" onClick={() => changeState(3)}>
-                        خلف
+                        {t('centerCreationSchedule.back')}
                     </Button>
 
                     {schedules.length > 0 && (
                         <Button size="md" variant="solid" >
-                            سجل وإنهاء
+                            {t('centerCreationSchedule.finish')}
                         </Button>
                     )}
                 </div>

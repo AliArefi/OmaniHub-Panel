@@ -1,5 +1,6 @@
 import { Button, Card, FormItem, Input } from "@/components/ui";
 import { useState, useRef } from "react";
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface HojraTeamMembersProps {
     changeState: (value: number) => void;
@@ -13,6 +14,7 @@ interface TeamMember {
 }
 
 export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
+    const { t } = useTranslation()
     const [name, setName] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -81,13 +83,13 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
     return (
         <Card
             header={{
-                content: "أعضاء الفريق",
+                content: t('centerCreationTeam.title'),
                 bordered: false,
             }}
         >
             <div className="space-y-4">
                 {/* فیلد آپلود عکس */}
-                <FormItem label="صورة العضو">
+                <FormItem label={t('centerCreationTeam.photo')}>
                     <div className="flex flex-col gap-3">
                         {!imagePreview ? (
                             <div
@@ -109,7 +111,7 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                                     />
                                 </svg>
                                 <span className="text-sm text-gray-500">
-                                    اضغط لإضافة صورة
+                                    {t('centerCreationTeam.addPhoto')}
                                 </span>
                             </div>
                         ) : (
@@ -128,7 +130,7 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                     >
-                                        تغيير الصورة
+                                        {t('centerCreationTeam.changePhoto')}
                                     </Button>
                                     <Button
                                         variant="solid"
@@ -137,7 +139,7 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                                         className="bg-red-300 hover:bg-red-400 transition-all"
                                         onClick={handleRemoveImage}
                                     >
-                                        حذف الصورة
+                                        {t('centerCreationTeam.removePhoto')}
                                     </Button>
                                 </div>
                             </div>
@@ -154,19 +156,19 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                 </FormItem>
 
                 {/* فیلد نام */}
-                <FormItem label="اسم العضو">
+                <FormItem label={t('centerCreationTeam.name')}>
                     <Input
                         value={name}
-                        placeholder="اسم العضو"
+                        placeholder={t('centerCreationTeam.namePlaceholder')}
                         onChange={(e) => setName(e.target.value)}
                     />
                 </FormItem>
 
                 {/* فیلد توضیح */}
-                <FormItem label="وصف موجز">
+                <FormItem label={t('centerCreationTeam.description')}>
                     <Input
                         value={description}
-                        placeholder="مثلاً: مختصة في العناية بالبشرة"
+                        placeholder={t('centerCreationTeam.descriptionPlaceholder')}
                         onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormItem>
@@ -180,14 +182,14 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                         disabled={!isFormComplete()}
                         onClick={handleAddMember}
                     >
-                        إضافة عضو
+                        {t('centerCreationTeam.add')}
                     </Button>
                 </FormItem>
 
                 {/* لیست اعضا اضافه شده */}
                 {addedMembers.length > 0 && (
                     <div className="mt-6 space-y-3">
-                        <h3 className="text-lg font-semibold">أعضاء الفريق المضافون</h3>
+                        <h3 className="text-lg font-semibold">{t('centerCreationTeam.added')}</h3>
                         {addedMembers.map((member) => (
                             <Card key={member.id}>
                                 <div className="flex justify-between items-center flex-row gap-3">
@@ -221,7 +223,7 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                                             className="bg-red-300 hover:bg-red-400 transition-all"
                                             onClick={() => handleDeleteMember(member.id)}
                                         >
-                                            حذف
+                                            {t('centerCreationTeam.delete')}
                                         </Button>
                                     </div>
                                 </div>
@@ -234,11 +236,11 @@ export const HojraTeamMembers = ({ changeState }: HojraTeamMembersProps) => {
                 <div>
                     <div className="flex items-center justify-end gap-3">
                         <Button size="sm" variant="default" onClick={() => changeState(2)}>
-                            خلف
+                            {t('centerCreationTeam.back')}
                         </Button>
                         {addedMembers.length > 0 && (
                             <Button size="sm" variant="solid" onClick={() => changeState(4)}>
-                                سجل وإنهاء
+                                {t('centerCreationTeam.finish')}
                             </Button>
                         )}
                     </div>
