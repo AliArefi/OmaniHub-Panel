@@ -3,6 +3,7 @@ import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import HeaderLogo from '@/components/template/HeaderLogo'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
+import LanguageSelector from '@/components/template/LanguageSelector'
 import LayoutBase from '@/components//template/LayoutBase'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_TOP_BAR_CLASSIC } from '@/constants/theme.constant'
@@ -30,6 +31,7 @@ const TopBarClassic = ({ children }: CommonProps) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
+                                <LanguageSelector hoverable={false} />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }
