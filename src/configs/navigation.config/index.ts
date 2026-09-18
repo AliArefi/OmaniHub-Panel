@@ -272,6 +272,17 @@ const navigationConfig: NavigationTree[] = [
                 subMenu: [],
             },
             {
+                key: 'admin.billing',
+                path: '/admin/billing',
+                title: 'Billing',
+                translateKey: 'nav.admin.billing',
+                icon: 'groupMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                permissions: ['general settings'],
+                subMenu: [],
+            },
+            {
                 key: 'admin.settings',
                 path: '/admin/settings/general',
                 title: 'Settings',

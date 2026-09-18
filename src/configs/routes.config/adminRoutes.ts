@@ -177,6 +177,13 @@ const adminRoutes: Routes = [
         permissions: ['permissions.view'],
     },
     {
+        key: 'admin.billing',
+        path: '/admin/billing',
+        component: lazy(() => import('@/views/admin/billing/BillingSettings')),
+        authority: [],
+        permissions: ['general settings'],
+    },
+    {
         key: 'admin.settings',
         path: '/admin/settings/:group',
         component: lazy(
