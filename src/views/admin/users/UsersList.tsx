@@ -9,16 +9,18 @@ import usePermission from '@/utils/hooks/usePermission'
 import { apiDeleteAdminUser } from '@/services/admin/AdminUsersService'
 import type { AdminUser } from '@/@types/admin'
 import type { ColumnDef } from '@/components/shared/DataTable'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 const UsersList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
+    const { t } = useTranslation()
 
     const columns = ({ mutate }: { mutate: () => void }): ColumnDef<AdminUser>[] => [
-        { header: 'Name', accessorKey: 'name' },
-        { header: 'Email', accessorKey: 'email' },
+        { header: t('adminUsers.fields.name'), accessorKey: 'name' },
+        { header: t('adminUsers.fields.email'), accessorKey: 'email' },
         {
-            header: 'Roles',
+            header: t('adminUsers.fields.roles'),
             accessorKey: 'roles',
             cell: (props) => {
                 const roles = props.row.original.roles
@@ -35,21 +37,21 @@ const UsersList = () => {
                         ))}
                     </div>
                 ) : (
-                    <span className="text-gray-500">No admin role</span>
+                    <span className="text-gray-500">{t('adminUsers.noRole')}</span>
                 )
             },
         },
         {
-            header: 'Verified',
+            header: t('adminUsers.fields.verified'),
             id: 'verified',
             cell: (props) =>
                 props.row.original.email_verified_at ? (
                     <Tag className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100">
-                        Verified
+                        {t('adminUsers.verified')}
                     </Tag>
                 ) : (
                     <Tag className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100">
-                        Unverified
+                        {t('adminUsers.unverified')}
                     </Tag>
                 ),
         },
@@ -61,7 +63,7 @@ const UsersList = () => {
                 return (
                     <div className="flex items-center gap-3">
                         {can('users.edit') && (
-                            <Tooltip title="Edit">
+                            <Tooltip title={t('adminUsers.edit')}>
                                 <button
                                     type="button"
                                     className="text-lg"
@@ -74,7 +76,7 @@ const UsersList = () => {
                             </Tooltip>
                         )}
                         {can('users.delete') && (
-                            <Tooltip title="Delete">
+                                <Tooltip title={t('adminUsers.delete')}>
                                 <button
                                     type="button"
                                     className="text-lg text-red-600"
@@ -84,7 +86,7 @@ const UsersList = () => {
                                             toast.push(
                                                 <Notification
                                                     type="success"
-                                                    title="Deleted"
+                                                    title={t('adminUsers.deleted')}
                                                 />,
                                             )
                                             mutate()
@@ -92,7 +94,7 @@ const UsersList = () => {
                                             toast.push(
                                                 <Notification
                                                     type="danger"
-                                                    title="Failed to delete"
+                                                    title={t('adminUsers.deleteError')}
                                                 />,
                                             )
                                         }
@@ -110,14 +112,14 @@ const UsersList = () => {
 
     return (
         <AdminListPage<AdminUser>
-            title="Users"
+            title={t('adminUsers.title')}
             endpoint="/admin/users"
             columns={columns}
             createPath="/admin/users/new"
             createPermission="users.create"
             deletePermission="users.delete"
             viewPermission="users.view"
-            searchPlaceholder="Search users…"
+            searchPlaceholder={t('adminUsers.search')}
         />
     )
 }

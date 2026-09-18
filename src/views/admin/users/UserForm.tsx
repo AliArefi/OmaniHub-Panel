@@ -19,6 +19,7 @@ import {
     apiUpdateAdminUserRoles,
 } from '@/services/admin/AdminUsersService'
 import { apiGetAdminRoles } from '@/services/admin/AdminRolesPermissionsService'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type UserFormValues = {
     name: string
@@ -32,6 +33,7 @@ type UserFormValues = {
 const UserForm = () => {
     const navigate = useNavigate()
     const { id } = useParams<{ id: string }>()
+    const { t } = useTranslation()
     const isEditing = Boolean(id)
     const [submitting, setSubmitting] = useState(false)
     const { can } = usePermission()
@@ -96,15 +98,15 @@ const UserForm = () => {
             }
 
             toast.push(
-                <Notification type="success" title="Saved">
-                    User saved successfully.
+                <Notification type="success" title={t('adminUsers.savedTitle')}>
+                    {t('adminUsers.saved')}
                 </Notification>,
             )
             navigate('/admin/users')
         } catch {
             toast.push(
-                <Notification type="danger" title="Failed to save">
-                    Please check the form for errors.
+                <Notification type="danger" title={t('adminUsers.saveErrorTitle')}>
+                    {t('adminUsers.saveError')}
                 </Notification>,
             )
         } finally {
@@ -118,23 +120,23 @@ const UserForm = () => {
     }))
 
     if (isEditing && isExistingLoading) {
-        return <AdminEditLoading label="Loading user..." />
+        return <AdminEditLoading label={t('adminUsers.loading')} />
     }
 
     return (
         <Container>
             <AdaptiveCard>
-                <h3 className="mb-6">{isEditing ? 'Edit User' : 'New User'}</h3>
+                <h3 className="mb-6">{isEditing ? t('adminUsers.editTitle') : t('adminUsers.newTitle')}</h3>
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormItem label="Name">
+                        <FormItem label={t('adminUsers.fields.name')}>
                             <Controller
                                 name="name"
                                 control={control}
                                 render={({ field }) => <Input {...field} />}
                             />
                         </FormItem>
-                        <FormItem label="Email">
+                        <FormItem label={t('adminUsers.fields.email')}>
                             <Controller
                                 name="email"
                                 control={control}
@@ -143,7 +145,7 @@ const UserForm = () => {
                                 )}
                             />
                         </FormItem>
-                        <FormItem label="Bio" className="md:col-span-2">
+                        <FormItem label={t('adminUsers.fields.bio')} className="md:col-span-2">
                             <Controller
                                 name="bio"
                                 control={control}
@@ -155,8 +157,8 @@ const UserForm = () => {
                         <FormItem
                             label={
                                 isEditing
-                                    ? 'New password (leave blank to keep current)'
-                                    : 'Password'
+                                    ? t('adminUsers.newPasswordHint')
+                                    : t('adminUsers.fields.password')
                             }
                         >
                             <Controller
@@ -167,7 +169,7 @@ const UserForm = () => {
                                 )}
                             />
                         </FormItem>
-                        <FormItem label="Confirm password">
+                        <FormItem label={t('adminUsers.fields.confirmPassword')}>
                             <Controller
                                 name="password_confirmation"
                                 control={control}
@@ -177,7 +179,7 @@ const UserForm = () => {
                             />
                         </FormItem>
                         {can('roles.edit') && (
-                            <FormItem label="Roles" className="md:col-span-2">
+                            <FormItem label={t('adminUsers.fields.roles')} className="md:col-span-2">
                                 <Controller
                                     name="roleIds"
                                     control={control}
@@ -208,10 +210,10 @@ const UserForm = () => {
                             variant="plain"
                             onClick={() => navigate('/admin/users')}
                         >
-                            Cancel
+                            {t('adminUsers.cancel')}
                         </Button>
                         <Button type="submit" variant="solid" loading={submitting}>
-                            Save
+                            {t('adminUsers.save')}
                         </Button>
                     </div>
                 </Form>
