@@ -7,7 +7,7 @@ import Chart from '@/components/shared/Chart'
 import { Button, Input } from '@/components/ui'
 import { apiGetMyAnalyticsOverview, type MyAnalyticsOverviewResponse } from '@/services/AnalyticsService'
 import { COLORS } from '@/constants/chart.constant'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { useSessionUser } from '@/store/authStore'
 import {
     HiOutlineCalendar,
@@ -179,10 +179,10 @@ const AnalyticDashboard = () => {
     const chartSeries = useMemo(() => {
         if (!data) return []
         return [
-            { name: t('pageviews'), data: data.series.pageviews },
-            { name: t('reservations'), data: data.series.reservations },
-            { name: t('whatsappClicks'), data: data.series.whatsapp_clicks },
-            { name: t('orders'), data: data.series.orders },
+            { name: t('dashboardLegacy.pageviews'), data: data.series.pageviews },
+            { name: t('dashboardLegacy.reservations'), data: data.series.reservations },
+            { name: t('dashboardLegacy.whatsappClicks'), data: data.series.whatsapp_clicks },
+            { name: t('dashboardLegacy.orders'), data: data.series.orders },
         ]
     }, [data, t])
 
@@ -214,28 +214,28 @@ const AnalyticDashboard = () => {
                                 icon={<HiOutlineEye className="w-5 h-5" />}
                                 iconBg="bg-primary/10"
                                 iconColor="text-primary"
-                                label={t('pageviews')}
+                                label={t('dashboardLegacy.pageviews')}
                                 value={data.kpis.pageviews}
                             />
                             <KpiCard
                                 icon={<HiOutlineUsers className="w-5 h-5" />}
                                 iconBg="bg-emerald-500/10"
                                 iconColor="text-emerald-500"
-                                label={t('uniqueVisitors')}
+                                label={t('dashboardLegacy.uniqueVisitors')}
                                 value={data.kpis.unique_visitors}
                             />
                             <KpiCard
                                 icon={<HiOutlineCalendar className="w-5 h-5" />}
                                 iconBg="bg-amber-500/10"
                                 iconColor="text-amber-500"
-                                label={t('reservations')}
+                                label={t('dashboardLegacy.reservations')}
                                 value={data.kpis.reservations.total}
                             />
                             <KpiCard
                                 icon={<HiOutlineCurrencyDollar className="w-5 h-5" />}
                                 iconBg="bg-violet-500/10"
                                 iconColor="text-violet-500"
-                                label={t('ordersRevenue')}
+                                label={t('dashboardLegacy.ordersRevenue')}
                                 value={data.kpis.orders.total}
                                 sub={`(${data.kpis.orders.revenue})`}
                             />
@@ -246,9 +246,9 @@ const AnalyticDashboard = () => {
                             <StoreStatusBox />
                             <Card>
                                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                    <h4>{t('dailyTrends')}</h4>
+                                    <h4>{t('dashboardLegacy.dailyTrends')}</h4>
                                     <span className="text-xs opacity-60">
-                                        {t('from')} {data.range.from} {t('to')} {data.range.to} ({data.range.tz})
+                                        {t('dashboardLegacy.from')} {data.range.from} {t('dashboardLegacy.to')} {data.range.to} ({data.range.tz})
                                     </span>
                                 </div>
                                 <div className="mt-4">
@@ -269,18 +269,18 @@ const AnalyticDashboard = () => {
                         {/* ── Top tables ── */}
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <TopTable
-                                title={t('topAgencies')}
+                                title={t('dashboardLegacy.topAgencies')}
                                 rows={data.tops.agencies}
-                                colUnique={t('unique')}
-                                colViews={t('views')}
-                                noDataLabel={t('noData')}
+                                colUnique={t('dashboardLegacy.unique')}
+                                colViews={t('dashboardLegacy.views')}
+                                noDataLabel={t('dashboardLegacy.noData')}
                             />
                             <TopTable
-                                title={t('topStores')}
+                                title={t('dashboardLegacy.topStores')}
                                 rows={data.tops.stores}
-                                colUnique={t('unique')}
-                                colViews={t('views')}
-                                noDataLabel={t('noData')}
+                                colUnique={t('dashboardLegacy.unique')}
+                                colViews={t('dashboardLegacy.views')}
+                                noDataLabel={t('dashboardLegacy.noData')}
                             />
                         </div>
                     </>

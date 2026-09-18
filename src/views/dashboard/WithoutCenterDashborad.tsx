@@ -8,7 +8,7 @@ import {
 } from '@/components/ui'
 import { HiOutlineStar, HiOutlineUser, HiOutlineHeart, HiOutlineCog, HiPlus, HiChevronLeft, HiChevronRight, HiOutlineOfficeBuilding } from 'react-icons/hi'
 import { useAuth } from '@/auth'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { useNavigate } from 'react-router'
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ const QuickLink: React.FC<QuickLinkProps> = ({
 const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
     const { user } = useAuth();
     const { t } = useTranslation();
-    const firstName = user?.name ? user.name.split(' ')[0] : 'USER'
+    const firstName = user?.name ? user.name.split(' ')[0] : t('dashboardLegacy.userFallback')
     const profileCompletion = 70;
     const navigate = useNavigate();
 
@@ -90,10 +90,10 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                         {/* greeting – center */}
                         <div className="flex-1 text-center space-y-1.5">
                             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                {t('wellcome', firstName)}
+                                {t('dashboardLegacy.welcome', `Welcome, ${firstName} 👋`).replace('{{name}}', firstName)}
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {t('textHomeSubtitle')}
+                                {t('dashboardLegacy.subtitle')}
                             </p>
                         </div>
 
@@ -101,7 +101,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                         <div className="w-full sm:w-62 flex-shrink-0 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-                                    {t('completeProfile')}
+                                    {t('dashboardLegacy.completeProfile')}
                                 </span>
                                 <p className="text-2xl font-bold text-gray-800 dark:text-white">
                                     {profileCompletion}%
@@ -117,7 +117,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                                 onClick={() => navigate('/profile')}
                                 className="text-xs text-primary dark:text-primary-400 flex items-center gap-1 hover:underline"
                             >
-                                {t('completeInformation')}
+                                {t('dashboardLegacy.completeInformation')}
                                 <HiChevronLeft className="text-sm" />
                             </button>
                         </div>
@@ -129,10 +129,10 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
 
                         <div className="flex-1 text-start space-y-1">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                                {t('textCallToActionTitle')}
+                                {t('dashboardLegacy.callToActionTitle')}
                             </h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {t('textCallToActionSubTitle')}
+                                {t('dashboardLegacy.callToActionSubtitle')}
                             </p>
                         </div>
 
@@ -142,7 +142,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                             icon={<HiPlus />}
                             onClick={() => navigate('/new-center')}
                         >
-                            {t('textCallToActionAction')}
+                            {t('dashboardLegacy.createCenter')}
                         </Button>
                     </div>
                 </Card>
@@ -151,10 +151,10 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                     {/* header row */}
                     <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-gray-700">
                         <h3 className="font-semibold text-gray-800 dark:text-white">
-                            {t('myCenters')}
+                            {t('dashboardLegacy.myCenters')}
                         </h3>
                         <Button onClick={() => navigate('/centers')} size='xs' variant="plain">
-                            {t('viewAll')}
+                            {t('dashboardLegacy.viewAll')}
                         </Button>
 
                     </div>
@@ -166,10 +166,10 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                         </div>
                         <div className="space-y-1">
                             <p className="font-semibold text-gray-700 dark:text-gray-200">
-                                {t('noCenters')}
+                                {t('dashboardLegacy.noCenters')}
                             </p>
                             <p className="text-sm text-gray-400 dark:text-gray-500">
-                                {t('noCentersDesc')}
+                                {t('dashboardLegacy.noCentersDescription')}
                             </p>
                         </div>
                         <Button
@@ -177,7 +177,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                             className="border border-primary text-primary hover:bg-primary-10 dark:hover:bg-primary/20"
                             onClick={() => navigate('/new-center')}
                         >
-                            {t('textCallToActionAction')}
+                            {t('dashboardLegacy.createCenter')}
                         </Button>
                     </div>
                 </Card>
@@ -187,23 +187,23 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                     <QuickLink
                         icon={<HiOutlineCog className="text-xl text-orange-500" />}
                         iconBg="bg-orange-50 dark:bg-orange-900/30"
-                        title={t('setting')}
-                        description={t('settingDescription')}
+                        title={t('dashboardLegacy.settings')}
+                        description={t('dashboardLegacy.settingsDescription')}
                         onClick={() => navigate('/profile')}
                     />
                     <QuickLink
                         icon={<HiOutlineHeart className="text-xl text-rose-500" />}
                         iconBg="bg-rose-50 dark:bg-rose-900/30"
-                        title={t('favorite')}
-                        description={t('favoriteDescription')}
+                        title={t('dashboardLegacy.favorite')}
+                        description={t('dashboardLegacy.favoriteDescription')}
                         onClick={() => navigate('/favorite')}
                     />
 
                     <QuickLink
                         icon={<HiOutlineUser className="text-xl text-indigo-500" />}
                         iconBg="bg-indigo-50 dark:bg-indigo-900/30"
-                        title={t('myProfiles')}
-                        description={t('myProfilesDescription')}
+                        title={t('dashboardLegacy.myProfiles')}
+                        description={t('dashboardLegacy.myProfilesDescription')}
                         onClick={() => navigate('/profile')}
                     />
                 </div>

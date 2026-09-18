@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { HiOutlineCalendar, HiChevronDown, HiRefresh, HiX } from 'react-icons/hi'
 import { Button, Input } from '@/components/ui'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface DashboardHeaderProps {
     firstName: string
@@ -52,21 +52,21 @@ export default function DashboardHeader({
         return () => document.removeEventListener('keydown', handler)
     }, [open])
 
-    const dateLabel = from && to ? `${from} → ${to}` : t('selectRange')
+    const dateLabel = from && to ? `${from} → ${to}` : t('dashboardLegacy.selectRange')
 
     return (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             {/* Title */}
             <div>
-                <h3 className="mb-1">{t('wellcome', firstName)}</h3>
-                <p className="text-sm opacity-60">{t('businessAnalyticsSubtitle')}</p>
+                <h3 className="mb-1">{t('dashboardLegacy.welcome', `Welcome, ${firstName} 👋`).replace('{{name}}', firstName)}</h3>
+                <p className="text-sm opacity-60">{t('dashboardLegacy.analyticsSubtitle')}</p>
             </div>
 
             {/* Controls */}
             <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
                 {/* Auto-refresh badge — hidden on smallest breakpoint to save space */}
                 <span className="hidden xs:inline-flex text-xs opacity-60 whitespace-nowrap">
-                    {t('autoRefreshIn')} {secondsToRefresh}{t('secondsShort')}
+                    {t('dashboardLegacy.autoRefreshIn')} {secondsToRefresh}{t('dashboardLegacy.secondsShort')}
                 </span>
 
                 {/* Date range — dropdown on mobile, inline on sm+ */}
@@ -90,12 +90,12 @@ export default function DashboardHeader({
                         {open && (
                             <div
                                 role="dialog"
-                                aria-label={t('selectRange')}
+                                aria-label={t('dashboardLegacy.selectRange')}
                                 className="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg p-4 flex flex-col gap-3"
                             >
                                 {/* Close button */}
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs font-medium opacity-60">{t('selectRange')}</span>
+                                    <span className="text-xs font-medium opacity-60">{t('dashboardLegacy.selectRange')}</span>
                                     <button
                                         type="button"
                                         onClick={() => setOpen(false)}
@@ -108,7 +108,7 @@ export default function DashboardHeader({
 
                                 {/* From */}
                                 <div>
-                                    <label className="block text-xs opacity-70 mb-1">{t('from')}</label>
+                                    <label className="block text-xs opacity-70 mb-1">{t('dashboardLegacy.from')}</label>
                                     <Input
                                         type="date"
                                         value={from}
@@ -118,7 +118,7 @@ export default function DashboardHeader({
 
                                 {/* To */}
                                 <div>
-                                    <label className="block text-xs opacity-70 mb-1">{t('to')}</label>
+                                    <label className="block text-xs opacity-70 mb-1">{t('dashboardLegacy.to')}</label>
                                     <Input
                                         type="date"
                                         value={to}
@@ -128,7 +128,7 @@ export default function DashboardHeader({
 
                                 {/* Countdown inside dropdown on mobile */}
                                 <p className="text-xs opacity-50 text-center">
-                                    {t('autoRefreshIn')} {secondsToRefresh}{t('secondsShort')}
+                                    {t('dashboardLegacy.autoRefreshIn')} {secondsToRefresh}{t('dashboardLegacy.secondsShort')}
                                 </p>
                             </div>
                         )}
@@ -137,7 +137,7 @@ export default function DashboardHeader({
                     {/* Desktop: plain inline inputs */}
                     <div className="hidden sm:flex sm:items-end sm:gap-3">
                         <div>
-                            <label className="block text-xs opacity-70 mb-1">{t('from')}</label>
+                            <label className="block text-xs opacity-70 mb-1">{t('dashboardLegacy.from')}</label>
                             <Input
                                 type="date"
                                 value={from}
@@ -145,7 +145,7 @@ export default function DashboardHeader({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs opacity-70 mb-1">{t('to')}</label>
+                            <label className="block text-xs opacity-70 mb-1">{t('dashboardLegacy.to')}</label>
                             <Input
                                 type="date"
                                 value={to}
@@ -163,7 +163,7 @@ export default function DashboardHeader({
                     icon={!isValidating ? <HiRefresh /> : undefined}
                     onClick={onRefresh}
                 >
-                    <span className="hidden xs:inline">{t('refresh')}</span>
+                    <span className="hidden xs:inline">{t('dashboardLegacy.refresh')}</span>
                 </Button>
             </div>
         </div>
