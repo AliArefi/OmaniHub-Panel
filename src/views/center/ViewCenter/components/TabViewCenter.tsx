@@ -1,28 +1,30 @@
+import useTranslation from '@/utils/hooks/useTranslation'
+
 interface TabViewCenterProps {
     step: number
     changeState: (value: number) => void
 }
 
-const Steps = [
+const steps = [
     {
         id: 1,
-        title: 'معلومات الحجرة',
+        titleKey: 'viewCenterTabs.information',
     },
     {
         id: 2,
-        title: 'المعلومات الإضافية',
+        titleKey: 'viewCenterTabs.extraInformation',
     },
     {
         id: 3,
-        title: 'معرض الصور',
+        titleKey: 'viewCenterTabs.gallery',
     },
     {
         id: 5,
-        title: 'الفريق والمواعيد',
+        titleKey: 'viewCenterTabs.teamAndSchedule',
     },
     {
         id: 4,
-        title: 'الخدمات',
+        titleKey: 'viewCenterTabs.services',
     },
 ]
 
@@ -43,9 +45,11 @@ const getTabColor = (itemId: number, step: number) => {
 }
 
 export function TabViewCenter({ step, changeState }: TabViewCenterProps) {
+    const { t } = useTranslation()
+
     return (
         <div className="flex items-center justify-around">
-            {Steps.map((item) => {
+            {steps.map((item) => {
                 return (
                     <div
                         key={item.id}
@@ -56,7 +60,7 @@ export function TabViewCenter({ step, changeState }: TabViewCenterProps) {
                             <span
                                 className={`dark:text-gray-100 font-bold text-[10px] lg:text-sm text-center  ${getTextColor(item.id, step)}`}
                             >
-                                {item.title}
+                                {t(item.titleKey)}
                             </span>
                         </p>
                     </div>

@@ -29,8 +29,10 @@ import { ViewCenterTabExtraInformations } from './steps/ViewCenterTabExtraInform
 import { ViewCenterTabGallery } from './steps/ViewCenterTabGallery'
 import { ViewCenterTabServices } from './steps/ViewCenterTabServices'
 import { ViewCenterTabAssignServices } from './steps/ViewCenterTabAssignServices'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 export default function ViewCenterComponent() {
+    const { t } = useTranslation()
     const [step, setStep] = useState<number>(VIEW_CENTER_TAB_STEP.INFORMATION)
     const { agencySlug } = useParams()
 
@@ -248,7 +250,7 @@ export default function ViewCenterComponent() {
                 const message =
                     err instanceof Error
                         ? err.message
-                        : 'حدث خطأ أثناء تحميل بيانات المركز'
+                        : t('centerCreation.loadError')
                 setBootstrapError(message)
                 toast.push(<Notification type="danger">{message}</Notification>)
             })
@@ -260,7 +262,7 @@ export default function ViewCenterComponent() {
         return () => {
             isMounted = false
         }
-    }, [agencySlug, isEditMode])
+    }, [agencySlug, isEditMode, t])
 
     if (isEditMode && (isBootstrapping || bootstrapError)) {
         if (bootstrapError) {

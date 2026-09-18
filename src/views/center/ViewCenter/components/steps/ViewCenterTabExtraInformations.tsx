@@ -13,7 +13,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { useCreateStore } from '@/context/createStoreContext'
 import { MapPicker } from './components/MapPicker'
 import PhoneNumberInput, {
@@ -30,24 +30,24 @@ import { htmlToPlainText } from '@/utils/text/htmlToPlainText'
 import { prepareValidatedFile } from '../utils/fileUpload'
 import { AdditionalInfo, AdditionalInfoEditor, DEFAULT_ADDITIONAL_INFO, DEFAULT_SCHEDULE, OpeningHoursEditor, WeeklySchedule } from './components/WorkingHoursEditor'
 
-const validationSchema = z.object({
+const buildValidationSchema = (t: (key: string) => string) => z.object({
     logo: z.union([z.instanceof(File), z.null()]).optional(),
     banner: z.union([z.instanceof(File), z.null()]).optional(),
-    latitude: z.string().refine((value) => value === '' || (Number(value) >= -90 && Number(value) <= 90), 'خط العرض غير صالح').optional(),
-    longitude: z.string().refine((value) => value === '' || (Number(value) >= -180 && Number(value) <= 180), 'خط الطول غير صالح').optional(),
+    latitude: z.string().refine((value) => value === '' || (Number(value) >= -90 && Number(value) <= 90), t('viewCenterExtraValidation.invalidLatitude')).optional(),
+    longitude: z.string().refine((value) => value === '' || (Number(value) >= -180 && Number(value) <= 180), t('viewCenterExtraValidation.invalidLongitude')).optional(),
     city_id: z.number().nullable().optional(),
     phone: z.string().optional(),
-    website: z.union([z.literal(''), z.string().url('رابط الموقع غير صالح')]).optional(),
-    address: z.string().max(500, 'العنوان طويل جداً').optional(),
-    instagram: z.union([z.literal(''), z.string().url('رابط Instagram غير صالح')]).optional(),
-    youtube: z.union([z.literal(''), z.string().url('رابط YouTube غير صالح')]).optional(),
-    linkedin: z.union([z.literal(''), z.string().url('رابط LinkedIn غير صالح')]).optional(),
-    facebook: z.union([z.literal(''), z.string().url('رابط Facebook غير صالح')]).optional(),
+    website: z.union([z.literal(''), z.string().url(t('viewCenterExtraValidation.invalidWebsite'))]).optional(),
+    address: z.string().max(500, t('viewCenterExtraValidation.addressTooLong')).optional(),
+    instagram: z.union([z.literal(''), z.string().url(t('viewCenterExtraValidation.invalidInstagram'))]).optional(),
+    youtube: z.union([z.literal(''), z.string().url(t('viewCenterExtraValidation.invalidYouTube'))]).optional(),
+    linkedin: z.union([z.literal(''), z.string().url(t('viewCenterExtraValidation.invalidLinkedIn'))]).optional(),
+    facebook: z.union([z.literal(''), z.string().url(t('viewCenterExtraValidation.invalidFacebook'))]).optional(),
     h1: z.string().max(191).optional(),
     meta_description: z.string().max(400).optional(),
 })
 
-type FormValues = z.infer<typeof validationSchema>
+type FormValues = z.infer<ReturnType<typeof buildValidationSchema>>
 
 const DEFAULT_COUNTRY_CODE = '+968'
 const DAY_KEYS = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const
@@ -99,6 +99,7 @@ const SectionTitle = ({ title }: { title: string }) => (
 
 export const ViewCenterTabExtraInformations = () => {
     const { t } = useTranslation()
+    const validationSchema = useMemo(() => buildValidationSchema(t), [t])
     const {
         newHojraData,
         extraInformationDraft,
@@ -190,7 +191,7 @@ export const ViewCenterTabExtraInformations = () => {
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
 
             if (!slug.trim()) {
-                setError('المركز غير متاح حالياً.')
+                setError(t('viewCenterExtra.unavailable'))
                 setLoadingCities(false)
                 return
             }
@@ -316,14 +317,14 @@ export const ViewCenterTabExtraInformations = () => {
                     })
                 }
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'خطأ في استلام المعلومات')
+                setError(getApiErrorMessage(err) || t('viewCenterExtra.loadInfoError'))
             }
 
             try {
                 const citiesResp = await apiGetCities()
                 setCities(citiesResp.data)
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'خطأ في استلام المدن')
+                setError(getApiErrorMessage(err) || t('viewCenterExtra.loadCitiesError'))
             } finally {
                 setLoadingCities(false)
             }
@@ -360,7 +361,7 @@ export const ViewCenterTabExtraInformations = () => {
             const slug =
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
             if (!slug.trim()) {
-                throw new Error('المركز غير متاح حالياً.')
+            throw new Error(t('viewCenterExtra.unavailable'))
             }
 
             const formData = new FormData()
@@ -409,7 +410,7 @@ export const ViewCenterTabExtraInformations = () => {
             const resp = await apiUpdateInfoMyAgency(slug, formData)
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'خطأ في حفظ المعلومات')
+            throw new Error(resp?.message || t('viewCenterExtra.saveError'))
             }
 
             if (publicImageFile) {
@@ -419,7 +420,7 @@ export const ViewCenterTabExtraInformations = () => {
 
                 const upload = await apiUploadMyAgencyMedia(slug, media)
                 if (!upload?.success) {
-                    throw new Error(upload?.message || 'خطأ في رفع صورة الصفحة العامة')
+            throw new Error(upload?.message || t('viewCenterExtra.uploadPublicImageError'))
                 }
             }
 
@@ -503,11 +504,11 @@ export const ViewCenterTabExtraInformations = () => {
             <Card>
                 <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                     {/* ===================== الصور والوسائط ===================== */}
-                    <SectionTitle title="الصور والوسائط" />
+                    <SectionTitle title={t('viewCenterExtra.media')} />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Logo */}
-                        <FormItem label="الشعار (Logo)">
+                        <FormItem label={t('viewCenterExtra.logo')}>
                             <Controller
                                 name="logo"
                                 control={control}
@@ -521,7 +522,7 @@ export const ViewCenterTabExtraInformations = () => {
                                             />
                                         ) : (
                                             <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                                                لم يتم اختيار صورة الشعار
+                                                {t('viewCenterExtra.noLogo')}
                                             </div>
                                         )}
 
@@ -571,8 +572,8 @@ export const ViewCenterTabExtraInformations = () => {
                                                 }
                                             >
                                                 {logoPreview
-                                                    ? 'تغيير الشعار'
-                                                    : 'انتخاب الشعار'}
+                                                    ? t('viewCenterExtra.changeLogo')
+                                                    : t('viewCenterExtra.chooseLogo')}
                                             </Button>
 
                                             {logoPreview && (
@@ -595,7 +596,7 @@ export const ViewCenterTabExtraInformations = () => {
                                                         }
                                                     }}
                                                 >
-                                                    حذف
+                                                    {t('viewCenterExtra.delete')}
                                                 </Button>
                                             )}
                                         </div>
@@ -605,7 +606,7 @@ export const ViewCenterTabExtraInformations = () => {
                         </FormItem>
 
                         {/* Public page image */}
-                        <FormItem label="صورة الصفحة العامة">
+                        <FormItem label={t('viewCenterExtra.publicImage')}>
                             <div className="space-y-3">
                                 {publicImagePreview ? (
                                     <img
@@ -615,7 +616,7 @@ export const ViewCenterTabExtraInformations = () => {
                                     />
                                 ) : (
                                     <div className="w-full h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                                        لم يتم اختيار صورة الصفحة العامة
+                                        {t('viewCenterExtra.noPublicImage')}
                                     </div>
                                 )}
 
@@ -659,15 +660,15 @@ export const ViewCenterTabExtraInformations = () => {
                                     }
                                 >
                                     {publicImagePreview
-                                        ? 'تغيير صورة الصفحة العامة'
-                                        : 'اختيار صورة الصفحة العامة'}
+                                        ? t('viewCenterExtra.changePublicImage')
+                                        : t('viewCenterExtra.choosePublicImage')}
                                 </Button>
                             </div>
                         </FormItem>
                     </div>
 
                     {/* Banner */}
-                    <FormItem label="البانر (Banner)" className="mt-6">
+                    <FormItem label={t('viewCenterExtra.banner')} className="mt-6">
                         <Controller
                             name="banner"
                             control={control}
@@ -681,7 +682,7 @@ export const ViewCenterTabExtraInformations = () => {
                                         />
                                     ) : (
                                         <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
-                                            لم يتم اختيار صورة البانر
+                                            {t('viewCenterExtra.noBanner')}
                                         </div>
                                     )}
 
@@ -731,8 +732,8 @@ export const ViewCenterTabExtraInformations = () => {
                                             }
                                         >
                                             {bannerPreview
-                                                ? 'تغيير البانر'
-                                                : 'اختيار البانر'}
+                                                ? t('viewCenterExtra.changeBanner')
+                                                : t('viewCenterExtra.chooseBanner')}
                                         </Button>
 
                                         {bannerPreview && (
@@ -759,7 +760,7 @@ export const ViewCenterTabExtraInformations = () => {
                                                     }
                                                 }}
                                             >
-                                                حذف
+                                                {t('viewCenterExtra.delete')}
                                             </Button>
                                         )}
                                     </div>
@@ -769,11 +770,11 @@ export const ViewCenterTabExtraInformations = () => {
                     </FormItem>
 
                     {/* ===================== الموقع الجغرافي ===================== */}
-                    <SectionTitle title="الموقع الجغرافي" />
+                    <SectionTitle title={t('viewCenterExtra.location')} />
 
                     {/* Map */}
                     <div className="mb-8">
-                        <FormItem label="الموقع على الخريطة">
+                        <FormItem label={t('viewCenterExtra.mapLocation')}>
                             <MapPicker
                                 lat={lat ? Number(lat) : undefined}
                                 lng={lng ? Number(lng) : undefined}
@@ -786,7 +787,7 @@ export const ViewCenterTabExtraInformations = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                             <FormItem
-                                label="خط العرض (Latitude)"
+                                label={t('viewCenterExtra.latitude')}
                                 invalid={Boolean(errors.latitude)}
                                 errorMessage={errors.latitude?.message}
                             >
@@ -807,7 +808,7 @@ export const ViewCenterTabExtraInformations = () => {
                             </FormItem>
 
                             <FormItem
-                                label="خط الطول (Longitude)"
+                                label={t('viewCenterExtra.longitude')}
                                 invalid={Boolean(errors.longitude)}
                                 errorMessage={errors.longitude?.message}
                             >
@@ -829,14 +830,14 @@ export const ViewCenterTabExtraInformations = () => {
                         </div>
                     </div>
 
-                    <FormItem label="المدينة" className="mb-6">
+                    <FormItem label={t('viewCenterExtra.city')} className="mb-6">
                         <Controller
                             name="city_id"
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     size="sm"
-                                    placeholder="اختر المدينة"
+                                    placeholder={t('viewCenterExtra.chooseCity')}
                                     options={cityOptions}
                                     value={
                                         cityOptions.find(
@@ -851,14 +852,14 @@ export const ViewCenterTabExtraInformations = () => {
                         />
                     </FormItem>
 
-                    <FormItem label="العنوان" className="mb-6">
+                    <FormItem label={t('viewCenterExtra.address')} className="mb-6">
                         <Controller
                             name="address"
                             control={control}
                             render={({ field }) => (
                                 <Input
                                     textArea
-                                    placeholder="العنوان"
+                                    placeholder={t('viewCenterExtra.address')}
                                     {...field}
                                 />
                             )}
@@ -866,10 +867,10 @@ export const ViewCenterTabExtraInformations = () => {
                     </FormItem>
 
                     {/* ===================== معلومات التواصل ===================== */}
-                    <SectionTitle title="معلومات التواصل" />
+                    <SectionTitle title={t('viewCenterExtra.contact')} />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormItem label="رقم الهاتف">
+                        <FormItem label={t('viewCenterExtra.phone')}>
                             <Controller
                                 name="phone"
                                 control={control}
@@ -888,7 +889,7 @@ export const ViewCenterTabExtraInformations = () => {
                             />
                         </FormItem>
 
-                        <FormItem label="الموقع الإلكتروني">
+                        <FormItem label={t('viewCenterExtra.website')}>
                             <Controller
                                 name="website"
                                 control={control}
@@ -973,13 +974,13 @@ export const ViewCenterTabExtraInformations = () => {
                     </div>
 
                     {/* ===================== ساعات العمل ===================== */}
-                    <SectionTitle title="ساعات العمل" />
+                    <SectionTitle title={t('viewCenterExtra.workingHours')} />
                     <FormItem className="mb-6">
                         <OpeningHoursEditor value={weeklySchedule} onChange={setWeeklySchedule} />
                     </FormItem>
 
                     {/* ===================== معلومات إضافية ===================== */}
-                    <SectionTitle title="معلومات إضافية" />
+                    <SectionTitle title={t('viewCenterExtra.additionalInformation')} />
                     <FormItem className="mb-6">
                         <AdditionalInfoEditor value={additionalInfo} onChange={setAdditionalInfo} />
                     </FormItem>
@@ -988,10 +989,10 @@ export const ViewCenterTabExtraInformations = () => {
 
 
                     {/* ===================== سئو ===================== */}
-                    <SectionTitle title="تحسين محركات البحث (SEO)" />
+                    <SectionTitle title={t('viewCenterExtra.seo')} />
 
                     <FormItem
-                        label="العنوان الرئيسي (H1)"
+                        label={t('viewCenterExtra.h1')}
                         invalid={Boolean(errors.h1)}
                         errorMessage={errors.h1?.message}
                         className="mb-6"
@@ -1006,7 +1007,7 @@ export const ViewCenterTabExtraInformations = () => {
                     </FormItem>
 
                     <FormItem
-                        label="الوصف الرئيسي (Meta Description)"
+                        label={t('viewCenterExtra.metaDescription')}
                         invalid={Boolean(errors.meta_description)}
                         errorMessage={errors.meta_description?.message}
                         className="mb-6"
@@ -1031,7 +1032,7 @@ export const ViewCenterTabExtraInformations = () => {
                                 type="submit"
                                 variant="solid"
                             >
-                                تعدیل
+                                {t('viewCenterExtra.update')}
                             </Button>
                         </div>
                     </FormItem>

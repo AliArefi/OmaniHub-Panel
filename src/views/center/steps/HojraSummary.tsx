@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import Notification from "@/components/ui/Notification";
 import { useCreateStore } from "@/context/createStoreContext";
 import { getPricingTypeLabel, getServicePricingLabel } from '@/utils/pricing'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 interface HojraSummaryProps {
     changeState: (value: number) => void;
@@ -14,25 +15,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
     const { hojraInfo, services, teamMembers, assignments } = useCreateStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
-
-    const getErrorMessage = (error: unknown) => {
-        if (
-            typeof error === "object" &&
-            error !== null &&
-            "response" in error &&
-            typeof error.response === "object" &&
-            error.response !== null &&
-            "data" in error.response &&
-            typeof error.response.data === "object" &&
-            error.response.data !== null &&
-            "message" in error.response.data &&
-            typeof error.response.data.message === "string"
-        ) {
-            return error.response.data.message;
-        }
-
-        return "ط­ط¯ط« ط®ط·ط£";
-    };
+    const { t } = useTranslation()
 
     const handleFinalSubmit = async () => {
         setIsSubmitting(true);
@@ -78,7 +61,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
 
             toast.push(
                 <Notification type="success">
-                    تم إنشاء الحجرة بنجاح!
+                    {t('centerCreation.summary.created')}
                 </Notification>
             );
 
@@ -86,7 +69,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
         } catch (err: unknown) {
             toast.push(
                 <Notification type="danger">
-                    {err?.response?.data?.message || "حدث خطأ"}
+                    {t('centerCreation.summary.submitError')}
                 </Notification>
             );
         } finally {
@@ -97,7 +80,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
     return (
         <Card
             header={{
-                content: "مراجعة وتأكيد",
+                content: t('centerCreation.summary.title'),
                 bordered: false,
             }}
         >
@@ -105,20 +88,20 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 {/* معلومات الحجرة */}
                 <div>
                     <h3 className="text-base font-semibold mb-2 text-primary-deep">
-                        معلومات الحجرة
+                        {t('centerCreation.summary.centerInformation')}
                     </h3>
                     <Card>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">
-                                    اسم المركز:
+                                    {t('centerCreation.summary.centerName')}:
                                 </span>
                                 <span className="font-medium">
                                     {hojraInfo.title}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">الوصف:</span>
+                                    <span className="text-gray-500">{t('centerCreation.form.description')}:</span>
                                 <span className="font-medium">
                                     {hojraInfo.about_text}
                                 </span>
@@ -130,7 +113,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 {/* الخدمات */}
                 <div>
                     <h3 className="text-base font-semibold mb-2 text-primary-deep">
-                        الخدمات ({services.length})
+                        {t('centerCreation.summary.services', { count: services.length })}
                     </h3>
                     <div className="space-y-2">
                         {services.map((service) => (
@@ -141,13 +124,13 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                                     </div>
                                     <div className="flex gap-4 text-gray-600">
                                         <span>
-                                            المدة: {service.durationLabel}
+                                            {t('centerCreation.summary.duration')}: {service.durationLabel}
                                         </span>
                                         <span>
-                                            نوع التسعير: {getPricingTypeLabel(service.pricingType)}
+                                            {t('centerCreation.summary.pricingType')}: {getPricingTypeLabel(service.pricingType)}
                                         </span>
                                         <span>
-                                            السعر: {getServicePricingLabel(service)}
+                                            {t('centerCreation.summary.price')}: {getServicePricingLabel(service)}
                                         </span>
                                     </div>
                                     <div className="text-gray-700">
@@ -162,7 +145,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                 {/* أعضاء الفريق */}
                 <div>
                     <h3 className="text-base font-semibold mb-2 text-primary-deep">
-                        أعضاء الفريق ({teamMembers.length})
+                        {t('centerCreation.summary.teamMembers', { count: teamMembers.length })}
                     </h3>
                     <div className="space-y-2">
                         {teamMembers.map((member) => {
@@ -264,7 +247,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                             variant="default"
                             onClick={() => changeState(5)}
                         >
-                            خلف
+                            {t('centerCreation.summary.back')}
                         </Button>
                         <Button
                             size="sm"
@@ -272,7 +255,7 @@ export const HojraSummary = ({ changeState }: HojraSummaryProps) => {
                             loading={isSubmitting}
                             onClick={handleFinalSubmit}
                         >
-                            تأكيد وإنشاء الحجرة
+                            {t('centerCreation.summary.confirm')}
                         </Button>
                     </div>
                 </div>

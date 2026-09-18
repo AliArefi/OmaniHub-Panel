@@ -13,7 +13,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from '@/store/useTranslation'
+import useTranslation from '@/utils/hooks/useTranslation'
 import { useCreateStore } from '@/context/createStoreContext'
 import { MapPicker } from './components/MapPicker'
 import PhoneNumberInput, {
@@ -167,7 +167,7 @@ export const HojraExtraInformations = ({
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
 
             if (!slug.trim()) {
-                setError('المركز غير متاح حالياً.')
+                setError(t('centerCreation.extra.unavailable'))
                 setLoadingCities(false)
                 return
             }
@@ -245,14 +245,14 @@ export const HojraExtraInformations = ({
                     })
                 }
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'حدث خطأ أثناء تحميل المعلومات')
+                setError(getApiErrorMessage(err) || t('centerCreation.extra.loadInfoError'))
             }
 
             try {
                 const citiesResp = await apiGetCities()
                 setCities(citiesResp.data)
             } catch (err) {
-                setError(getApiErrorMessage(err) || 'حدث خطأ أثناء تحميل المدن')
+                setError(getApiErrorMessage(err) || t('centerCreation.extra.loadCitiesError'))
             } finally {
                 setLoadingCities(false)
             }
@@ -283,7 +283,7 @@ export const HojraExtraInformations = ({
                 typeof newHojraData?.slug === 'string' ? newHojraData.slug : ''
 
             if (!slug.trim()) {
-                throw new Error('المركز غير متاح حالياً.')
+            throw new Error(t('centerCreation.extra.unavailable'))
             }
 
             const formData = new FormData()
@@ -303,12 +303,12 @@ export const HojraExtraInformations = ({
             const resp = await apiUpdateInfoMyAgency(slug, formData)
 
             if (!resp?.success) {
-                throw new Error(resp?.message || 'حدث خطأ أثناء حفظ المعلومات')
+            throw new Error(resp?.message || t('centerCreation.extra.saveError'))
             }
 
             toast.push(
                 <Notification type="success">
-                    تم تحديث المعلومات بنجاح
+                {t('centerCreation.extra.saved')}
                 </Notification>,
             )
 
@@ -350,7 +350,7 @@ export const HojraExtraInformations = ({
         } catch (err: any) {
             toast.push(
                 <Notification type="danger">
-                    {getApiErrorMessage(err) || err.message || 'خطا در ذخیره'}
+                    {getApiErrorMessage(err) || err.message || t('centerCreation.extra.saveError')}
                 </Notification>,
             )
         }
@@ -374,13 +374,13 @@ export const HojraExtraInformations = ({
         <div>
             <Card
                 header={{
-                    content: 'المعلومات الإضافية',
+                    content: t('centerCreation.stepExtraInformation'),
                     bordered: false,
                 }}
             >
                 <Form size="md" onSubmit={handleSubmit(onSubmit)}>
                     {/* Logo */}
-                    <FormItem label="الشعار (Logo)" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.logo')} className="mb-6">
                         <Controller
                             name="logo"
                             control={control}
@@ -394,7 +394,7 @@ export const HojraExtraInformations = ({
                                         />
                                     ) : (
                                         <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-500">
-                                            لم يتم اختيار صورة شعار بعد
+                                            {t('centerCreation.extra.noLogo')}
                                         </div>
                                     )}
 
@@ -441,8 +441,8 @@ export const HojraExtraInformations = ({
                                             }
                                         >
                                             {logoPreview
-                                                ? 'تغيير الشعار'
-                                                : 'اختيار الشعار'}
+                                                ? t('centerCreation.extra.changeLogo')
+                                                : t('centerCreation.extra.chooseLogo')}
                                         </Button>
 
                                         {logoPreview && (
@@ -465,7 +465,7 @@ export const HojraExtraInformations = ({
                                                     }
                                                 }}
                                             >
-                                                حذف
+                                                {t('centerCreation.extra.delete')}
                                             </Button>
                                         )}
                                     </div>
@@ -475,7 +475,7 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     {/* Banner */}
-                    <FormItem label="البانر (Banner)" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.banner')} className="mb-6">
                         <Controller
                             name="banner"
                             control={control}
@@ -489,7 +489,7 @@ export const HojraExtraInformations = ({
                                         />
                                     ) : (
                                         <div className="w-full max-w-2xl h-48 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-500">
-                                            لم يتم اختيار صورة بانر بعد
+                                            {t('centerCreation.extra.noBanner')}
                                         </div>
                                     )}
 
@@ -536,8 +536,8 @@ export const HojraExtraInformations = ({
                                             }
                                         >
                                             {bannerPreview
-                                                ? 'تغيير البانر'
-                                                : 'اختيار البانر'}
+                                                ? t('centerCreation.extra.changeBanner')
+                                                : t('centerCreation.extra.chooseBanner')}
                                         </Button>
 
                                         {bannerPreview && (
@@ -564,7 +564,7 @@ export const HojraExtraInformations = ({
                                                     }
                                                 }}
                                             >
-                                                حذف
+                                                {t('centerCreation.extra.delete')}
                                             </Button>
                                         )}
                                     </div>
@@ -575,7 +575,7 @@ export const HojraExtraInformations = ({
 
                     {/* Map */}
                     <div className="mb-8">
-                        <FormItem label="الموقع على الخريطة">
+                        <FormItem label={t('centerCreation.extra.mapLocation')}>
                             <MapPicker
                                 lat={lat ? Number(lat) : undefined}
                                 lng={lng ? Number(lng) : undefined}
@@ -588,7 +588,7 @@ export const HojraExtraInformations = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                             <FormItem
-                                label="خط العرض (Latitude)"
+                                label={t('centerCreation.extra.latitude')}
                                 invalid={Boolean(errors.latitude)}
                                 errorMessage={errors.latitude?.message}
                             >
@@ -609,7 +609,7 @@ export const HojraExtraInformations = ({
                             </FormItem>
 
                             <FormItem
-                                label="خط الطول (Longitude)"
+                                label={t('centerCreation.extra.longitude')}
                                 invalid={Boolean(errors.longitude)}
                                 errorMessage={errors.longitude?.message}
                             >
@@ -631,14 +631,14 @@ export const HojraExtraInformations = ({
                         </div>
                     </div>
 
-                    <FormItem label="المدينة" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.city')} className="mb-6">
                         <Controller
                             name="city_id"
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     size="sm"
-                                    placeholder="اختر المدينة"
+                                    placeholder={t('centerCreation.extra.chooseCity')}
                                     options={cityOptions}
                                     value={
                                         cityOptions.find(
@@ -653,7 +653,7 @@ export const HojraExtraInformations = ({
                         />
                     </FormItem>
 
-                    <FormItem label="رقم الهاتف" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.phone')} className="mb-6">
                         <Controller
                             name="phone"
                             control={control}
@@ -672,7 +672,7 @@ export const HojraExtraInformations = ({
                         />
                     </FormItem>
 
-                    <FormItem label="الموقع الإلكتروني" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.website')} className="mb-6">
                         <Controller
                             name="website"
                             control={control}
@@ -689,14 +689,14 @@ export const HojraExtraInformations = ({
                         />
                     </FormItem>
 
-                    <FormItem label="العنوان" className="mb-6">
+                    <FormItem label={t('centerCreation.extra.address')} className="mb-6">
                         <Controller
                             name="address"
                             control={control}
                             render={({ field }) => (
                                 <Input
                                     textArea
-                                    placeholder="العنوان"
+                                    placeholder={t('centerCreation.extra.address')}
                                     {...field}
                                 />
                             )}
@@ -770,7 +770,7 @@ export const HojraExtraInformations = ({
                     </div>
 
                     <FormItem
-                        label="العنوان الرئيسي (H1)"
+                        label={t('centerCreation.extra.h1')}
                         invalid={Boolean(errors.h1)}
                         errorMessage={errors.h1?.message}
                         className="mb-6"
@@ -785,7 +785,7 @@ export const HojraExtraInformations = ({
                     </FormItem>
 
                     <FormItem
-                        label="الوصف الرئيسي (Meta Description)"
+                        label={t('centerCreation.extra.metaDescription')}
                         invalid={Boolean(errors.meta_description)}
                         errorMessage={errors.meta_description?.message}
                         className="mb-6"
@@ -811,7 +811,7 @@ export const HojraExtraInformations = ({
                                 variant="plain"
                                 onClick={() => changeState(1)}
                             >
-                                السابق
+                                {t('centerCreation.extra.back')}
                             </Button>
 
                             <Button
@@ -820,7 +820,7 @@ export const HojraExtraInformations = ({
                                 size="sm"
                                 variant="solid"
                             >
-                                التالي
+                                {t('centerCreation.extra.next')}
                             </Button>
                         </div>
                     </FormItem>

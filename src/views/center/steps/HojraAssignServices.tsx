@@ -981,7 +981,7 @@ export const HojraAssignServices = ({
                                                                     )
                                                                 }
                                                             >
-                                                                إضافة فترة
+                                                                {t('center.assignments.addTimeSlot')}
                                                             </Button>
                                                         </div>
                                                     )}

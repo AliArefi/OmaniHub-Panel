@@ -173,7 +173,9 @@ export const HojraGallery = ({ changeState }: HojraGalleryProps) => {
                                         <img src={item.thumb_url || item.url} alt={item.alt || ''} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="p-3">
-                                        <div className="text-xs text-gray-500 mb-2">ALT: {item.alt || '-'}</div>
+                                        <div className="text-xs text-gray-500 mb-2">
+                                            {t('center.gallery.alt')}: {item.alt || '-'}
+                                        </div>
                                         <Button size="sm" variant="plain" disabled={loading} onClick={() => onRemove(item.id)}>
                                             {t('center.gallery.delete')}
                                         </Button>
