@@ -1,26 +1,37 @@
 import { Alert, Card, Progress } from "@/components/ui";
 import { HiFire } from "react-icons/hi";
+import useTranslation from '@/utils/hooks/useTranslation';
 
 interface ProgressCreatingCenterProps {
     step: number;
 }
 
-const CircleCustomInfo = ({ percent }: { percent: number }) => {
+const CircleCustomInfo = ({ percent, completed }: { percent: number; completed: string }) => {
     return (
         <div className="text-center">
             <div className="text-xl"><span className="text-3xl font-bold text-primary-mild">{percent}</span> / 6</div>
-            <span>انتهاء</span>
+            <span>{completed}</span>
         </div>
     )
 }
 
 export function ProgressCreatingCenter({ step }: ProgressCreatingCenterProps) {
+    const { t } = useTranslation()
+    const hints = [
+        'centerCreation.stepOneHint',
+        'centerCreation.stepTwoHint',
+        'centerCreation.stepThreeHint',
+        'centerCreation.stepFourHint',
+        'centerCreation.stepFiveHint',
+        'centerCreation.stepSixHint',
+    ]
+
     return (
         <div className="w-full">
             <Card
                 className="w-full"
                 header={{
-                    content: 'حالة إنشاء المركز',
+                    content: t('centerCreation.progressTitle'),
                     bordered: false,
                 }}>
                 <Progress
@@ -28,40 +39,20 @@ export function ProgressCreatingCenter({ step }: ProgressCreatingCenterProps) {
                     percent={(step / 6) * 100}
                     width={150}
                     className="flex items-center justify-center"
-                    customInfo={<CircleCustomInfo percent={step} />}
+                    customInfo={<CircleCustomInfo percent={step} completed={t('centerCreation.completed')} />}
                 />
 
                 <div className="mt-5">
-                    {
-                        step == 1 && <Alert showIcon className="mb-4" type="info">
-                            مع الخطوة الاولى وادخال البيانات الاساسية يتم انشاء حجرتك مباشرة، ثم عبر استكمال التفاصيل ستتمكن من بناء ملف مهني متكامل.
+                    {step >= 1 && step <= 6 && (
+                        <Alert
+                            showIcon
+                            className={step === 1 ? 'mb-4' : undefined}
+                            type={step === 1 ? 'info' : 'success'}
+                            customIcon={step === 1 ? undefined : <HiFire />}
+                        >
+                            {t(hints[step - 1])}
                         </Alert>
-                    }
-                    {
-                        step == 2 && <Alert showIcon type="success" customIcon={<HiFire />}>
-                            يرجى استكمال المعلومات الإضافية مثل الشعار، البنر، الموقع الجغرافي ومعلومات التواصل لزيادة ظهور مركزك.
-                        </Alert>
-                    }
-                    {
-                        step == 3 && <Alert showIcon type="success" customIcon={<HiFire />}>
-                            أضف صور المعرض لعرض خدماتك بشكل احترافي وبناء ثقة العملاء.
-                        </Alert>
-                    }
-                    {
-                        step == 4 && <Alert showIcon type="success" customIcon={<HiFire />}>
-                            أضف الخدمات الأساسية مع تفاصيل السعر والمدة والوصف لضمان وضوح خدماتك.
-                        </Alert>
-                    }
-                    {
-                        step == 5 && <Alert showIcon type="success" customIcon={<HiFire />}>
-                            قم بتعيين الخدمات للموظفين المناسبين لضمان توزيع العمل بشكل صحيح.
-                        </Alert>
-                    }
-                    {
-                        step == 6 && <Alert showIcon type="success" customIcon={<HiFire />}>
-                            راجع جميع البيانات قبل الحفظ النهائي والتأكيد.
-                        </Alert>
-                    }
+                    )}
                 </div>
 
             </Card>

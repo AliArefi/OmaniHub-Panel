@@ -30,8 +30,10 @@ import {
     createDefaultWeekSchedule,
     normalizeDaySchedule,
 } from './utils/schedule'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 export default function CreateStoreWizard() {
+    const { t } = useTranslation()
     const [step, setStep] = useState<number>(CENTER_WIZARD_STEP.INFORMATION)
     const { agencySlug } = useParams()
 
@@ -242,7 +244,7 @@ export default function CreateStoreWizard() {
                 const message =
                     err instanceof Error
                         ? err.message
-                        : 'حدث خطأ أثناء تحميل بيانات المركز'
+                        : t('centerCreation.loadError')
                 setBootstrapError(message)
                 toast.push(
                     <Notification type="danger">{message}</Notification>,
@@ -256,7 +258,7 @@ export default function CreateStoreWizard() {
         return () => {
             isMounted = false
         }
-    }, [agencySlug, isEditMode])
+    }, [agencySlug, isEditMode, t])
 
     if (isEditMode && (isBootstrapping || bootstrapError)) {
         if (bootstrapError) {

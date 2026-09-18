@@ -1,5 +1,6 @@
 ﻿import { Avatar, Timeline } from "@/components/ui";
 import type { AvatarProps } from "@/components/ui/Avatar";
+import useTranslation from '@/utils/hooks/useTranslation';
 
 type TimelineAvatarProps = AvatarProps;
 
@@ -15,13 +16,13 @@ const TimelineAvatar = ({ children, ...rest }: TimelineAvatarProps) => {
     );
 };
 
-const Steps = [
-    { id: 1, title: "معلومات المركز" },
-    { id: 2, title: "المعلومات الإضافية" },
-    { id: 3, title: "معرض الصور" },
-    { id: 4, title: "الخدمات" },
-    { id: 5, title: "تعيين الخدمات" },
-    { id: 6, title: "الملخص" },
+const steps = [
+    { id: 1, titleKey: 'centerCreation.stepInformation' },
+    { id: 2, titleKey: 'centerCreation.stepExtraInformation' },
+    { id: 3, titleKey: 'centerCreation.stepGallery' },
+    { id: 4, titleKey: 'centerCreation.stepServices' },
+    { id: 5, titleKey: 'centerCreation.stepAssignServices' },
+    { id: 6, titleKey: 'centerCreation.stepSummary' },
 ];
 
 const getBackgroundColor = (itemId: number, step: number) => {
@@ -45,9 +46,11 @@ const getTextColor = (itemId: number, step: number) => {
 };
 
 export function TimeLineCreateCenter({ step }: TimeLineCreateCenterProps) {
+    const { t } = useTranslation()
+
     return (
         <Timeline>
-            {Steps.map((item) => {
+            {steps.map((item) => {
                 return (
                     <Timeline.Item
                         key={item.id}
@@ -63,7 +66,7 @@ export function TimeLineCreateCenter({ step }: TimeLineCreateCenterProps) {
                             <span
                                 className={`dark:text-gray-100  ${getTextColor(item.id, step)}`}
                             >
-                                {item.title}
+                                {t(item.titleKey)}
                             </span>
                         </p>
                     </Timeline.Item>
