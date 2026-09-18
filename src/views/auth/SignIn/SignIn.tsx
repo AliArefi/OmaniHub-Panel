@@ -5,6 +5,7 @@ import OauthSignIn from './components/OauthSignIn'
 import ActionLink from '@/components/shared/ActionLink'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
+import useTranslation from '@/utils/hooks/useTranslation'
 
 type SignInProps = {
     signUpUrl?: string
@@ -17,6 +18,7 @@ export const SignInBase = ({
     forgetPasswordUrl = '/forgot-password',
     disableSubmit,
 }: SignInProps) => {
+    const { t } = useTranslation()
     const [message, setMessage] = useTimeOutMessage()
 
     const mode = useThemeStore(state => state.mode)
@@ -27,9 +29,9 @@ export const SignInBase = ({
                 <Logo type="streamline" mode={mode} imgClass="mx-auto" logoWidth={60} />
             </div>
             <div className="mb-10">
-                <h2 className="mb-2">أهلا بكم في عماني هاب</h2>
+                <h2 className="mb-2">{t('auth.signIn.title')}</h2>
                 <p className="font-semibold heading-text">
-                    يرجى إدخال اسم المستخدم وكلمة المرور لتسجيل الدخول!
+                    {t('auth.signIn.subtitle')}
                 </p>
             </div>
             {message && (
@@ -47,7 +49,7 @@ export const SignInBase = ({
                             className="font-semibold heading-text mt-2 underline"
                             themeColor={false}
                         >
-                            هل نسيت كلمة المرور؟
+                            {t('auth.signIn.forgotPassword')}
                         </ActionLink>
                     </div>
                 }
@@ -56,7 +58,7 @@ export const SignInBase = ({
                 <div className="flex items-center gap-2 mb-6">
                     <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
                     <p className="font-semibold heading-text">
-                        أو المتابعة مع
+                        {t('auth.signIn.orContinueWith')}
                     </p>
                     <div className="border-t border-gray-200 dark:border-gray-800 flex-1 mt-[1px]" />
                 </div>
@@ -67,13 +69,13 @@ export const SignInBase = ({
             </div>
             <div>
                 <div className="mt-6 text-center">
-                    <span>{`أليس لديك حساب بعد؟`} </span>
+                    <span>{t('auth.signIn.noAccount')} </span>
                     <ActionLink
                         to={signUpUrl}
                         className="heading-text font-bold"
                         themeColor={false}
                     >
-                        التسجيل
+                        {t('auth.signIn.signUp')}
                     </ActionLink>
                 </div>
             </div>
