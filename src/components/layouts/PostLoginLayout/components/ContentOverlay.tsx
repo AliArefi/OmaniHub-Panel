@@ -1,5 +1,6 @@
 import Header from '@/components/template/Header'
 import UserProfileDropdown from '@/components//template/UserProfileDropdown'
+import LanguageSelector from '@/components/template/LanguageSelector'
 import HeaderLogo from '@/components/template/HeaderLogo'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
@@ -111,6 +112,7 @@ const ContentOverlay = ({ children }: CommonProps) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
+                                <LanguageSelector hoverable={false} />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }
