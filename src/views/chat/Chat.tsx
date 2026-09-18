@@ -476,7 +476,7 @@ export default function Chat() {
                                                                     ? new Date(
                                                                           m.created_at,
                                                                       ).toLocaleTimeString(
-                                                                          i18n.language === 'ar' ? 'ar-OM' : 'en-OM',
+                                                                          i18n.language,
                                                                           {
                                                                               hour: '2-digit',
                                                                               minute: '2-digit',

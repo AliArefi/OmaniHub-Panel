@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import i18n from 'i18next'
 import { useLocaleStore } from '@/store/localeStore'
+import { supportedLocales } from '@/locales'
 
 const useLocale = () => {
     const currentLang = useLocaleStore((state) => state.currentLang)
@@ -30,7 +31,7 @@ const useLocale = () => {
                 .find((entry) => entry.startsWith('locale='))
                 ?.split('=')[1]
 
-            if ((value === 'ar' || value === 'en') && value !== currentLang) {
+            if (value && supportedLocales.includes(value) && value !== currentLang) {
                 useLocaleStore.getState().setLang(value)
             }
         }

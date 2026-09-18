@@ -14,7 +14,7 @@ import dayjs from 'dayjs'
 import useTranslation from '@/utils/hooks/useTranslation'
 
 const formatDate = (dateString: string, locale: string) =>
-    new Intl.DateTimeFormat(locale === 'ar' ? 'ar-OM' : 'en-OM', {
+    new Intl.DateTimeFormat(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

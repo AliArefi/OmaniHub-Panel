@@ -2,7 +2,7 @@ import appConfig from '@/configs/app.config'
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import i18n from 'i18next'
-import { dateLocales } from '@/locales'
+import { dateLocales, supportedLocales } from '@/locales'
 import dayjs from 'dayjs'
 
 type LocaleState = {
@@ -16,13 +16,13 @@ const initialLocale = (): string => {
             .split('; ')
             .find((entry) => entry.startsWith('locale='))
             ?.split('=')[1]
-        if (cookie === 'ar' || cookie === 'en') return cookie
+        if (cookie && supportedLocales.includes(cookie)) return cookie
     }
 
     if (typeof window !== 'undefined') {
         try {
             const persisted = JSON.parse(window.localStorage.getItem('locale') || '{}')
-            if (persisted?.state?.currentLang === 'ar' || persisted?.state?.currentLang === 'en') {
+            if (supportedLocales.includes(persisted?.state?.currentLang)) {
                 return persisted.state.currentLang
             }
         } catch {

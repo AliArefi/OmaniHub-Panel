@@ -91,7 +91,7 @@ export default function BookingDetailsModal({
     const [isSubmittingQuote, setIsSubmittingQuote] = useState(false)
 
     const formatDate = (dateString: string) =>
-        new Intl.DateTimeFormat(i18n.language === 'ar' ? 'ar-OM' : 'en-OM', {
+        new Intl.DateTimeFormat(i18n.language, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',

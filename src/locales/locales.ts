@@ -3,6 +3,18 @@ import { initReactI18next } from 'react-i18next'
 import en from './lang/en.json'
 import ar from './lang/ar.json'
 import appConfig from '@/configs/app.config'
+import type { Direction } from '@/@types/theme'
+
+export type LocaleMetadata = {
+    direction: Direction
+}
+
+export const localeMetadata: Record<string, LocaleMetadata> = {
+    en: { direction: 'ltr' },
+    ar: { direction: 'rtl' },
+}
+
+export const supportedLocales = Object.keys(localeMetadata)
 
 const resources = {
     en: {

@@ -97,7 +97,7 @@ export default function Reservations() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
-        return new Intl.DateTimeFormat(i18n.language === 'ar' ? 'ar-OM' : 'en-OM', {
+        return new Intl.DateTimeFormat(i18n.language, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',

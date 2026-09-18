@@ -9,6 +9,7 @@ import { MODE_DARK, MODE_LIGHT } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
 import type { Direction } from '@/@types/theme'
 import { useEffect } from 'react'
+import { localeMetadata } from '@/locales'
 
 const Theme = (props: CommonProps) => {
     useThemeSchema()
@@ -18,7 +19,8 @@ const Theme = (props: CommonProps) => {
     const { locale } = useLocale()
 
     useEffect(() => {
-        const nextDirection: Direction = locale.toLowerCase().startsWith('ar') ? 'rtl' : 'ltr'
+        const nextDirection: Direction =
+            localeMetadata[locale]?.direction ?? themeConfig.direction
         if (direction !== nextDirection) {
             useThemeStore.getState().setDirection(nextDirection)
         }
