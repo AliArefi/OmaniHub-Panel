@@ -1,6 +1,30 @@
 {
   "nav": {
-    "home": "Home",
+    "home": "Dashboard",
+    "myCenters": "My centers",
+    "centers": "All centers",
+    "newCenter": "New center",
+    "members": "Members",
+    "bookings": "Bookings",
+    "workCalendar": "Work calendar",
+    "admin": {
+      "cms": "Content management",
+      "cmsPages": "Pages",
+      "cmsPosts": "Posts / Blog",
+      "cmsBlocks": "Blocks",
+      "cmsCategories": "Categories",
+      "cmsTags": "Tags",
+      "cmsTypes": "Content types",
+      "cmsComments": "Comments",
+      "title": "Administration",
+      "services": "Services",
+      "agencies": "Agencies",
+      "organizations": "Organizations",
+      "users": "Users",
+      "roles": "Roles",
+      "permissions": "Permissions",
+      "settings": "Settings"
+    },
     "singleMenuItem": "Single menu item",
     "collapseMenu": {
       "collapseMenu": "Collapse menu item",

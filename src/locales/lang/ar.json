@@ -1,4 +1,31 @@
 {
+  "nav": {
+    "home": "لوحة التحكم",
+    "myCenters": "مراكزي",
+    "centers": "كل المراكز",
+    "newCenter": "مركز جديد",
+    "members": "الأعضاء",
+    "bookings": "الحجوزات",
+    "workCalendar": "تقويم العمل",
+    "admin": {
+      "cms": "إدارة المحتوى",
+      "cmsPages": "الصفحات",
+      "cmsPosts": "المقالات والمدونة",
+      "cmsBlocks": "الكتل",
+      "cmsCategories": "التصنيفات",
+      "cmsTags": "الوسوم",
+      "cmsTypes": "أنواع المحتوى",
+      "cmsComments": "التعليقات",
+      "title": "الإدارة",
+      "services": "الخدمات",
+      "agencies": "المراكز",
+      "organizations": "المنظمات",
+      "users": "المستخدمون",
+      "roles": "الأدوار",
+      "permissions": "الصلاحيات",
+      "settings": "الإعدادات"
+    }
+  },
   "center": {
     "wizard": {
       "back": "رجوع",
