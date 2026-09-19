@@ -15,11 +15,13 @@ import {
     apiGetAdminRole,
     apiCreateAdminRole,
     apiUpdateAdminRole,
+    apiGetAdminRoles,
 } from '@/services/admin/AdminRolesPermissionsService'
 
 type RoleFormValues = {
     name: string
     permissions: string[]
+    assignable_role_ids: number[]
 }
 
 const RoleForm = () => {
@@ -34,14 +36,16 @@ const RoleForm = () => {
     )
 
     const { control, handleSubmit, reset } = useForm<RoleFormValues>({
-        defaultValues: { name: '', permissions: [] },
+        defaultValues: { name: '', permissions: [], assignable_role_ids: [] },
     })
+    const { data: rolesData } = useSWR('admin-roles-for-assignment', apiGetAdminRoles)
 
     useEffect(() => {
         if (existing?.data) {
             reset({
                 name: existing.data.name,
                 permissions: existing.data.permissions,
+                assignable_role_ids: existing.data.assignable_role_ids ?? [],
             })
         }
     }, [existing, reset])
@@ -98,6 +102,19 @@ const RoleForm = () => {
                             />
                         )}
                     />
+
+                    <FormItem label="Roles this role may assign" className="mt-6 max-w-xl">
+                        <Controller name="assignable_role_ids" control={control} render={({ field }) => (
+                            <div className="grid grid-cols-2 gap-2">
+                                {(rolesData?.data ?? []).filter((role) => role.name !== 'super-admin' && role.name !== existing?.data?.name).map((role) => (
+                                    <label key={role.id} className="flex items-center gap-2 text-sm">
+                                        <input type="checkbox" checked={field.value.includes(role.id)} onChange={(event) => field.onChange(event.target.checked ? [...field.value, role.id] : field.value.filter((id) => id !== role.id))} />
+                                        {role.name}
+                                    </label>
+                                ))}
+                            </div>
+                        )} />
+                    </FormItem>
 
                     <div className="flex justify-end gap-2 mt-6">
                         <Button

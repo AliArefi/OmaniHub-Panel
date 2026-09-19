@@ -10,6 +10,7 @@ export type AdminRoleDetail = {
     id: number
     name: string
     permissions: string[]
+    assignable_role_ids?: number[]
 }
 
 export type AdminPermission = {
@@ -34,7 +35,7 @@ export function apiGetAdminRole(id: number) {
     })
 }
 
-export function apiCreateAdminRole(payload: { name: string; permissions: string[] }) {
+export function apiCreateAdminRole(payload: { name: string; permissions: string[]; assignable_role_ids?: number[] }) {
     return ApiService.fetchDataWithAxios<{ data: AdminRoleDetail }>({
         url: '/admin/roles',
         method: 'post',
@@ -44,7 +45,7 @@ export function apiCreateAdminRole(payload: { name: string; permissions: string[
 
 export function apiUpdateAdminRole(
     id: number,
-    payload: { name: string; permissions: string[] },
+    payload: { name: string; permissions: string[]; assignable_role_ids?: number[] },
 ) {
     return ApiService.fetchDataWithAxios<{ data: AdminRoleDetail }>({
         url: `/admin/roles/${id}`,

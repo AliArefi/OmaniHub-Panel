@@ -7,6 +7,7 @@ import type { Routes } from '@/@types/routes'
 export const publicRoutes: Routes = [...authRoute]
 
 export const protectedRoutes: Routes = [
+    { key: 'agencyRoleAssignments', path: '/agency-role-assignments', component: lazy(() => import('@/views/agencyRoleAssignments/AgencyRoleAssignments')), authority: [], permissions: ['agency.roles.assign'] },
     {
         key: 'home',
         path: '/home',

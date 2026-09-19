@@ -283,6 +283,9 @@ const navigationConfig: NavigationTree[] = [
                 subMenu: [],
             },
             {
+                key: 'agencyRoleAssignments', path: '/agency-role-assignments', title: 'تعيين أدوار الوكالة', translateKey: 'nav.agencyRoleAssignments', icon: 'groupMenu', type: NAV_ITEM_TYPE_ITEM, authority: [], subMenu: [], permissions: ['agency.roles.assign'],
+            },
+            {
                 key: 'admin.settings',
                 path: '/admin/settings/general',
                 title: 'Settings',
