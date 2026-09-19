@@ -9,11 +9,12 @@ export type LocaleMetadata = {
     direction: Direction
     flag: string
     labelKey: string
+    name: string
 }
 
 export const localeMetadata: Record<string, LocaleMetadata> = {
-    en: { direction: 'ltr', flag: 'US', labelKey: 'languages.en' },
-    ar: { direction: 'rtl', flag: 'OM', labelKey: 'languages.ar' },
+    en: { direction: 'ltr', flag: 'US', labelKey: 'languages.en', name: 'EN' },
+    ar: { direction: 'rtl', flag: 'OM', labelKey: 'languages.ar', name: 'AR' },
 }
 
 export const supportedLocales = Object.keys(localeMetadata)

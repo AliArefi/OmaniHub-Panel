@@ -65,7 +65,6 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                                     <HiOutlineTag />
                                 </div>
                             </div>
-                            <LanguageSelector hoverable={false} />
                             <UserProfileDropdown hoverable={false} />
                         </div>
                     </div>

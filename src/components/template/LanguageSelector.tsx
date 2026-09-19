@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
@@ -13,17 +12,13 @@ const _LanguageSelector = ({ className }: CommonProps) => {
     const { t } = useTranslation()
     const { currentLang: locale, setLang } = useLocaleStore((state) => state)
 
-    const selectLangFlag = useMemo(() => {
-        return localeMetadata[locale]?.flag
+    const selectName = useMemo(() => {
+        return localeMetadata[locale]?.name
     }, [locale])
 
     const selectedLanguage = (
         <div className={classNames(className, 'flex items-center')}>
-            <Avatar
-                size={24}
-                shape="circle"
-                src={`/img/countries/${selectLangFlag}.png`}
-            />
+            <span>{(selectName)}</span>
         </div>
     )
 
@@ -32,24 +27,20 @@ const _LanguageSelector = ({ className }: CommonProps) => {
             {supportedLocales.map((language) => {
                 const metadata = localeMetadata[language]
                 return (
-                <Dropdown.Item
-                    key={language}
-                    className="justify-between"
-                    eventKey={language}
-                    onClick={() => setLang(language)}
-                >
-                    <span className="flex items-center">
-                        <Avatar
-                            size={18}
-                            shape="circle"
-                            src={`/img/countries/${metadata.flag}.png`}
-                        />
-                        <span className="ltr:ml-2 rtl:mr-2">{t(metadata.labelKey)}</span>
-                    </span>
-                    {locale === language && (
-                        <HiCheck className="text-emerald-500 text-lg" />
-                    )}
-                </Dropdown.Item>
+                    <Dropdown.Item
+                        key={language}
+                        className="justify-between"
+                        eventKey={language}
+                        onClick={() => setLang(language)}
+                    >
+                        <span className="flex items-center">
+
+                            <span>{t(metadata.labelKey)}</span>
+                        </span>
+                        {locale === language && (
+                            <HiCheck className="text-emerald-500 text-lg" />
+                        )}
+                    </Dropdown.Item>
                 )
             })}
         </Dropdown>

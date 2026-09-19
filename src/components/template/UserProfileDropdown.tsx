@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
@@ -6,8 +7,15 @@ import { Link } from 'react-router'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 import { resolveImageUrl } from '@/utils/imageUrl'
-import { HiOutlineChatAlt, HiOutlineLightningBolt, HiOutlineLogout, HiOutlineUser } from 'react-icons/hi'
+import {
+    HiOutlineChatAlt,
+    HiOutlineLightningBolt,
+    HiOutlineLogout,
+    HiOutlineTranslate,
+    HiOutlineUser,
+} from 'react-icons/hi'
 import useTranslation from '@/utils/hooks/useTranslation'
+import LanguageDialog from './LanguageDialog'
 
 type DropdownList = {
     label: string
@@ -18,6 +26,7 @@ type DropdownList = {
 const _UserDropdown = () => {
     const { t } = useTranslation()
     const { avatar, name, email } = useSessionUser((state) => state.user)
+    const [languageOpen, setLanguageOpen] = useState(false)
 
     const { signOut } = useAuth()
 
@@ -35,56 +44,74 @@ const _UserDropdown = () => {
     ]
 
     return (
-        <Dropdown
-            className="flex"
-            toggleClassName="flex items-center"
-            renderTitle={
-                <div className="cursor-pointer flex items-center">
-                    <Avatar size={32} {...avatarProps} />
-                </div>
-            }
-            placement="bottom-end"
-        >
-            <Dropdown.Item variant="header">
-                <div className="py-2 px-3 flex items-center gap-3">
-                    <Avatar {...avatarProps} />
-                    <div>
-                        <div className="font-bold text-gray-900 dark:text-gray-100">
-                            {name || t('shared.userMenu.unknown')}
-                        </div>
-                        <div className="text-xs">
-                            {email || t('shared.userMenu.noEmail')}
+        <>
+            <Dropdown
+                className="flex"
+                toggleClassName="flex items-center"
+                renderTitle={
+                    <div className="cursor-pointer flex items-center">
+                        <Avatar size={32} {...avatarProps} />
+                    </div>
+                }
+                placement="bottom-end"
+            >
+                <Dropdown.Item variant="header">
+                    <div className="py-2 px-3 flex items-center gap-3">
+                        <Avatar {...avatarProps} />
+                        <div>
+                            <div className="font-bold text-gray-900 dark:text-gray-100">
+                                {name || t('shared.userMenu.unknown')}
+                            </div>
+                            <div className="text-xs">
+                                {email || t('shared.userMenu.noEmail')}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Dropdown.Item>
-            <Dropdown.Item variant="divider" />
-            {dropdownItemList.map((item) => (
-                <Dropdown.Item
-                    key={item.label}
-                    eventKey={item.label}
-                    className="px-0"
-                >
-                    <Link className="flex h-full w-full px-2" to={item.path}>
-                        <span className="flex gap-2 items-center w-full">
-                            <span className="text-xl">{item.icon}</span>
-                            <span>{item.label}</span>
-                        </span>
-                    </Link>
                 </Dropdown.Item>
-            ))}
-            <Dropdown.Item
-                eventKey="sign-out"
-                className='px-2 text-red-400'
+                <Dropdown.Item variant="divider" />
+                {dropdownItemList.map((item) => (
+                    <Dropdown.Item
+                        key={item.label}
+                        eventKey={item.label}
+                        className="px-0"
+                    >
+                        <Link className="flex h-full w-full px-2" to={item.path}>
+                            <span className="flex gap-2 items-center w-full">
+                                <span className="text-xl">{item.icon}</span>
+                                <span>{item.label}</span>
+                            </span>
+                        </Link>
+                    </Dropdown.Item>
+                ))}
 
-                onClick={handleSignOut}
-            >
-                <span className="text-xl">
-                    <HiOutlineLogout />
-                </span>
-                <span>{t('shared.userMenu.signOut')}</span>
-            </Dropdown.Item>
-        </Dropdown>
+                <Dropdown.Item
+                    eventKey="language"
+                    className="px-2 lg:hidden"
+                    onClick={() => setLanguageOpen(true)}
+                >
+                    <span className="text-xl">
+                        <HiOutlineTranslate />
+                    </span>
+                    <span>{t('shared.userMenu.language')}</span>
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                    eventKey="sign-out"
+                    className="px-2 text-red-400"
+                    onClick={handleSignOut}
+                >
+                    <span className="text-xl">
+                        <HiOutlineLogout />
+                    </span>
+                    <span>{t('shared.userMenu.signOut')}</span>
+                </Dropdown.Item>
+            </Dropdown>
+
+            <LanguageDialog
+                isOpen={languageOpen}
+                onClose={() => setLanguageOpen(false)}
+            />
+        </>
     )
 }
 
