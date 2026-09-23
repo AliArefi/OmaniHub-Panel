@@ -80,6 +80,16 @@ export type AuthUser = {
     created_at?: string | null
     roles?: string[]
     permissions?: string[]
+    staff_contexts?: Array<{
+        agency_id: number
+        agency_slug: string
+        agency_title: string
+        member_id: number
+        member_name: string
+        role_ids: number[]
+        role_names: string[]
+        permissions: string[]
+    }>
     bio?: string | null
 }
 
@@ -141,6 +151,7 @@ export type User = {
     authority?: string[]
     roles?: string[]
     permissions?: string[]
+    staff_contexts?: AuthUser['staff_contexts']
     bio?: string | null
 }
 

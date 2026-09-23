@@ -11,7 +11,13 @@ export type AdminAgencyMember = {
     allow_inactive_bookable_capabilities: boolean
     agency_service?: { id: number; title: string }
     agency_services: Array<{ id: number; title: string }>
+    user_id: number | null
+    linked: boolean
+    linked_user?: { id: number; name: string; email?: string; mobile?: string } | null
+    roles: Array<{ id: number; name: string }>
 }
+
+export type MemberUserOption = { id: number; name: string; email?: string; mobile?: string }
 
 function url(agencySlug: string, memberId?: number) {
     const base = `/admin/agencies/${encodeURIComponent(agencySlug)}/members`
@@ -21,6 +27,13 @@ function url(agencySlug: string, memberId?: number) {
 export function apiGetAdminAgencyMembers(agencySlug: string) {
     return ApiService.fetchDataWithAxios<{ data: AdminAgencyMember[] }>({
         url: url(agencySlug),
+    })
+}
+
+export function apiSearchMemberUsers(agencySlug: string, search: string) {
+    return ApiService.fetchDataWithAxios<{ data: MemberUserOption[] }>({
+        url: `/admin/agencies/${encodeURIComponent(agencySlug)}/member-user-options`,
+        params: { search },
     })
 }
 

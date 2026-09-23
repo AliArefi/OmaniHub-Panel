@@ -2,6 +2,7 @@ import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import AuthorityGuard from './AuthorityGuard'
 import PermissionGuard from './PermissionGuard'
+import StaffPermissionGuard from './StaffPermissionGuard'
 import AppRoute from './AppRoute'
 import PageContainer from '@/components/template/PageContainer'
 import { protectedRoutes, publicRoutes } from '@/configs/routes.config'
@@ -39,13 +40,11 @@ const AllRoutes = (props: AllRoutesProps) => {
                                 authority={route.authority}
                             >
                                 <PermissionGuard permissions={route.permissions}>
-                                    <PageContainer {...props} {...route.meta}>
-                                        <AppRoute
-                                            routeKey={route.key}
-                                            component={route.component}
-                                            {...route.meta}
-                                        />
-                                    </PageContainer>
+                                    <StaffPermissionGuard permissions={route.staffPermissions}>
+                                        <PageContainer {...props} {...route.meta}>
+                                            <AppRoute routeKey={route.key} component={route.component} {...route.meta} />
+                                        </PageContainer>
+                                    </StaffPermissionGuard>
                                 </PermissionGuard>
                             </AuthorityGuard>
                         }

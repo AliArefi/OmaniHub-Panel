@@ -24,6 +24,8 @@ export interface NavigationTree {
     showHasCenter?: boolean
     /** Permission names (any-match). Empty/omitted = no restriction. */
     permissions?: string[]
+    /** Applied only to staff-only accounts; agency owners keep their existing menus. */
+    staffPermissions?: string[]
     subMenu: NavigationTree[]
     description?: string
     meta?: {

@@ -12,6 +12,10 @@ const AxiosBase = axios.create({
 
 AxiosBase.interceptors.request.use(
     (config) => {
+        const memberContext = window.localStorage.getItem('agency-member-context')
+        if (memberContext) {
+            config.headers.set('X-Agency-Member-Context', memberContext)
+        }
         return AxiosRequestIntrceptorConfigCallback(config)
     },
     (error) => {

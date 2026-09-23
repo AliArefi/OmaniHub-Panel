@@ -2,22 +2,29 @@ import { useMemo } from 'react'
 import navigationConfig from '@/configs/navigation.config'
 import usePermission from './usePermission'
 import type { NavigationTree } from '@/@types/navigation'
+import { useSessionUser } from '@/store/authStore'
 
 const filterTree = (
     items: NavigationTree[],
     canAny: (...perms: string[]) => boolean,
+    restrictStaffMenus: boolean,
 ): NavigationTree[] =>
     items.reduce<NavigationTree[]>((acc, item) => {
         const allowed =
             !item.permissions ||
             item.permissions.length === 0 ||
             canAny(...item.permissions)
+        const staffAllowed =
+            !restrictStaffMenus ||
+            !item.staffPermissions ||
+            item.staffPermissions.length === 0 ||
+            canAny(...item.staffPermissions)
 
-        if (!allowed) {
+        if (!allowed || !staffAllowed) {
             return acc
         }
 
-        const subMenu = filterTree(item.subMenu ?? [], canAny)
+        const subMenu = filterTree(item.subMenu ?? [], canAny, restrictStaffMenus)
 
         // A parent (title/collapse) whose every child was filtered out has
         // nothing left to show — drop it rather than rendering an empty
@@ -40,8 +47,14 @@ const filterTree = (
  */
 function useFilteredNavigationConfig(): NavigationTree[] {
     const { canAny } = usePermission()
+    const user = useSessionUser((state) => state.user)
+    const restrictStaffMenus =
+        (user.staff_contexts?.length ?? 0) > 0 && !user.has_active_agency
 
-    return useMemo(() => filterTree(navigationConfig, canAny), [canAny])
+    return useMemo(
+        () => filterTree(navigationConfig, canAny, restrictStaffMenus),
+        [canAny, restrictStaffMenus],
+    )
 }
 
 export default useFilteredNavigationConfig

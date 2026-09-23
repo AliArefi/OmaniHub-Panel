@@ -63,12 +63,14 @@ export const protectedRoutes: Routes = [
         path: '/centers/:agencySlug/reservations',
         component: lazy(() => import('@/views/center/Reservations')),
         authority: [],
+        staffPermissions: ['agency.reservations.view'],
     },
     {
         key: 'agencyStats',
         path: '/centers/:agencySlug/stats',
         component: lazy(() => import('@/views/center/AgencyStats')),
         authority: [],
+        staffPermissions: ['agency.analytics.view'],
     },
     {
         key: 'centers',
@@ -87,6 +89,7 @@ export const protectedRoutes: Routes = [
         path: '/members',
         component: lazy(() => import('@/views/members')),
         authority: [],
+        staffPermissions: ['agency.members.view'],
     },
     {
         key: 'plans',
@@ -99,18 +102,21 @@ export const protectedRoutes: Routes = [
         path: '/bookings',
         component: lazy(() => import('@/views/bookings')),
         authority: [],
+        staffPermissions: ['agency.reservations.view'],
     },
     {
         key: 'chat',
         path: '/chat',
         component: lazy(() => import('@/views/chat')),
         authority: [],
+        staffPermissions: ['agency.chat.view'],
     },
     {
         key: 'workCalendar',
         path: '/work-calendar',
         component: lazy(() => import('@/views/workCalendar')),
         authority: [],
+        staffPermissions: ['agency.calendar.view'],
         meta: {
             pageContainerType: 'contained',
             header: {

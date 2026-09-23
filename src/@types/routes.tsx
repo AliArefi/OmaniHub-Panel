@@ -23,6 +23,8 @@ export type Route = {
     authority: string[]
     /** Permission names (any-match). Omit/empty for no restriction beyond authentication. */
     permissions?: string[]
+    /** Enforced only for staff-only accounts; normal users and owners retain existing routes. */
+    staffPermissions?: string[]
     meta?: Meta
 }
 

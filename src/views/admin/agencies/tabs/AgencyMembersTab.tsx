@@ -20,6 +20,7 @@ import {
     apiCreateAdminAgencyMember,
     apiUpdateAdminAgencyMember,
     apiDeleteAdminAgencyMember,
+    apiSearchMemberUsers,
 } from '@/services/admin/AdminAgencyMembersService'
 import { apiGetAdminAgencyServices } from '@/services/admin/AdminAgencyServicesService'
 import type { AdminAgencyMember } from '@/services/admin/AdminAgencyMembersService'
@@ -31,6 +32,7 @@ type FormValues = {
     image: File | null
     is_active: boolean
     allow_inactive_bookable_capabilities: boolean
+    user_id: number | null
 }
 
 const emptyValues: FormValues = {
@@ -40,6 +42,7 @@ const emptyValues: FormValues = {
     image: null,
     is_active: true,
     allow_inactive_bookable_capabilities: false,
+    user_id: null,
 }
 
 /**
@@ -54,6 +57,7 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
     const [pendingDelete, setPendingDelete] =
         useState<AdminAgencyMember | null>(null)
     const [submitting, setSubmitting] = useState(false)
+    const [userSearch, setUserSearch] = useState('')
 
     const { data, mutate, isLoading } = useSWR(
         ['admin-agency-members', agencySlug],
@@ -62,6 +66,12 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
     const { data: servicesData } = useSWR(
         ['admin-agency-services', agencySlug],
         () => apiGetAdminAgencyServices(agencySlug),
+    )
+    const { data: userOptionsData } = useSWR(
+        userSearch.trim().length >= 2
+            ? ['member-user-options', agencySlug, userSearch]
+            : null,
+        () => apiSearchMemberUsers(agencySlug, userSearch),
     )
 
     const { control, handleSubmit, reset } = useForm<FormValues>({
@@ -90,6 +100,7 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
             is_active: member.is_active,
             allow_inactive_bookable_capabilities:
                 member.allow_inactive_bookable_capabilities,
+            user_id: member.user_id,
         })
         setDialogOpen(true)
     }
@@ -109,6 +120,7 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                 'allow_inactive_bookable_capabilities',
                 values.allow_inactive_bookable_capabilities ? '1' : '0',
             )
+            formData.append('user_id', values.user_id ? String(values.user_id) : '')
             if (values.image) formData.append('image', values.image)
 
             if (editing) {
@@ -183,6 +195,12 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                                         .join(', ') || '—'}{' '}
                                     · {member.is_active ? 'Active' : 'Inactive'}
                                 </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    {member.linked_user
+                                        ? `Linked: ${member.linked_user.email || member.linked_user.mobile || member.linked_user.name}`
+                                        : 'No linked account'}
+                                    {member.roles.length > 0 && ` · ${member.roles.map((role) => role.name).join(', ')}`}
+                                </div>
                             </div>
                         </div>
                         {canEdit && (
@@ -255,6 +273,30 @@ function AgencyMembersTab({ agencySlug }: { agencySlug: string }) {
                                     }
                                 />
                             )}
+                        />
+                    </FormItem>
+                    <FormItem label="Linked user">
+                        <Controller
+                            name="user_id"
+                            control={control}
+                            render={({ field }) => {
+                                const candidates = [...(userOptionsData?.data ?? [])]
+                                if (editing?.linked_user && !candidates.some((user) => user.id === editing.linked_user?.id)) {
+                                    candidates.unshift(editing.linked_user)
+                                }
+                                const options = candidates.map((user) => ({
+                                    value: user.id,
+                                    label: `${user.name} - ${user.email || user.mobile || ''}`,
+                                }))
+                                return <Select
+                                    isClearable
+                                    options={options}
+                                    value={options.find((option) => option.value === field.value) ?? null}
+                                    placeholder="Search name, email, or mobile"
+                                    onInputChange={setUserSearch}
+                                    onChange={(option) => field.onChange(option?.value ?? null)}
+                                />
+                            }}
                         />
                     </FormItem>
                     <div className="grid grid-cols-2 gap-4">

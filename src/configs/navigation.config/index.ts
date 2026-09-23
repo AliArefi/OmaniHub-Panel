@@ -57,6 +57,7 @@ const navigationConfig: NavigationTree[] = [
         icon: 'account',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
+        staffPermissions: ['agency.members.view'],
         subMenu: [],
     },
     {
@@ -67,6 +68,7 @@ const navigationConfig: NavigationTree[] = [
         icon: 'groupMenu',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
+        staffPermissions: ['agency.reservations.view'],
         subMenu: [],
     },
     {
@@ -78,6 +80,7 @@ const navigationConfig: NavigationTree[] = [
         icon: 'calendarCheck',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [],
+        staffPermissions: ['agency.calendar.view'],
         subMenu: [],
     },
     {
