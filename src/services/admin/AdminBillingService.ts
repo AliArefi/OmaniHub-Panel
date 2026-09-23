@@ -1,4 +1,16 @@
 import ApiService from '@/services/ApiService'
+import type { BillingIconName } from '@/configs/billingIcons'
+
+export type LocalizedText = Record<'en' | 'ar', string>
+
+export type BillingPlanFeature = {
+    id: string
+    icon: BillingIconName
+    title: LocalizedText
+    description: LocalizedText
+    active: boolean
+    sort_order: number
+}
 
 export type AdminBillingProvider = {
     id: number
@@ -13,9 +25,11 @@ export type AdminBillingPlan = {
     id: number
     key: string
     name: Record<string, string>
+    icon?: BillingIconName | null
     currency: string
     active: boolean
     description?: Record<string, string>
+    features?: Array<BillingPlanFeature | string> | null
     sort_order: number
     prices: Array<{ id: number; interval: string; amount_minor: number; active?: boolean }>
 }
@@ -24,7 +38,9 @@ export type BillingPlanPayload = {
     key: string
     name: Record<string, string>
     description?: Record<string, string>
+    icon: BillingIconName
     currency: string
+    features: BillingPlanFeature[]
     active: boolean
     sort_order: number
     prices: Array<{ interval: string; amount_minor: number }>
@@ -46,7 +62,7 @@ export const apiUpdateBillingProvider = (
 })
 
 export const apiCheckBillingProviderHealth = (id: number) =>
-    ApiService.fetchDataWithAxios<{ health: { reachable: boolean } }>({
+    ApiService.fetchDataWithAxios<{ health: { reachable: boolean; configured: boolean; authorized: boolean } }>({
         url: `/admin/billing/providers/${id}/health`,
         method: 'post',
     })

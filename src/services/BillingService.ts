@@ -1,4 +1,6 @@
 import ApiService from './ApiService'
+import type { BillingIconName } from '@/configs/billingIcons'
+import type { BillingPlanFeature } from './admin/AdminBillingService'
 
 export type BillingInterval = 'monthly' | 'annually' | 'one_time'
 
@@ -13,9 +15,10 @@ export type BillingPlan = {
     id: number
     key: string
     name: Record<string, string>
+    icon?: BillingIconName | null
     description?: Record<string, string> | null
     currency: string
-    features?: string[] | null
+    features?: Array<BillingPlanFeature | string> | null
     prices: BillingPlanPrice[]
 }
 
