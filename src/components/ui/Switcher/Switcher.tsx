@@ -23,6 +23,7 @@ const Switcher = (props: SwitcherProps) => {
     const {
         checked,
         checkedContent,
+        children,
         className,
         switcherClass,
         defaultChecked,
@@ -123,7 +124,7 @@ const Switcher = (props: SwitcherProps) => {
                 <div className="switcher-toggle" />
             )}
             <span className="switcher-content">
-                {switcherChecked ? checkedContent : unCheckedContent}
+                {children ?? (switcherChecked ? checkedContent : unCheckedContent)}
             </span>
         </label>
     )
