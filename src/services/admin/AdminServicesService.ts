@@ -25,6 +25,23 @@ export function apiCreateAdminService(formData: FormData) {
     })
 }
 
+export type FilterOnlyServicePayload = {
+    title: string
+    name: string
+    body: string
+    status: AdminService['status']
+    service_id: number | null
+    order_number: number
+}
+
+export function apiCreateFilterOnlyAdminService(data: FilterOnlyServicePayload) {
+    return ApiService.fetchDataWithAxios<{ data: AdminService }>({
+        url: '/admin/services/filter-only',
+        method: 'post',
+        data,
+    })
+}
+
 export function apiUpdateAdminService(slug: string, formData: FormData) {
     // The backend registers this same action under both PATCH and POST
     // (routes/admin-api.php) — POST is used here because multipart file

@@ -116,6 +116,12 @@
       "cityUrlPattern": "Required format: /service-slug/{city}/"
     }
   },
+  "adminFilterOnlyService": {
+    "title": "New filter-only service",
+    "description": "Create a service used to organize and filter listings. It does not have its own public page.",
+    "filterDescription": "Short filter description",
+    "saved": "Filter-only service created successfully."
+  },
   "cmsMedia": {
     "uploaded": "Media uploaded",
     "uploadFailed": "Upload failed",

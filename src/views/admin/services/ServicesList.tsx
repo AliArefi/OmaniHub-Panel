@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Tooltip from '@/components/ui/Tooltip'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { TbCheck, TbCornerDownRight, TbEdit, TbList, TbTrash, TbTree, TbX } from 'react-icons/tb'
+import { TbCheck, TbCornerDownRight, TbEdit, TbFilterPlus, TbList, TbTrash, TbTree, TbX } from 'react-icons/tb'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
@@ -103,6 +103,7 @@ const buildServiceTreeRows = (services: ServiceTreeRow[]): ServiceTreeRow[] => {
 const ServicesList = () => {
     const navigate = useNavigate()
     const { can } = usePermission()
+    const canCreate = can('services.create')
     const [pendingDelete, setPendingDelete] = useState<{
         service: AdminService
         mutate: () => void
@@ -148,7 +149,10 @@ const ServicesList = () => {
             accessorKey: 'name',
             cell: (props) => (
                 <div>
-                    <div>{props.row.original.name ?? props.row.original.title}</div>
+                    <div className="flex items-center gap-2">
+                        <span>{props.row.original.name ?? props.row.original.title}</span>
+                        {props.row.original.use_as_filter && <Tag className="bg-cyan-50 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-100">Filter only</Tag>}
+                    </div>
                     <div className='text-xs'>{props.row.original.translations?.en?.name}</div>
 
                 </div>
@@ -178,7 +182,7 @@ const ServicesList = () => {
                 const row = props.row.original
                 return (
                     <div className="flex items-center gap-3">
-                        {!isTrash && <AdminPreviewAction label="service" slug={row.slug} />}
+                        {!isTrash && (!row.use_as_filter || row.service_id) && <AdminPreviewAction label="service" slug={row.slug} />}
                         {!isTrash && can('services.edit') && (
                             <Tooltip title="Edit">
                                 <button
@@ -271,13 +275,12 @@ const ServicesList = () => {
                 transformRows={treeView ? buildServiceTreeRows : undefined}
                 initialPageSize={treeView ? 100 : 20}
                 headerActions={
-                    <Button
-                        size="sm"
-                        icon={treeView ? <TbList /> : <TbTree />}
-                        onClick={() => setTreeView((enabled) => !enabled)}
-                    >
-                        {treeView ? 'Default view' : 'Tree view'}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        {canCreate && <Button size="sm" icon={<TbFilterPlus />} onClick={() => navigate('/admin/services/filter-only/new')}>Filter-only service</Button>}
+                        <Button size="sm" icon={treeView ? <TbList /> : <TbTree />} onClick={() => setTreeView((enabled) => !enabled)}>
+                            {treeView ? 'Default view' : 'Tree view'}
+                        </Button>
+                    </div>
                 }
                 createPath="/admin/services/new"
                 createPermission="services.create"

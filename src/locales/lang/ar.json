@@ -116,6 +116,12 @@
       "cityUrlPattern": "الصيغة المطلوبة: /service-slug/{city}/"
     }
   },
+  "adminFilterOnlyService": {
+    "title": "عامل تصفية جديد",
+    "description": "أنشئ خدمة لتنظيم النتائج وتصفيتها. لن يكون لها صفحة عامة مستقلة.",
+    "filterDescription": "وصف مختصر لعامل التصفية",
+    "saved": "تم إنشاء عامل التصفية بنجاح."
+  },
   "cmsMedia": {
     "uploaded": "تم رفع الوسائط",
     "uploadFailed": "فشل الرفع",

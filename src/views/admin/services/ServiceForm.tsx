@@ -37,7 +37,6 @@ type ServiceFormValues = {
     icon: File | null
     image: File | null
     translations: Record<string, Record<string, string>>
-    use_as_filter: boolean
 }
 
 const ServiceForm = () => {
@@ -85,7 +84,6 @@ const ServiceForm = () => {
             featured: false,
             icon: null,
             image: null,
-            use_as_filter: false,
             translations: {},
         },
     })
@@ -102,7 +100,6 @@ const ServiceForm = () => {
                 service_id: service.service_id,
                 order_number: service.order_number,
                 featured: service.featured,
-                use_as_filter: service.use_as_filter,
                 icon: null,
                 image: null,
                 translations: service.translations as Record<
@@ -124,7 +121,6 @@ const ServiceForm = () => {
             formData.append('status', values.status)
             formData.append('order_number', String(values.order_number))
             formData.append('featured', values.featured ? 'on' : '')
-            formData.append('use_as_filter', values.use_as_filter ? '1' : '')
             if (values.service_id) {
                 formData.append('service_id', String(values.service_id));
             } else {
@@ -260,15 +256,6 @@ const ServiceForm = () => {
                     <FormItem label={t('adminServiceForm.fields.featured')}>
                         <Controller
                             name="featured"
-                            control={control}
-                            render={({ field: { value, onChange } }) => (
-                                <Switcher checked={value} onChange={onChange} />
-                            )}
-                        />
-                    </FormItem>
-                    <FormItem label={t('adminServiceForm.fields.useAsFilter')}>
-                        <Controller
-                            name="use_as_filter"
                             control={control}
                             render={({ field: { value, onChange } }) => (
                                 <Switcher checked={value} onChange={onChange} />

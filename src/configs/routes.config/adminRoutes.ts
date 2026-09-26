@@ -78,6 +78,13 @@ const adminRoutes: Routes = [
         permissions: ['services.create'],
     },
     {
+        key: 'admin.services.filterOnly.new',
+        path: '/admin/services/filter-only/new',
+        component: lazy(() => import('@/views/admin/services/FilterOnlyServiceForm')),
+        authority: [],
+        permissions: ['services.create'],
+    },
+    {
         key: 'admin.services.edit',
         path: '/admin/services/:slug/edit',
         component: lazy(() => import('@/views/admin/services/ServiceForm')),
