@@ -209,6 +209,17 @@ const navigationConfig: NavigationTree[] = [
         authority: [],
         subMenu: [
             {
+                key: 'admin.locations',
+                path: '/admin/locations',
+                title: 'Locations',
+                translateKey: 'nav.admin.locations',
+                icon: 'groupMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                permissions: ['locations.view'],
+                subMenu: [],
+            },
+            {
                 key: 'admin.services',
                 path: '/admin/services',
                 title: 'Services',

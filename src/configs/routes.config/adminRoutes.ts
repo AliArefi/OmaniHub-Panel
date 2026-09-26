@@ -10,6 +10,13 @@ import type { Routes } from '@/@types/routes'
  */
 const adminRoutes: Routes = [
     {
+        key: 'admin.locations',
+        path: '/admin/locations',
+        component: lazy(() => import('@/views/admin/locations/LocationsManager')),
+        authority: [],
+        permissions: ['locations.view'],
+    },
+    {
         key: 'admin.cms.new',
         path: '/admin/cms/:type/new',
         component: lazy(() => import('@/views/admin/cms/CmsEntryForm')),

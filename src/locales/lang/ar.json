@@ -8,6 +8,7 @@
     "bookings": "الحجوزات",
     "workCalendar": "تقويم العمل",
     "admin": {
+      "locations": "المواقع",
       "cms": "إدارة المحتوى",
       "cmsPages": "الصفحات",
       "cmsPosts": "المقالات والمدونة",

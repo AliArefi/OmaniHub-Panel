@@ -8,6 +8,7 @@
     "bookings": "Bookings",
     "workCalendar": "Work calendar",
     "admin": {
+      "locations": "Locations",
       "cms": "Content management",
       "cmsPages": "Pages",
       "cmsPosts": "Posts / Blog",
