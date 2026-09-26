@@ -210,6 +210,13 @@ const adminRoutes: Routes = [
             'view notification settings',
         ],
     },
+    {
+        key: 'admin.notification-event',
+        path: '/admin/settings/notifications/:event',
+        component: lazy(() => import('@/views/admin/settings/NotificationEventSettings')),
+        authority: [],
+        permissions: ['view notification settings'],
+    },
 ]
 
 export default adminRoutes
