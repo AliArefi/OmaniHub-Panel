@@ -6,6 +6,7 @@ import OtpSettings from './OtpSettings'
 import NotificationSettings from './NotificationSettings'
 import PushNotificationSettings from './PushNotificationSettings'
 import MapSettings from './MapSettings'
+import MessagingProvidersSettings from './MessagingProvidersSettings'
 
 const PER_LOCALE_GROUPS = new Set([
     'general',
@@ -32,6 +33,8 @@ const SettingsGroupPage = (): React.JSX.Element => {
         content = <PushNotificationSettings />
     } else if (group === 'maps') {
         content = <MapSettings />
+    } else if (group === 'messaging-providers') {
+        content = <MessagingProvidersSettings />
     }
 
     return <SettingsLayout>{content}</SettingsLayout>

@@ -24,6 +24,11 @@ const GROUPS: Array<{ key: string; label: string; permission: string }> = [
         permission: 'view notification settings',
     },
     {
+        key: 'messaging-providers',
+        label: 'Messaging providers',
+        permission: 'view notification settings',
+    },
+    {
         key: 'push-notifications',
         label: 'Push notifications',
         permission: 'view notification settings',
