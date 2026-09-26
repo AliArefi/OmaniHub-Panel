@@ -198,24 +198,18 @@ const adminRoutes: Routes = [
         permissions: ['billing.view'],
     },
     {
-        key: 'admin.settings',
-        path: '/admin/settings/:group',
-        component: lazy(
-            () => import('@/views/admin/settings/SettingsGroupPage'),
-        ),
-        authority: [],
-        permissions: [
-            'general settings',
-            'view otp settings',
-            'view notification settings',
-        ],
-    },
-    {
         key: 'admin.notification-event',
         path: '/admin/settings/notifications/:event',
         component: lazy(() => import('@/views/admin/settings/NotificationEventSettings')),
         authority: [],
         permissions: ['view notification settings'],
+    },
+    {
+        key: 'admin.settings',
+        path: '/admin/settings/:group',
+        component: lazy(() => import('@/views/admin/settings/SettingsGroupPage')),
+        authority: [],
+        permissions: ['general settings', 'view otp settings', 'view notification settings'],
     },
 ]
 
