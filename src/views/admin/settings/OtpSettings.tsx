@@ -22,6 +22,7 @@ const DRIVER_OPTIONS = [
     'fake_whatsapp_log',
     'twilio_sms',
     'twilio_whatsapp',
+    'meta_whatsapp_cloud',
     'smtp_mail',
 ].map((v) => ({ label: v, value: v }))
 
