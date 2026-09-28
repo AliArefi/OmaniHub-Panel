@@ -737,8 +737,16 @@
     "untitledFeature": "Untitled feature",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "locales": { "en": "English", "ar": "Arabic" },
-    "tabs": { "basics": "Basics", "content": "Content", "features": "Features", "pricing": "Pricing" },
+    "locales": {
+      "en": "English",
+      "ar": "Arabic"
+    },
+    "tabs": {
+      "basics": "Basics",
+      "content": "Content",
+      "features": "Features",
+      "pricing": "Pricing"
+    },
     "enabled": "Enabled",
     "testMode": "Test mode",
     "save": "Save provider",
@@ -783,11 +791,22 @@
       "amountMinor": "Amount in minor units"
     },
     "icons": {
-      "badge-check": "Verified badge", "briefcase": "Business", "building": "Building",
-      "calendar-check": "Calendar", "chart": "Analytics", "crown": "Crown", "gem": "Premium gem",
-      "heart-handshake": "Customer care", "message-circle": "Messaging", "rocket": "Growth",
-      "shield-check": "Protected", "sparkles": "Highlights", "star": "Star", "store": "Store",
-      "users": "Team", "zap": "Fast"
+      "badge-check": "Verified badge",
+      "briefcase": "Business",
+      "building": "Building",
+      "calendar-check": "Calendar",
+      "chart": "Analytics",
+      "crown": "Crown",
+      "gem": "Premium gem",
+      "heart-handshake": "Customer care",
+      "message-circle": "Messaging",
+      "rocket": "Growth",
+      "shield-check": "Protected",
+      "sparkles": "Highlights",
+      "star": "Star",
+      "store": "Store",
+      "users": "Team",
+      "zap": "Fast"
     },
     "fields": {
       "base_url": "Base URL",
@@ -897,7 +916,13 @@
     "month": "Reporting month",
     "currency": "Currency",
     "sections": "Financial report sections",
-    "tabs": { "overview": "Overview", "invoices": "Invoices", "members": "Members", "shares": "Service shares", "expenses": "Expenses" },
+    "tabs": {
+      "overview": "Overview",
+      "invoices": "Invoices",
+      "members": "Members",
+      "shares": "Service shares",
+      "expenses": "Expenses"
+    },
     "loadError": "Unable to load financial reports.",
     "revenue": "Invoiced revenue",
     "issuedHint": "Issued invoices this month",
@@ -1427,5 +1452,47 @@
         "deleteReservation": "Could not delete reservation."
       }
     }
+  },
+  "agencyCrm": {
+    "title": "CRM",
+    "subtitle": "Manage customers, offers, reminders and loyalty",
+    "customers": "Customers",
+    "campaigns": "Campaigns",
+    "settings": "Settings",
+    "search": "Search",
+    "segment": "Segment",
+    "segment_all": "All",
+    "segment_new": "New",
+    "segment_active": "Active",
+    "segment_inactive": "Inactive",
+    "customer": "Customer",
+    "mobile": "Mobile",
+    "lastVisit": "Last visit",
+    "paid": "Paid total",
+    "points": "Points",
+    "close": "Close",
+    "reservations": "Reservations",
+    "messages": "Messages",
+    "loadError": "Could not load CRM data.",
+    "saveError": "Could not save CRM data.",
+    "newCampaign": "New campaign",
+    "campaignTitle": "Campaign title",
+    "body": "Message body",
+    "audience": "Audience",
+    "templateName": "WhatsApp template name",
+    "templateLanguage": "Template language",
+    "code": "Offer code (optional)",
+    "discount": "Discount amount",
+    "expiry": "Expiry",
+    "maxUses": "Maximum uses",
+    "schedule": "Schedule",
+    "create": "Create campaign",
+    "appointment": "Appointment reminders",
+    "hours": "Hours before appointment",
+    "winback": "Winback reminders",
+    "days": "Days without visit",
+    "earnRate": "Points per OMR",
+    "redeemRate": "Points per OMR discount",
+    "save": "Save settings"
   }
 }

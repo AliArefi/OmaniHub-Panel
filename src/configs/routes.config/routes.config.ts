@@ -83,7 +83,7 @@ export const protectedRoutes: Routes = [
         path: '/centers/:agencySlug/crm',
         component: lazy(() => import('@/views/center/AgencyCrm')),
         authority: [],
-        staffPermissions: ['agency.crm.view'],
+        staffPermissions: ['agency.reservations.view'],
     },
     {
         key: 'centers',

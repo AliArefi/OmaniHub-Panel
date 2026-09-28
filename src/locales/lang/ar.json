@@ -737,8 +737,16 @@
     "untitledFeature": "ميزة بدون عنوان",
     "moveUp": "تحريك للأعلى",
     "moveDown": "تحريك للأسفل",
-    "locales": { "en": "الإنجليزية", "ar": "العربية" },
-    "tabs": { "basics": "الأساسيات", "content": "المحتوى", "features": "المزايا", "pricing": "الأسعار" },
+    "locales": {
+      "en": "الإنجليزية",
+      "ar": "العربية"
+    },
+    "tabs": {
+      "basics": "الأساسيات",
+      "content": "المحتوى",
+      "features": "المزايا",
+      "pricing": "الأسعار"
+    },
     "enabled": "مفعل",
     "testMode": "وضع الاختبار",
     "save": "حفظ المزود",
@@ -783,11 +791,22 @@
       "amountMinor": "المبلغ بوحدات العملة الصغرى"
     },
     "icons": {
-      "badge-check": "شارة موثقة", "briefcase": "الأعمال", "building": "مبنى",
-      "calendar-check": "التقويم", "chart": "التحليلات", "crown": "تاج", "gem": "ماسة مميزة",
-      "heart-handshake": "رعاية العملاء", "message-circle": "المراسلة", "rocket": "النمو",
-      "shield-check": "محمي", "sparkles": "المميزات", "star": "نجمة", "store": "متجر",
-      "users": "الفريق", "zap": "سريع"
+      "badge-check": "شارة موثقة",
+      "briefcase": "الأعمال",
+      "building": "مبنى",
+      "calendar-check": "التقويم",
+      "chart": "التحليلات",
+      "crown": "تاج",
+      "gem": "ماسة مميزة",
+      "heart-handshake": "رعاية العملاء",
+      "message-circle": "المراسلة",
+      "rocket": "النمو",
+      "shield-check": "محمي",
+      "sparkles": "المميزات",
+      "star": "نجمة",
+      "store": "متجر",
+      "users": "الفريق",
+      "zap": "سريع"
     },
     "fields": {
       "base_url": "الرابط الأساسي",
@@ -897,7 +916,13 @@
     "month": "شهر التقرير",
     "currency": "العملة",
     "sections": "أقسام التقرير المالي",
-    "tabs": { "overview": "نظرة عامة", "invoices": "الفواتير", "members": "الأعضاء", "shares": "حصص الخدمات", "expenses": "المصروفات" },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "invoices": "الفواتير",
+      "members": "الأعضاء",
+      "shares": "حصص الخدمات",
+      "expenses": "المصروفات"
+    },
     "loadError": "تعذر تحميل التقارير المالية.",
     "revenue": "إيراد الفواتير",
     "issuedHint": "الفواتير الصادرة هذا الشهر",
@@ -1427,5 +1452,47 @@
         "deleteReservation": "تعذر حذف الحجز."
       }
     }
+  },
+  "agencyCrm": {
+    "title": "إدارة علاقات العملاء",
+    "subtitle": "إدارة العملاء والعروض والتذكيرات والولاء",
+    "customers": "العملاء",
+    "campaigns": "الحملات",
+    "settings": "الإعدادات",
+    "search": "بحث",
+    "segment": "التقسيم",
+    "segment_all": "الكل",
+    "segment_new": "جديد",
+    "segment_active": "نشط",
+    "segment_inactive": "غير نشط",
+    "customer": "العميل",
+    "mobile": "الهاتف",
+    "lastVisit": "آخر زيارة",
+    "paid": "إجمالي المدفوع",
+    "points": "النقاط",
+    "close": "إغلاق",
+    "reservations": "الحجوزات",
+    "messages": "الرسائل",
+    "loadError": "تعذر تحميل بيانات إدارة العملاء.",
+    "saveError": "تعذر حفظ بيانات إدارة العملاء.",
+    "newCampaign": "حملة جديدة",
+    "campaignTitle": "عنوان الحملة",
+    "body": "نص الرسالة",
+    "audience": "الجمهور",
+    "templateName": "اسم قالب واتساب",
+    "templateLanguage": "لغة القالب",
+    "code": "رمز العرض (اختياري)",
+    "discount": "قيمة الخصم",
+    "expiry": "تاريخ الانتهاء",
+    "maxUses": "الحد الأقصى للاستخدام",
+    "schedule": "الجدولة",
+    "create": "إنشاء الحملة",
+    "appointment": "تذكيرات الموعد",
+    "hours": "الساعات قبل الموعد",
+    "winback": "تذكيرات العودة",
+    "days": "أيام بدون زيارة",
+    "earnRate": "النقاط لكل ريال عماني",
+    "redeemRate": "نقاط الخصم لكل ريال عماني",
+    "save": "حفظ الإعدادات"
   }
 }
