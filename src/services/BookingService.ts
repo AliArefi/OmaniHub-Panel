@@ -50,7 +50,7 @@ export async function quoteAgencyReservationPrice(
     data: {
         price: number
         currency?: string
-        status?: 'pending' | 'confirmed' | 'cancelled'
+        status?: Booking['status']
     },
 ) {
     return ApiService.fetchDataWithAxios<{
@@ -62,7 +62,7 @@ export async function quoteAgencyReservationPrice(
             quoted_price: number | null
             final_price: number | null
             currency: string | null
-            status: 'pending' | 'confirmed' | 'cancelled'
+            status: Booking['status']
         }
     }>({
         url: `/my-agencies/reservations/${reservationId}/quote-price`,

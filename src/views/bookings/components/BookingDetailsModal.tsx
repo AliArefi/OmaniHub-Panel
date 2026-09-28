@@ -10,6 +10,8 @@ import { HiCalendar, HiChatAlt2, HiOfficeBuilding, HiUser } from 'react-icons/hi
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
 import useTranslation from '@/utils/hooks/useTranslation'
+import ReservationInvoicePanel from './ReservationInvoicePanel'
+import { useSessionUser } from '@/store/authStore'
 
 interface BookingDetailsModalProps {
     isOpen: boolean
@@ -80,6 +82,7 @@ export default function BookingDetailsModal({
 }: BookingDetailsModalProps) {
     const { t, i18n } = useTranslation()
     const navigate = useNavigate()
+    const userId = useSessionUser((state) => state.user.id)
     const chatAvailable = Boolean(booking.customer.user?.id)
 
     const [quotePrice, setQuotePrice] = useState(
@@ -219,7 +222,7 @@ export default function BookingDetailsModal({
                 </Section>
 
                 {/* quote panel */}
-                {canQuote ? (
+                {canQuote && booking.status !== 'completed' ? (
                     <div>
                         <h4 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             {t('bookings.details.pricingUpdate')}
@@ -280,6 +283,11 @@ export default function BookingDetailsModal({
                         </div>
                     </div>
                 ) : null}
+                {canQuote && booking.agency?.slug && booking.agency.owner_id === userId && booking.status !== 'cancelled' && <ReservationInvoicePanel
+                    agencySlug={booking.agency.slug}
+                    reservationId={booking.id}
+                    onIssued={() => onBookingUpdated?.({ ...booking, status: 'completed' })}
+                />}
             </div>
 
             {/* ── sticky footer ── */}

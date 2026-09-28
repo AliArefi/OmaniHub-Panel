@@ -9,7 +9,7 @@ export type AdminAgencyReservation = {
     date: string
     start_time: string
     end_time: string
-    status: 'pending' | 'confirmed' | 'cancelled'
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
     note: string | null
     service?: { id: number; title: string; service?: { id: number; name: string } }
     member?: { id: number; name: string } | null

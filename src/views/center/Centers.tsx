@@ -29,6 +29,7 @@ import {
     TbTrash,
     TbAlertCircle,
     TbExternalLink,
+    TbReportMoney,
 } from 'react-icons/tb'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { HiPlus } from 'react-icons/hi'
@@ -225,6 +226,16 @@ function AgencyActions({
                             <span className="hidden md:inline">{t('centers.statistics')}</span>
                         </Button>
                     </Tooltip>
+                    <Tooltip title={t('agencyFinance.title')}>
+                        <Button size="xs" variant="plain" className="flex items-center gap-1" onClick={() => onSelect(`/centers/${encodeURIComponent(agency.slug)}/finance`)}>
+                            <TbReportMoney size={15} /><span className="hidden md:inline">{t('agencyFinance.title')}</span>
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title={t('agencyCrm.title')}>
+                        <Button size="xs" variant="plain" onClick={() => onSelect(`/centers/${encodeURIComponent(agency.slug)}/crm`)}>
+                            {t('agencyCrm.title')}
+                        </Button>
+                    </Tooltip>
                 </>
             )}
 
@@ -282,6 +293,9 @@ function AgencyActions({
                             }
                         >
                             <TbChartBar size={16} /> {t('centers.statistics')}
+                        </Dropdown.Item>
+                        <Dropdown.Item onSelect={() => onSelect(`/centers/${encodeURIComponent(agency.slug)}/finance`)}>
+                            <TbReportMoney size={16} /> {t('agencyFinance.title')}
                         </Dropdown.Item>
                     </>
                 )}

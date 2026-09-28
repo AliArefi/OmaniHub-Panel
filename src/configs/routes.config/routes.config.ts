@@ -73,6 +73,19 @@ export const protectedRoutes: Routes = [
         staffPermissions: ['agency.analytics.view'],
     },
     {
+        key: 'agencyFinance',
+        path: '/centers/:agencySlug/finance',
+        component: lazy(() => import('@/views/center/AgencyFinance')),
+        authority: [],
+    },
+    {
+        key: 'agencyCrm',
+        path: '/centers/:agencySlug/crm',
+        component: lazy(() => import('@/views/center/AgencyCrm')),
+        authority: [],
+        staffPermissions: ['agency.crm.view'],
+    },
+    {
         key: 'centers',
         path: '/centers',
         component: lazy(() => import('@/views/center/Centers')),

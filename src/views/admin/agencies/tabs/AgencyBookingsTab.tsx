@@ -25,12 +25,14 @@ const STATUS_OPTIONS = [
     { value: 'pending', label: 'Pending' },
     { value: 'confirmed', label: 'Confirmed' },
     { value: 'cancelled', label: 'Cancelled' },
+    { value: 'completed', label: 'Completed' },
 ]
 
 const STATUS_COLORS: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-100',
     confirmed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-100',
     cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-100',
+    completed: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100',
 }
 
 /**
@@ -244,7 +246,7 @@ function BookingDetailDialog({
                                 <div className="w-40">
                                     <Select
                                         isDisabled={savingStatus}
-                                        options={STATUS_OPTIONS.slice(1)}
+                                        options={STATUS_OPTIONS.slice(1, 4)}
                                         value={STATUS_OPTIONS.find(
                                             (o) => o.value === (statusValue ?? reservation.status),
                                         )}

@@ -2,6 +2,7 @@ export interface Booking {
     id: number
     agency: {
         id: number
+        owner_id?: number
         slug: string
         title: string
         logo?: {
@@ -31,7 +32,7 @@ export interface Booking {
     start_time: string
     end_time: string
     note: string | null
-    status: 'pending' | 'confirmed' | 'cancelled'
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
     pricing_type: 'fixed' | 'coordination' | 'member_based'
     pricing_status: 'needs_quote' | 'priced'
     quoted_price: number | null
