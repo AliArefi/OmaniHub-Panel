@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { CommonProps } from '@/@types/common'
 import { useGoogleSignupStore } from '@/store/googleSignupStore'
-import { apiGoogleOauthRegister } from '@/services/OAuthServices'
+import { apiGoogleOauthLogin, apiGoogleOauthRegister } from '@/services/OAuthServices'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { useNavigate } from 'react-router'
 import PasswordInput from '@/components/shared/PasswordInput'
@@ -152,13 +152,37 @@ const SignUpForm = (props: SignUpFormProps) => {
                     const failure = data as Record<string, unknown>
 
                     if (failure.success === false && failure.next_step === 'login') {
-                        clearGoogleSignup()
+                        const meta = failure.meta as { reason?: unknown } | undefined
+                        if (meta?.reason !== 'email_taken') {
+                            try {
+                                const login = await apiGoogleOauthLogin({ id_token: googleIdToken })
+                                if (login.success && login.next_step === 'otp_verify' && login.challenge_id) {
+                                    setPendingChallenge({
+                                        challenge_id: login.challenge_id,
+                                        expires_at: login.expires_at,
+                                        meta: login.meta ?? {},
+                                        user: login.user ?? null,
+                                    })
+                                    clearGoogleSignup()
+                                    navigate('/otp-verification')
+                                    return
+                                }
+                                if (login.success && login.next_step === 'authenticated' && login.token) {
+                                    clearGoogleSignup()
+                                    completeAuth(login)
+                                    return
+                                }
+                            } catch (loginError: unknown) {
+                                const loginMessage = (loginError as { response?: { data?: { message?: unknown } } } | null)?.response?.data?.message
+                                setMessage?.(typeof loginMessage === 'string' ? loginMessage : t('auth.signUp.googleSignupError'))
+                                return
+                            }
+                        }
                         setMessage?.(
                             typeof failure.message === 'string'
                                 ? failure.message
                                 : t('auth.signUp.existingAccount'),
                         )
-                        navigate('/sign-in')
                         return
                     }
 
