@@ -24,13 +24,13 @@ import { apiGetAdminAgencyMembers } from '@/services/admin/AdminAgencyMembersSer
 import type { AdminAgencySchedule } from '@/services/admin/AdminAgencySchedulesService'
 
 const DAYS = [
+    'Saturday',
     'Sunday',
     'Monday',
     'Tuesday',
     'Wednesday',
     'Thursday',
     'Friday',
-    'Saturday',
 ]
 
 type FormValues = {

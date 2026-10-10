@@ -72,6 +72,7 @@ type AgencyFormValues = {
     website: string
     status: string
     service_id: number | null
+    additional_service_category_ids: number[]
     top_seller: boolean
     show_in_marketplace: boolean
     fully_verfied: boolean
@@ -104,6 +105,7 @@ const AgencyForm = () => {
             website: '',
             status: 'pending',
             service_id: null,
+            additional_service_category_ids: [],
             top_seller: false,
             show_in_marketplace: true,
             fully_verfied: false,
@@ -124,6 +126,7 @@ const AgencyForm = () => {
                 website: agency.website ?? '',
                 status: agency.status,
                 service_id: agency.service_id,
+                additional_service_category_ids: agency.additional_service_category_ids ?? [],
                 top_seller: agency.top_seller,
                 show_in_marketplace: agency.show_in_marketplace,
                 fully_verfied: agency.fully_verfied,
@@ -149,6 +152,13 @@ const AgencyForm = () => {
             formData.append('status', values.status)
             if (values.service_id) {
                 formData.append('service_id', String(values.service_id))
+            }
+            if (values.additional_service_category_ids.length === 0) {
+                formData.append('additional_service_category_ids', '[]')
+            } else {
+                values.additional_service_category_ids.forEach((id) =>
+                    formData.append('additional_service_category_ids[]', String(id)),
+                )
             }
             formData.append('top_seller', values.top_seller ? 'on' : '')
             formData.append(
@@ -269,6 +279,22 @@ const AgencyForm = () => {
                             )}
                         />
                     </FormItem>
+                    <FormItem label="Additional service categories">
+                        <Controller
+                            name="additional_service_category_ids"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    isMulti
+                                    options={options}
+                                    value={options.filter((option) => field.value.includes(option.value))}
+                                    onChange={(selected) =>
+                                        field.onChange((selected ?? []).map((option) => option.value))
+                                    }
+                                />
+                            )}
+                        />
+                    </FormItem>
                     <FormItem label="Logo">
                         <Controller
                             name="logo"
@@ -352,6 +378,10 @@ const AgencyForm = () => {
 
     if (isExistingLoading) {
         return <AdminEditLoading label="Loading agency..." />
+    }
+
+    if (!existing?.data) {
+        return <Container>Agency could not be loaded.</Container>
     }
 
     const agencySlug = slug as string

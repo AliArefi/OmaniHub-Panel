@@ -75,6 +75,7 @@ export type AdminAgency = {
     owner?: AdminOwnerSummary | null
     organization_id: number | null
     service_id: number | null
+    additional_service_category_ids: number[]
     city_id: number | null
     phone: string | null
     whatsapp: string | null
