@@ -16,7 +16,6 @@ import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import useTranslation from '@/utils/hooks/useTranslation'
 import {
-    apiCreateNewAgency,
     apiUpdateMyAgency,
     getServices,
 } from '@/services/CenterService'
@@ -31,7 +30,7 @@ const stripHtml = (value: string): string =>
         .trim()
 
 export const ViewCenterTabInformation = () => {
-    const { hojraInfo, setHojraInfo, setNewHojraData, newHojraData } =
+    const { hojraInfo, setHojraInfo, newHojraData } =
         useCreateStore()
     const [servicesList, setServicesList] = useState<Services[]>([])
     const [loading, setLoading] = useState(false)
@@ -108,7 +107,7 @@ export const ViewCenterTabInformation = () => {
                     throw new Error(resp?.message || t('viewCenterExtra.saveError'))
                 }
 
-                setHojraInfo(values)
+                setHojraInfo((current) => ({ ...current, ...values }))
                 toast.push(
                     <Notification type="success">
                         {t('viewCenterExtra.changesSaved')}

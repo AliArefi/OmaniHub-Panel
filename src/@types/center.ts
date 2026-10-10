@@ -46,6 +46,7 @@ export type MyAgencyDetails = {
         id: number
         name: string
     }
+    additional_service_categories: Array<{ id: number; name: string }>
     city: {
         id: number
     }

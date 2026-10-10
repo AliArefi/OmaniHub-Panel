@@ -136,7 +136,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
                     throw new Error(resp?.message || t('centerCreation.form.createError'))
                 }
 
-                setHojraInfo(values)
+                setHojraInfo((current) => ({ ...current, ...values }))
                 changeState(2)
                 return
             }
@@ -147,7 +147,7 @@ export const HojraInformation = ({ changeState }: HojraInformationProps) => {
             }
 
             setNewHojraData(resp.data)
-            setHojraInfo(values)
+            setHojraInfo((current) => ({ ...current, ...values }))
             changeState(2)
         } catch (err: unknown) {
             const apiMessage = getApiErrorMessage(err)

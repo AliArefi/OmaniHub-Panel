@@ -133,7 +133,8 @@ export const AgencyServicesStep = ({
 
     useEffect(() => {
         const rootId = hojraInfo.service_id ?? null
-        if (!rootId) {
+        const additionalRoots = hojraInfo.additional_service_categories ?? []
+        if (!rootId && additionalRoots.length === 0) {
             setServiceLevels([])
             setServiceCatalog([])
             return
@@ -145,19 +146,33 @@ export const AgencyServicesStep = ({
         setServiceCatalog([])
         setIsLoadingTree(true)
 
-        Promise.all([
-            getServices({ parent_id: rootId }),
-            getServices({ parent_id: rootId, tree: 1 }),
-        ])
-            .then(([legacyResponse, treeResponse]) => {
+        const mainServices = rootId
+            ? Promise.all([
+                  getServices({ parent_id: rootId }),
+                  getServices({ parent_id: rootId, tree: 1 }),
+              ])
+            : Promise.resolve([null, null])
+        const additionalServices = Promise.all(
+            additionalRoots.map(async (root) => ({
+                id: root.id,
+                name: root.name,
+                slug: null,
+                children: resolveServiceNodes(
+                    await getServices({ parent_id: root.id, tree: 1 }),
+                ),
+            })),
+        )
+
+        Promise.all([mainServices, additionalServices])
+            .then(([[legacyResponse, treeResponse], extraNodes]) => {
                 if (!isMounted) {
                     return
                 }
 
-                const legacyNodes = resolveServiceNodes(legacyResponse)
+                const legacyNodes = [...resolveServiceNodes(legacyResponse), ...extraNodes]
                 setServiceLevels(legacyNodes.length > 0 ? [legacyNodes] : [])
 
-                const treeNodes = resolveServiceNodes(treeResponse)
+                const treeNodes = [...resolveServiceNodes(treeResponse), ...extraNodes]
                 setServiceCatalog(flattenServiceTree(treeNodes))
             })
             .catch(() => {
@@ -177,7 +192,7 @@ export const AgencyServicesStep = ({
         return () => {
             isMounted = false
         }
-    }, [hojraInfo.service_id])
+    }, [hojraInfo.service_id, hojraInfo.additional_service_categories])
 
     useEffect(() => {
         if (serviceCatalog.length === 0) {
@@ -945,7 +960,7 @@ export const AgencyServicesStep = ({
                                                     <FormItem
                                                         label={t('center.services.labels.members')}
                                                     >
-                                                        <Select<SelectOption>
+                                                        <Select<SelectOption, true>
                                                             isMulti
                                                             options={teamMembers.map((member) => ({
                                                                 value: member.id,

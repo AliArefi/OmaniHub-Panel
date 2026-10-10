@@ -4,13 +4,13 @@ export const OMAN_WEEK_DAYS: Array<{
     day: DaySchedule['day']
     label: string
 }> = [
+    { day: 'saturday', label: 'السبت (Saturday)' },
     { day: 'sunday', label: 'الأحد (Sunday)' },
     { day: 'monday', label: 'الاثنين (Monday)' },
     { day: 'tuesday', label: 'الثلاثاء (Tuesday)' },
     { day: 'wednesday', label: 'الأربعاء (Wednesday)' },
     { day: 'thursday', label: 'الخميس (Thursday)' },
     { day: 'friday', label: 'الجمعة (Friday)' },
-    { day: 'saturday', label: 'السبت (Saturday)' },
 ]
 
 export const DEFAULT_TIME_SLOT: TimeSlot = {

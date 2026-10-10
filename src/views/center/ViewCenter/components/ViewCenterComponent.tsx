@@ -79,6 +79,7 @@ export default function ViewCenterComponent() {
                 const hojraInfo: Partial<HojraInfo> = {
                     title: agency.title,
                     service_id: agency.service?.id ?? null,
+                    additional_service_categories: agency.additional_service_categories ?? [],
                     about_text: agency.about_text ?? '',
                     about_us: agency.about_us ?? '',
                 }

@@ -65,6 +65,7 @@ export interface ServiceAssignment {
 export interface HojraInfo {
     title: string
     service_id: number | null
+    additional_service_categories?: Array<{ id: number; name: string }>
     about_text: string
     about_us: string
 }
@@ -158,6 +159,7 @@ export const CreateStoreProvider = ({
     const [hojraInfo, setHojraInfo] = useState<HojraInfo>({
         title: initialHojraInfo?.title ?? '',
         service_id: initialHojraInfo?.service_id ?? null,
+        additional_service_categories: initialHojraInfo?.additional_service_categories ?? [],
         about_text: initialHojraInfo?.about_text ?? '',
         about_us: initialHojraInfo?.about_us ?? '',
     })
