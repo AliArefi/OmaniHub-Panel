@@ -161,7 +161,7 @@
   },
   "dashboardLegacy": {
     "userFallback": "User",
-    "welcome": "Welcome, {{name}} 👋",
+    "welcome": "Welcome, {{name}}",
     "subtitle": "Manage and grow your business from your dashboard",
     "completeProfile": "Complete profile",
     "completeInformation": "Complete information",
@@ -1509,5 +1509,51 @@
     "earnRate": "Points per OMR",
     "redeemRate": "Points per OMR discount",
     "save": "Save settings"
+  },
+  "onboardingTour": {
+    "progress": "Step {{current}} of {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Welcome to OmaniHub",
+        "description": "Let us show you around the panel in a few quick steps, then help you create your first center."
+      },
+      "menu": {
+        "title": "Main menu",
+        "description": "Every section of the panel is in this menu: your dashboard, centers, bookings, members and work calendar."
+      },
+      "myCenters": {
+        "title": "My centers",
+        "description": "Open this group to see all your centers, or choose \"New center\" to add one."
+      },
+      "helpButton": {
+        "title": "Need the tour again?",
+        "description": "You can replay this tour from the beginning at any time with this button."
+      },
+      "createCenter": {
+        "title": "Create your first center",
+        "description": "You don't have a center yet. Create one now to start receiving bookings and managing your services."
+      },
+      "menuMobile": {
+        "title": "Quick access bar",
+        "description": "Use this bar to move around the panel: the full menu, your centers, the dashboard, bookings and your profile."
+      },
+      "myCentersMobile": {
+        "title": "My centers",
+        "description": "Tap here to see all your centers. You can also add a new center from that page."
+      },
+      "helpButtonMobile": {
+        "title": "Need the tour again?",
+        "description": "Open your profile menu and choose \"Show the panel tour\" to replay it from the beginning at any time."
+      }
+    },
+    "actions": {
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip tour",
+      "later": "Later",
+      "close": "Close",
+      "createCenter": "Create my first center",
+      "replay": "Show the panel tour"
+    }
   }
 }

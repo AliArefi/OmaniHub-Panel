@@ -7,9 +7,11 @@ import { Link } from 'react-router'
 import { useAuth } from '@/auth'
 import type { JSX } from 'react'
 import { resolveImageUrl } from '@/utils/imageUrl'
-import { HiOutlineChatAlt, HiOutlineLightningBolt, HiOutlineLogout, HiOutlineTranslate, HiOutlineUser } from 'react-icons/hi'
+import { HiOutlineChatAlt, HiOutlineLightningBolt, HiOutlineLogout, HiOutlineQuestionMarkCircle, HiOutlineTranslate, HiOutlineUser } from 'react-icons/hi'
 import useTranslation from '@/utils/hooks/useTranslation'
 import LanguageDialog from './LanguageDialog'
+import { useOnboardingTourStore } from './OnboardingTour/onboardingTourStore'
+import useOnboardingTourEligibility from './OnboardingTour/useOnboardingTourEligibility'
 
 type DropdownList = { label: string; path: string; icon: JSX.Element }
 
@@ -18,6 +20,8 @@ const _UserDropdown = () => {
     const { avatar, name, email, permissions = [], has_active_agency: ownsAgency, staff_contexts: staffContexts = [] } = useSessionUser((state) => state.user)
     const [languageOpen, setLanguageOpen] = useState(false)
     const { signOut } = useAuth()
+    const startTour = useOnboardingTourStore((state) => state.start)
+    const { canUseTour } = useOnboardingTourEligibility()
 
     useEffect(() => {
         if (staffContexts.length > 0 && !window.localStorage.getItem('agency-member-context')) {
@@ -42,6 +46,8 @@ const _UserDropdown = () => {
             {staffContexts.length > 1 && <Dropdown.Item variant="divider" />}
             {dropdownItemList.map((item) => <Dropdown.Item key={item.label} eventKey={item.label} className="px-0"><Link className="flex h-full w-full px-2" to={item.path}><span className="flex gap-2 items-center w-full"><span className="text-xl">{item.icon}</span><span>{item.label}</span></span></Link></Dropdown.Item>)}
             <Dropdown.Item eventKey="language" className="px-2 lg:hidden" onClick={() => setLanguageOpen(true)}><span className="text-xl"><HiOutlineTranslate /></span><span>{t('shared.userMenu.language')}</span></Dropdown.Item>
+            {/* The header (and its tour button) is hidden below sm, so mobile replays the tour from here. */}
+            {canUseTour && <Dropdown.Item eventKey="onboarding-tour" className="px-2 sm:hidden" onClick={startTour}><span className="text-xl"><HiOutlineQuestionMarkCircle /></span><span>{t('onboardingTour.actions.replay')}</span></Dropdown.Item>}
             <Dropdown.Item eventKey="sign-out" className="px-2 text-red-400" onClick={() => signOut()}><span className="text-xl"><HiOutlineLogout /></span><span>{t('shared.userMenu.signOut')}</span></Dropdown.Item>
         </Dropdown>
         <LanguageDialog isOpen={languageOpen} onClose={() => setLanguageOpen(false)} />

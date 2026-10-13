@@ -2,6 +2,10 @@
 body{
 	font-feature-settings: "ss01" !important;
 }
+html[lang='en'] body,
+html[lang='en'] *:not(code):not(pre):not(kbd):not(samp) {
+	font-family: 'Roboto', sans-serif !important;
+}
 .apexcharts-tooltip .apexcharts-tooltip-y-group {
 	margin-right: 10px !important;
 	font-family: 'Kook' !important;

@@ -5,6 +5,7 @@ import MobileNav from '@/components/template/MobileNav'
 import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import LayoutBase from '@/components//template/LayoutBase'
+import OnboardingTour, { OnboardingTourButton } from '@/components/template/OnboardingTour'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
@@ -35,6 +36,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                         }
                         headerEnd={
                             <>
+                                <OnboardingTourButton />
                                 <LanguageSelector hoverable={false} />
                                 <Button size="sm" onClick={() => navigate('/chat')} variant="plain" >
                                     <HiOutlineChatAlt size={24} />
@@ -44,12 +46,12 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                         }
                     />
 
-                    <div className='block sm:hidden fixed w-full h-18 bg-white dark:bg-zinc-900 z-10 bottom-0 shadow-[0_-4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_0_rgba(0,0,0,0.4)]'>
+                    <div data-tour="mobile-bottom-nav" className='block sm:hidden fixed w-full h-18 bg-white dark:bg-zinc-900 z-10 bottom-0 shadow-[0_-4px_16px_0_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_0_rgba(0,0,0,0.4)]'>
                         <div className='header-wrapper container w-full h-full flex items-center justify-between'>
                             <>
                                 {smaller.lg && <MobileNav />}
                             </>
-                            <div className={`text-2xl ${location.pathname == '/centers' && 'text-primary'}`} onClick={() => navigate('/centers')}>
+                            <div data-tour="mobile-centers" className={`text-2xl ${location.pathname == '/centers' && 'text-primary'}`} onClick={() => navigate('/centers')}>
                                 <div className='header-action-item header-action-item-hoverable'>
                                     <HiOutlineBriefcase />
                                 </div>
@@ -74,6 +76,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                     </div>
                 </div>
             </div>
+            <OnboardingTour />
         </LayoutBase>
     )
 }
