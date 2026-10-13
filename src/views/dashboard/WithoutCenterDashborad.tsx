@@ -6,7 +6,7 @@ import {
     Progress,
     Badge,
 } from '@/components/ui'
-import { HiOutlineStar, HiOutlineUser, HiOutlineHeart, HiOutlineCog, HiPlus, HiChevronLeft, HiChevronRight, HiOutlineOfficeBuilding } from 'react-icons/hi'
+import { HiOutlineStar, HiOutlineUser, HiOutlineHeart, HiOutlineCog, HiPlus, HiChevronRight, HiOutlineOfficeBuilding } from 'react-icons/hi'
 import { useAuth } from '@/auth'
 import useTranslation from '@/utils/hooks/useTranslation'
 import { useNavigate } from 'react-router'
@@ -118,7 +118,7 @@ const WithoutCenterDashborad: React.FC<NoStorePageProps> = ({ }) => {
                                 className="text-xs text-primary dark:text-primary-400 flex items-center gap-1 hover:underline"
                             >
                                 {t('dashboardLegacy.completeInformation')}
-                                <HiChevronLeft className="text-sm" />
+                                <HiChevronRight className="text-sm rtl:rotate-180" />
                             </button>
                         </div>
                     </div>
