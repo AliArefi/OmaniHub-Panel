@@ -15,6 +15,7 @@ import PasswordInput from '@/components/shared/PasswordInput'
 import PhoneNumberInput from '@/components/shared/PhoneNumberInput'
 import { extractDigits } from '@/utils/normalizeDigits'
 import useTranslation from '@/utils/hooks/useTranslation'
+import useAuthPolicy from '@/utils/hooks/useAuthPolicy'
 
 interface SignUpFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -43,6 +44,9 @@ const passwordChecks = (password: string) => {
 
 const SignUpForm = (props: SignUpFormProps) => {
     const { t } = useTranslation()
+    const { data: policy } = useAuthPolicy()
+    const passwordRequired = policy?.otp.registration_password_required ?? true
+    const emailRequired = policy?.otp.registration_otp_channel_policy === 'email' || policy?.otp.default_auth_identifier_mode === 'email_first'
     const { disableSubmit = false, className, setMessage } = props
     const [isSubmitting, setSubmitting] = useState(false)
     const navigate = useNavigate()
@@ -63,13 +67,13 @@ const SignUpForm = (props: SignUpFormProps) => {
         if (isGoogleSignup) return google
         return z.object({
             name: z.string().min(1, { message: t('auth.signUp.nameRequired') }),
-            email: z.string().email({ message: t('auth.signUp.emailInvalid') }),
+            email: emailRequired ? z.string().email({ message: t('auth.signUp.emailInvalid') }) : z.string().email({ message: t('auth.signUp.emailInvalid') }).or(z.literal('')),
             mobile_country_code: z.string().min(1, { message: t('auth.signUp.countryCodeRequired') }),
-            mobile_local_number: z.string().min(4, { message: t('auth.signUp.phoneRequired') }),
-            password: z.string().min(8, { message: t('auth.signUp.passwordMin') }),
-            password_confirmation: z.string().min(1, { message: t('auth.signUp.confirmationRequired') }),
-        }).refine((data) => data.password === data.password_confirmation, { message: t('auth.signUp.passwordMismatch'), path: ['password_confirmation'] })
-    }, [isGoogleSignup, t])
+            mobile_local_number: emailRequired ? z.string() : z.string().min(4, { message: t('auth.signUp.phoneRequired') }),
+            password: passwordRequired ? z.string().min(8, { message: t('auth.signUp.passwordMin') }) : z.string().optional(),
+            password_confirmation: passwordRequired ? z.string().min(1, { message: t('auth.signUp.confirmationRequired') }) : z.string().optional(),
+        }).refine((data) => !passwordRequired || data.password === data.password_confirmation, { message: t('auth.signUp.passwordMismatch'), path: ['password_confirmation'] })
+    }, [isGoogleSignup, t, passwordRequired, emailRequired])
 
     const {
         handleSubmit,
@@ -210,12 +214,9 @@ const SignUpForm = (props: SignUpFormProps) => {
 
             const result = await signUp({
                 name: values.name ?? '',
-                mobile,
-                mobile_country_code: cc,
-                mobile_local_number: local,
+                ...(local ? { mobile, mobile_country_code: cc, mobile_local_number: local } : {}),
                 email: values.email ?? '',
-                password: values.password ?? '',
-                password_confirmation: values.password_confirmation ?? '',
+                ...(passwordRequired ? { password: values.password, password_confirmation: values.password_confirmation } : {}),
             })
 
             if (result?.status === 'failed') {
@@ -391,7 +392,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                     />
                 </FormItem>
 
-                <FormItem
+                {passwordRequired && <><FormItem
                     label={t('auth.signUp.password')}
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
@@ -455,7 +456,8 @@ const SignUpForm = (props: SignUpFormProps) => {
                     />
                 </FormItem>
 
-                <Button block loading={isSubmitting} variant="solid" type="submit">
+                </>}
+                <Button block loading={isSubmitting} variant="solid" type="submit" disabled={!policy}>
                     {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
                 </Button>
             </Form>

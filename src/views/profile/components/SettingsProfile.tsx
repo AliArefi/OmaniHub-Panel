@@ -101,7 +101,7 @@ const SettingsProfile = () => {
     useEffect(() => {
         setAvatarFile(null)
         setRemoveAvatar(false)
-        setAvatarPreviewUrl(resolveImageUrl(user?.avatar ?? ''))
+        setAvatarPreviewUrl(resolveImageUrl(user?.avatar ?? '') ?? '')
         reset({
             name: user?.name ?? '',
             email: user?.email ?? '',

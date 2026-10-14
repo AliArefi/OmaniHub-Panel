@@ -8,6 +8,7 @@ import { apiAuthConfig, apiVerifyOtp } from '@/services/AuthService'
 import { useAuth } from '@/auth'
 import { extractDigits } from '@/utils/normalizeDigits'
 import useTranslation from '@/utils/hooks/useTranslation'
+import { useNavigate } from 'react-router'
 
 interface OtpVerificationFormProps {
     setOtpVerified?: (message: string) => void
@@ -27,6 +28,8 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
     const pending = useAuthChallengeStore((s) => s.pending)
     const clearPending = useAuthChallengeStore((s) => s.clear)
     const { completeAuth } = useAuth()
+    const setPending = useAuthChallengeStore((state) => state.setPending)
+    const navigate = useNavigate()
 
     useEffect(() => {
         let mounted = true
@@ -75,9 +78,13 @@ const OtpVerificationForm = (props: OtpVerificationFormProps) => {
                 challenge_id: pending.challenge_id,
                 otp,
             })
+            if (resp.success && resp.next_step === 'reset_password' && resp.challenge_id && resp.meta.reset_grant) {
+                setPending({ challenge_id: resp.challenge_id, expires_at: resp.expires_at, meta: resp.meta, user: null })
+                navigate('/reset-password')
+                return
+            }
 
             if (resp?.success && resp.next_step === 'authenticated' && resp.token) {
-                clearPending()
                 reset()
                 setOtpVerified?.(resp.message || t('auth.otp.verified'))
                 completeAuth(resp)

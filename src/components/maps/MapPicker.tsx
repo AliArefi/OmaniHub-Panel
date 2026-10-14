@@ -25,7 +25,7 @@ type GoogleMapsApi = {
 }
 
 declare global {
-    interface Window { google?: { maps: GoogleMapsApi } }
+    interface GoogleBrowserApi { maps?: GoogleMapsApi }
 }
 
 let googleLoader: Promise<GoogleMapsApi> | null = null

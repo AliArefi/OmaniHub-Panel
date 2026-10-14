@@ -68,6 +68,18 @@ export async function apiResendOtp(data: ResendOtpRequest) {
     })
 }
 
+export function apiStartRecovery(data: { email?: string; mobile?: string }) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({ url: '/auth/recovery/start', method: 'post', data })
+}
+
+export function apiEmailFallback(data: { challenge_id: string; email: string }) {
+    return ApiService.fetchDataWithAxios<AuthChallengeResponse>({ url: '/auth/otp/email-fallback', method: 'post', data })
+}
+
+export function apiCompleteRecovery(data: { challenge_id: string; reset_grant: string; password: string; password_confirmation: string }) {
+    return ApiService.fetchDataWithAxios<{ success: boolean }>({ url: '/auth/recovery/reset', method: 'post', data })
+}
+
 export async function apiForgotPassword<T>(data: ForgotPassword) {
     return ApiService.fetchDataWithAxios<T>({
         url: endpointConfig.forgotPassword,

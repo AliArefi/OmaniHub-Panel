@@ -230,7 +230,7 @@ const OrganizationForm = () => {
                 <Tabs.TabContent value="owner">
                     <AdaptiveCard>
                         <OwnerManagementTab
-                            owner={existing.data.owner}
+                            owner={existing?.data.owner}
                             onSave={async (ownerId) => {
                                 await apiUpdateAdminOrganizationOwner(slug as string, ownerId)
                                 await mutateOrganization()

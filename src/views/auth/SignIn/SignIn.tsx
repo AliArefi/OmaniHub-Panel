@@ -30,9 +30,6 @@ export const SignInBase = ({
             </div>
             <div className="mb-10">
                 <h2 className="mb-2">{t('auth.signIn.title')}</h2>
-                <p className="font-semibold heading-text">
-                    {t('auth.signIn.subtitle')}
-                </p>
             </div>
             {message && (
                 <Alert showIcon className="mb-4" type="danger">

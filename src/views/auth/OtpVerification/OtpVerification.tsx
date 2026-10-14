@@ -2,7 +2,10 @@ import Alert from '@/components/ui/Alert'
 import OtpVerificationForm from './components/OtpVerificationForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
-import { apiResendOtp , apiAuthConfig } from '@/services/AuthService'
+import { apiResendOtp, apiAuthConfig, apiEmailFallback } from '@/services/AuthService'
+import Input from '@/components/ui/Input'
+import Button from '@/components/ui/Button'
+import useAuthPolicy from '@/utils/hooks/useAuthPolicy'
 import { Navigate } from 'react-router'
 import { useEffect, useState } from 'react'
 import useTranslation from '@/utils/hooks/useTranslation'
@@ -16,6 +19,7 @@ const otpDeliveryKey = (deliveryChannel?: string) => {
 
 const maskIdentifier = (identifier: string) => {
     const trimmed = identifier.trim()
+    if (trimmed.includes('*')) return trimmed
     if (trimmed.includes('@')) {
         const [local, domain] = trimmed.split('@')
         const safeLocal =
@@ -30,7 +34,12 @@ const maskIdentifier = (identifier: string) => {
 }
 
 export const OtpVerificationBase = () => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const { data: policy } = useAuthPolicy()
+    const [email, setEmail] = useState('')
+    const [fallbackOpen, setFallbackOpen] = useState(false)
+    const [sending, setSending] = useState(false)
+    const [now, setNow] = useState(Date.now())
     const [otpVerified, setOtpVerified] = useTimeOutMessage()
     const [otpResend, setOtpResend] = useTimeOutMessage()
     const [message, setMessage] = useTimeOutMessage()
@@ -38,6 +47,12 @@ export const OtpVerificationBase = () => {
     const pending = useAuthChallengeStore((s) => s.pending)
     const setPending = useAuthChallengeStore((s) => s.setPending)
     const [staticHint, setStaticHint] = useState<string | null>(null)
+    useEffect(() => {
+        const timer = window.setInterval(() => setNow(Date.now()), 1000)
+        return () => window.clearInterval(timer)
+    }, [])
+    const cooldown = Math.max(0, Math.ceil((Date.parse(pending?.meta.resend_available_at ?? '') - now) / 1000)) || 0
+    const remaining = Math.max(0, Math.ceil((Date.parse(pending?.expires_at ?? '') - now) / 1000)) || 0
 
     useEffect(() => {
         apiAuthConfig()
@@ -76,14 +91,7 @@ export const OtpVerificationBase = () => {
         return <Navigate replace to="/sign-in" />
     }
 
-    const deliveryChannel =
-        pending.meta && typeof pending.meta === 'object' && 'delivery_channel' in pending.meta
-            ? String((pending.meta as any).delivery_channel ?? '')
-            : ''
-    const deliveryDriver =
-        pending.meta && typeof pending.meta === 'object' && 'delivery_driver' in pending.meta
-            ? String((pending.meta as any).delivery_driver ?? '')
-            : ''
+    const deliveryChannel = pending.meta.delivery_channel ?? pending.meta.channel ?? ''
 
     return (
         <div>
@@ -95,9 +103,9 @@ export const OtpVerificationBase = () => {
                 {pending.meta &&
                 typeof pending.meta === 'object' &&
                 'identifier' in pending.meta &&
-                (pending.meta as any).identifier ? (
+                pending.meta.identifier ? (
                     <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-all">
-                        {maskIdentifier(String((pending.meta as any).identifier))}
+                        {maskIdentifier(pending.meta.identifier)}
                     </p>
                 ) : null}
             </div>
@@ -114,7 +122,7 @@ export const OtpVerificationBase = () => {
                 </Alert>
             ) : null}
 
-            {deliveryDriver === 'static_code' && staticHint ? (
+            {deliveryChannel === 'static' && staticHint ? (
                 <Alert showIcon className="mb-4" type="info">
                     <span className="break-all">
                         {t('auth.otp.devCode', { code: staticHint })}
@@ -129,13 +137,34 @@ export const OtpVerificationBase = () => {
             ) : null}
 
             <OtpVerificationForm setMessage={setMessage} setOtpVerified={setOtpVerified} />
+            <p className="mt-3 text-center text-sm" aria-live="polite">{remaining > 0 ? `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}` : t('auth.otp.expired')}</p>
 
             <div className="mt-4 text-center">
                 <span className="font-semibold">{t('auth.otp.notReceived')} </span>
-                <button className="heading-text font-bold underline" onClick={handleResendOtp}>
-                    {t('auth.otp.resend')}
+                <button disabled={cooldown > 0 || remaining === 0} className="heading-text font-bold underline disabled:opacity-50" onClick={handleResendOtp}>
+                    {t('auth.otp.resend')}{cooldown > 0 ? ` (${cooldown})` : ''}
                 </button>
             </div>
+            {policy?.otp.allow_email_fallback && deliveryChannel !== 'email' && <div className="mt-5">
+                <button type="button" className="text-sm underline" onClick={() => setFallbackOpen(!fallbackOpen)}>
+                    {i18n.language.startsWith('ar') ? 'استخدام البريد الإلكتروني بدلاً من ذلك' : 'Try email instead'}
+                </button>
+                {fallbackOpen && <form className="mt-3 space-y-3" onSubmit={async (event) => {
+                    event.preventDefault()
+                    if (!pending || sending) return
+                    setSending(true)
+                    try {
+                        const response = await apiEmailFallback({ challenge_id: pending.challenge_id, email })
+                        if (response.challenge_id) {
+                            setPending({ challenge_id: response.challenge_id, expires_at: response.expires_at, meta: response.meta, user: null })
+                            setFallbackOpen(false)
+                        }
+                    } catch { setMessage(t('auth.otp.verifyError')) } finally { setSending(false) }
+                }}>
+                    <Input required type="email" aria-label={t('auth.signIn.email')} value={email} onChange={(event) => setEmail(event.target.value)} />
+                    <Button type="submit" variant="solid" loading={sending} disabled={cooldown > 0 || remaining === 0}>{t('auth.otp.resend')}</Button>
+                </form>}
+            </div>}
         </div>
     )
 }

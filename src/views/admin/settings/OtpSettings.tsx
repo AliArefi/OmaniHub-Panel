@@ -56,7 +56,21 @@ type OtpFormValues = {
     login_otp_channel: string
     require_verified_user_profile: boolean
     mfa_enabled: boolean
+    login_method: string
+    recovery_flow_mode: string
+    recovery_otp_channel: string
+    allow_email_fallback: boolean
+    whatsapp_template_name: string
+    whatsapp_template_language: string
+    whatsapp_template_expiry_seconds: number
+    provider_chain: Record<string, Record<string, number[]>>
+    registration_provider_chain?: Record<string, number[]>
+    login_provider_chain?: Record<string, number[]>
+    recovery_provider_chain?: Record<string, number[]>
+    mfa_modes?: string | string[]
 }
+
+type Provider = { id: number; name: string; is_active: boolean; supported_channels: string[]; provider_type: string }
 
 const selectField = (
     options: { label: string; value: string }[],
@@ -64,18 +78,27 @@ const selectField = (
 ) => options.find((o) => o.value === value)
 
 const OtpSettings = () => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
+    const label = (english: string, arabic: string) => i18n.language.startsWith('ar') ? arabic : english
     const { can } = usePermission()
     const canEdit = can('update otp settings')
     const { data, mutate } = useSWR('admin-settings-otp', () =>
         apiGetSingletonSettings<OtpFormValues>('otp'),
     )
     const [submitting, setSubmitting] = useState(false)
+    const providers = (data as unknown as { providers?: Provider[] })?.providers ?? []
     const { control, handleSubmit, reset } = useForm<OtpFormValues>()
 
     useEffect(() => {
         if (data?.data) {
-            reset(data.data as unknown as OtpFormValues)
+            const values = data.data as OtpFormValues
+            reset({ ...values, mfa_modes: Array.isArray(values.mfa_modes) ? values.mfa_modes.join(',') : values.mfa_modes,
+                provider_chain: {
+                    registration: values.registration_provider_chain ?? {},
+                    login: values.login_provider_chain ?? {},
+                    recovery: values.recovery_provider_chain ?? {},
+                },
+            })
         }
     }, [data, reset])
 
@@ -85,8 +108,9 @@ const OtpSettings = () => {
             await apiUpdateSingletonSettings('otp', values)
             toast.push(<Notification type="success" title={t('adminSettings.saved')} />)
             mutate()
-        } catch {
-            toast.push(<Notification type="danger" title={t('adminSettings.saveError')} />)
+        } catch (error) {
+            const errors = (error as { response?: { data?: { errors?: Record<string, string[]> } } }).response?.data?.errors
+            toast.push(<Notification type="danger" title={t('adminSettings.saveError')}>{errors ? Object.values(errors).flat().join(' ') : ''}</Notification>)
         } finally {
             setSubmitting(false)
         }
@@ -263,6 +287,38 @@ const OtpSettings = () => {
                         />
                     </FormItem>
                 </div>
+                <section className="mt-6 border-t pt-6">
+                    <h4 className="mb-4">{label('Verification and recovery', 'التحقق واستعادة الحساب')}</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {([
+                            ['login_method', label('Sign-in method', 'طريقة تسجيل الدخول'), [
+                                { value: 'otp_only', label: label('Verification code', 'رمز التحقق') },
+                                { value: 'password_otp', label: label('Password and verification code', 'كلمة المرور ورمز التحقق') },
+                            ]],
+                            ['recovery_flow_mode', label('Password recovery verification', 'التحقق لاستعادة كلمة المرور'), FLOW_OPTIONS.filter((option) => option.value !== 'optional')],
+                            ['recovery_otp_channel', label('Recovery delivery', 'إرسال رمز الاستعادة'), CHANNEL_OPTIONS],
+                        ] as const).map(([name, title, options]) => <FormItem key={name} label={title}>
+                            <Controller name={name} control={control} render={({ field }) => <Select options={[...options]} value={selectField([...options], field.value)} isDisabled={!canEdit} onChange={(option) => field.onChange(option?.value)} />} />
+                        </FormItem>)}
+                        <FormItem label={label('Allow email recovery', 'السماح بالاستعادة عبر البريد')}>
+                            <Controller name="allow_email_fallback" control={control} render={({ field }) => <Switcher checked={Boolean(field.value)} disabled={!canEdit} onChange={field.onChange} />} />
+                        </FormItem>
+                        {([
+                            ['whatsapp_template_name', label('WhatsApp verification template', 'قالب التحقق عبر واتساب')],
+                            ['whatsapp_template_language', label('Template language', 'لغة القالب')],
+                            ['whatsapp_template_expiry_seconds', label('Template expiry (seconds)', 'صلاحية القالب بالثواني')],
+                        ] as const).map(([name, title]) => <FormItem key={name} label={title}><Controller name={name} control={control} render={({ field }) => <Input {...field} disabled={!canEdit} type={name.endsWith('seconds') ? 'number' : 'text'} onChange={(event) => field.onChange(name.endsWith('seconds') ? Number(event.target.value) : event.target.value)} />} /></FormItem>)}
+                    </div>
+                </section>
+                <section className="mt-6 border-t pt-6">
+                    <h4 className="mb-4">{label('Delivery providers', 'مزودو الإرسال')}</h4>
+                    {(['registration', 'login', 'recovery'] as const).map((flow) => <div key={flow} className="mb-5 grid gap-4 md:grid-cols-2">
+                        {(['whatsapp', 'email'] as const).map((channel) => {
+                            const options = providers.filter((provider) => provider.is_active && provider.provider_type !== 'fake' && provider.supported_channels.includes(channel)).map((provider) => ({ value: provider.id, label: provider.name }))
+                            return <FormItem key={channel} label={`${flow} / ${channel}`}><Controller name={`provider_chain.${flow}.${channel}`} control={control} render={({ field }) => <Select isMulti options={options} value={options.filter((option) => (field.value ?? []).includes(option.value))} isDisabled={!canEdit} onChange={(selected) => field.onChange(selected.map((option) => option.value))} />} /></FormItem>
+                        })}
+                    </div>)}
+                </section>
                 {canEdit && (
                     <div className="flex justify-end mt-6">
                         <Button type="submit" variant="solid" loading={submitting}>

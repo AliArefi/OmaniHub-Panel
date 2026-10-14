@@ -1,16 +1,12 @@
-import { useMemo, useState } from 'react'
-import Input from '@/components/ui/Input'
+import { useEffect, useState, type ReactNode } from 'react'
 import Button from '@/components/ui/Button'
-import { FormItem, Form } from '@/components/ui/Form'
 import PasswordInput from '@/components/shared/PasswordInput'
-import classNames from '@/utils/classNames'
+import AuthIdentityInput, { type AuthIdentity } from '@/components/shared/AuthIdentityInput'
+import { identityPayload } from '@/utils/authIdentity'
 import { useAuth } from '@/auth'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import type { CommonProps } from '@/@types/common'
-import type { ReactNode } from 'react'
+import useAuthPolicy from '@/utils/hooks/useAuthPolicy'
 import useTranslation from '@/utils/hooks/useTranslation'
+import type { CommonProps } from '@/@types/common'
 
 interface SignInFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -18,131 +14,47 @@ interface SignInFormProps extends CommonProps {
     setMessage?: (message: string) => void
 }
 
-type SignInFormSchema = {
-    email: string
-    password: string
-}
-
-const SignInForm = (props: SignInFormProps) => {
-    const { t } = useTranslation()
-    const [isSubmitting, setSubmitting] = useState<boolean>(false)
-
-    const validationSchema = useMemo(
-        () =>
-            z.object({
-                email: z.string().min(1, { message: t('auth.signIn.emailRequired') }),
-                password: z.string().min(1, { message: t('auth.signIn.passwordRequired') }),
-            }),
-        [t],
-    )
-
-    const { disableSubmit = false, className, setMessage, passwordHint } = props
-
-    // admin-01@ecme.com
-    // 123Qwe
-    const {
-        handleSubmit,
-        formState: { errors },
-        control,
-        setError,
-    } = useForm<SignInFormSchema>({
-        defaultValues: {
-            email: '',
-            password: '',
-        },
-        resolver: zodResolver(validationSchema),
-    })
-
+export default function SignInForm({ disableSubmit, className, setMessage, passwordHint }: SignInFormProps) {
+    const { t, i18n } = useTranslation()
     const { signIn } = useAuth()
-
-    const onSignIn = async (values: SignInFormSchema) => {
-        const { email, password } = values
-
-        if (!disableSubmit) {
-            setSubmitting(true)
-
-            const result = await signIn({ email, password })
-
-            if (result?.status === 'failed') {
-                setMessage?.(result.message)
-                if (result.fieldErrors) {
-                    const fe = result.fieldErrors as Record<string, string[]>
-                    if (fe.email?.[0])
-                        setError('email', {
-                            type: 'server',
-                            message: fe.email[0],
-                        })
-                    if (fe.password?.[0])
-                        setError('password', {
-                            type: 'server',
-                            message: fe.password[0],
-                        })
-                }
+    const { data: policy, error } = useAuthPolicy()
+    const [identity, setIdentity] = useState<AuthIdentity>({ countryCode: '+968', localNumber: '', email: '', mode: 'phone' })
+    const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
+    useEffect(() => {
+        if (policy) {
+            const redirect = new URLSearchParams(window.location.search).get('redirectUrl') ?? ''
+            setShowPassword((current) => current || policy.otp.login_method !== 'otp_only' || redirect.startsWith('/admin'))
+            if (policy.otp.login_otp_channel_policy === 'email' || policy.otp.default_auth_identifier_mode === 'email_first') {
+                setIdentity((current) => ({ ...current, mode: 'email' }))
             }
         }
+    }, [policy])
 
-        setSubmitting(false)
-    }
-
-    return (
-        <div className={className}>
-            <Form onSubmit={handleSubmit(onSignIn)}>
-                <FormItem
-                    label={t('auth.signIn.email')}
-                    invalid={Boolean(errors.email)}
-                    errorMessage={errors.email?.message}
-                >
-                    <Controller
-                        name="email"
-                        control={control}
-                        render={({ field }) => (
-                            <Input
-                                type="email"
-                                placeholder={t('auth.signIn.email')}
-                                autoComplete="off"
-                                dir='ltr'
-                                className="text-left"
-                                style={{ fontFamily: 'sans-serif' }}
-                                {...field}
-                            />
-                        )}
-                    />
-                </FormItem>
-                <FormItem
-                    label={t('auth.signIn.password')}
-                    invalid={Boolean(errors.password)}
-                    errorMessage={errors.password?.message}
-                    className={classNames(
-                        passwordHint ? 'mb-0' : '',
-                        errors.password?.message ? 'mb-8' : '',
-                    )}
-                >
-                    <Controller
-                        name="password"
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field }) => (
-                            <PasswordInput
-                                type="text"
-                                placeholder={t('auth.signIn.password')}
-                                autoComplete="off"
-                                {...field}
-                            />
-                        )}
-                    />
-                </FormItem>
-                {passwordHint}
-                <Button
-                    block
-                    loading={isSubmitting}
-                    variant="solid"
-                    type="submit"
-                >
-                    {isSubmitting ? t('auth.signIn.submitting') : t('auth.signIn.submit')}
-                </Button>
-            </Form>
-        </div>
-    )
+    return <form className={className} onSubmit={async (event) => {
+        event.preventDefault()
+        if (!policy || disableSubmit || submitting) return
+        setSubmitting(true)
+        try {
+            const result = await signIn({ ...identityPayload(identity), ...(showPassword ? { password } : {}) })
+            if (result?.status === 'failed') {
+                setMessage?.(result.message)
+                if (result.nextStep === 'password_verify') setShowPassword(true)
+            }
+        } finally { setSubmitting(false) }
+    }}>
+        <AuthIdentityInput value={identity} onChange={setIdentity} />
+        {showPassword ? <label className="mb-5 block">{t('auth.signIn.password')}
+            <PasswordInput required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+        </label> : <button type="button" className="mb-5 text-sm underline" onClick={() => setShowPassword(true)}>{i18n.language.startsWith('ar') ? 'تسجيل الدخول بكلمة المرور' : 'Sign in with a password'}</button>}
+        {showPassword && policy?.otp.login_method === 'otp_only' && <button type="button" className="mb-5 text-sm underline" onClick={() => { setShowPassword(false); setPassword('') }}>
+            {i18n.language.startsWith('ar') ? 'تسجيل الدخول برمز التحقق' : 'Sign in with a code'}
+        </button>}
+        {passwordHint}
+        {error && <p role="alert">{t('auth.signUp.signupError')}</p>}
+        <Button block type="submit" variant="solid" loading={submitting} disabled={!policy || disableSubmit}>
+            {t('auth.signIn.submit')}
+        </Button>
+    </form>
 }
-
-export default SignInForm

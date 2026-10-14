@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import Button from '@/components/ui/Button'
 import { FormItem, Form } from '@/components/ui/Form'
 import PasswordInput from '@/components/shared/PasswordInput'
-import { apiResetPassword } from '@/services/AuthService'
+import { apiResetPassword, apiCompleteRecovery } from '@/services/AuthService'
+import { useAuthChallengeStore } from '@/store/authChallengeStore'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -23,6 +24,8 @@ type ResetPasswordFormSchema = {
 const ResetPasswordForm = (props: ResetPasswordFormProps) => {
     const { t } = useTranslation()
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
+    const pending = useAuthChallengeStore((state) => state.pending)
+    const clearPending = useAuthChallengeStore((state) => state.clear)
 
     const validationSchema = useMemo(() => z.object({
         newPassword: z.string().min(1, t('auth.resetPassword.passwordRequired')),
@@ -46,10 +49,14 @@ const ResetPasswordForm = (props: ResetPasswordFormProps) => {
         const { newPassword } = values
 
         try {
-            const resp = await apiResetPassword<boolean>({
-                password: newPassword,
-            })
+            setSubmitting(true)
+            const resetGrant = pending?.meta.reset_grant
+            const params = new URLSearchParams(window.location.search)
+            const resp = resetGrant && pending
+                ? await apiCompleteRecovery({ challenge_id: pending.challenge_id, reset_grant: resetGrant, password: newPassword, password_confirmation: values.confirmPassword })
+                : await apiResetPassword<boolean>({ password: newPassword, password_confirmation: values.confirmPassword, email: params.get('email') ?? '', token: params.get('token') ?? '' })
             if (resp) {
+                clearPending()
                 setSubmitting(false)
                 setResetComplete?.(true)
             }

@@ -274,7 +274,7 @@ export default function CenterMedia() {
                     {isImage ? (
                         <img
                             src={item.thumb_url || item.url}
-                            alt={item.alt || item.name}
+                            alt={item.alt || item.name || ''}
                             className="w-14 h-14 rounded object-cover bg-gray-100"
                         />
                     ) : (
@@ -513,7 +513,7 @@ export default function CenterMedia() {
                                             }
                                             alt={
                                                 payload.featured_media.alt ||
-                                                payload.featured_media.name
+                                                payload.featured_media.name || ''
                                             }
                                             className="w-full rounded object-cover bg-gray-100"
                                         />

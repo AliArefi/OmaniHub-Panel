@@ -1,19 +1,20 @@
 export type OtpChannel = 'auto' | 'sms' | 'whatsapp' | 'email'
 
 export type SignInCredential = {
-    email: string
-    password: string
+    email?: string
+    mobile?: string
+    password?: string
     otp_channel?: OtpChannel
 }
 
 export type SignUpCredential = {
     name: string
-    mobile: string
+    mobile?: string
     mobile_country_code?: string
     mobile_local_number?: string
     email?: string
-    password: string
-    password_confirmation: string
+    password?: string
+    password_confirmation?: string
     otp_channel?: OtpChannel
 }
 
@@ -45,6 +46,8 @@ export type AuthNextStep =
     | 'register'
     | 'login'
     | 'wait'
+    | 'password_verify'
+    | 'reset_password'
     | null
 
 export type AuthChallengeMeta = {
@@ -63,6 +66,8 @@ export type AuthChallengeMeta = {
     mfa_required?: boolean
     otp_policy?: 'required' | 'optional' | 'disabled' | string
     otp_required?: boolean
+    reset_grant?: string
+    resend_available_at?: string
     prefill?: {
         email?: string | null
         name?: string | null
@@ -117,6 +122,11 @@ export type AuthConfigResponse = {
         allow_email_identifier_fallback: boolean
         login_otp_channel_policy: string
         registration_otp_channel_policy: string
+        login_method: 'otp_only' | 'password_otp' | 'password'
+        recovery_flow_mode: string
+        recovery_otp_channel_policy: string
+        allow_email_fallback: boolean
+        registration_password_required: boolean
     }
     oauth: {
         google_client_id: string | null
@@ -129,7 +139,9 @@ export type ForgotPassword = {
 
 export type ResetPassword = {
     password: string
-    // kept as-is; server contract requires more fields, but UI in this template may differ
+    password_confirmation: string
+    email: string
+    token: string
 }
 
 export type AuthRequestStatus = 'success' | 'failed' | ''
@@ -138,6 +150,7 @@ export type AuthResult = Promise<{
     status: AuthRequestStatus
     message: string
     fieldErrors?: Record<string, string[]>
+    nextStep?: AuthNextStep
 }>
 
 export type User = {

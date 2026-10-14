@@ -39,11 +39,14 @@ const OTPInput = ({
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
         const newValue = normalizeDigits(e.target.value)
-        if (newValue.length > 1) return
+        if (newValue.length > 1) {
+            if (/^[0-9]+$/.test(newValue)) onChange?.(newValue.slice(0, length).padEnd(length, ' '))
+            return
+        }
         if (newValue && !containsOnlySingleDigit(newValue)) return
 
-        const newOTPValue =
-            value.slice(0, index) + newValue + value.slice(index + 1)
+        const padded = value.padEnd(length, ' ')
+        const newOTPValue = padded.slice(0, index) + (newValue || ' ') + padded.slice(index + 1)
 
         onChange?.(newOTPValue)
 
@@ -59,9 +62,10 @@ const OTPInput = ({
     ) => {
         if (e.key === 'Backspace') {
             e.preventDefault()
-            if (value[index]) {
+            if (value[index]?.trim()) {
+                const padded = value.padEnd(length, ' ')
                 const newOTPValue =
-                    value.slice(0, index) + '' + value.slice(index + 1)
+                    padded.slice(0, index) + ' ' + padded.slice(index + 1)
                 onChange?.(newOTPValue)
             } else if (index > 0) {
                 setActiveInput(index - 1)
@@ -85,7 +89,7 @@ const OTPInput = ({
         )
             .slice(0, length)
         if (pastedData.match(/^[0-9]+$/)) {
-            onChange?.(pastedData.padEnd(length, ''))
+            onChange?.(pastedData.padEnd(length, ' '))
         }
     }
 
@@ -94,7 +98,7 @@ const OTPInput = ({
     }
 
     return (
-        <div className={`flex gap-2 ${className}`}>
+        <div className={`grid w-full gap-2 ${className}`} style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))`, maxWidth: length * 58 + (length - 1) * 8 }}>
             {Array(length)
                 .fill(null)
                 .map((_, index) => (
@@ -102,14 +106,15 @@ const OTPInput = ({
                         key={index}
                         ref={setRef(index)}
                         className={classNames(
-                            'text-center text-lg h-[58px] w-[58px]',
+                            'min-w-0 text-center text-lg h-[58px] w-full',
                             inputClass,
                         )}
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        maxLength={1}
-                        value={value[index] || ''}
+                        maxLength={index === 0 ? length : 1}
+                        value={value[index]?.trim() || ''}
+                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
                         disabled={disabled}
                         autoFocus={autoFocus && index === 0}
                         placeholder={placeholder}

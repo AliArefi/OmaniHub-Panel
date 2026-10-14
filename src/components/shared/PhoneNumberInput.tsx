@@ -22,6 +22,7 @@ type PhoneNumberInputProps = {
     onChange: (next: PhoneNumberValue) => void
     invalid?: boolean
     placeholder?: string
+    required?: boolean
 }
 
 const normalizeDialCode = (dialCode: string) => {
@@ -34,6 +35,7 @@ const PhoneNumberInput = ({
     onChange,
     invalid,
     placeholder = 'Mobile number',
+    required = false,
 }: PhoneNumberInputProps) => {
     const options = useMemo(() => {
         return (countryList as CountryOption[]).map((c) => ({
@@ -65,6 +67,7 @@ const PhoneNumberInput = ({
                     />
                 </div>
                 <Input
+                    required={required}
                     invalid={invalid}
                     type="tel"
                     placeholder={placeholder}

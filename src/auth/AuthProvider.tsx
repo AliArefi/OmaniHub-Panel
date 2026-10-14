@@ -17,6 +17,7 @@ import {
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { useNavigate } from 'react-router'
 import { useAuthChallengeStore } from '@/store/authChallengeStore'
+import { safeAuthReturnPath } from '@/utils/authIdentity'
 import type {
     SignInCredential,
     SignUpCredential,
@@ -88,11 +89,14 @@ function AuthProvider({ children }: AuthProviderProps) {
     const authenticated = Boolean(signedIn)
 
     const navigatorRef = useRef<IsolatedNavigatorRef>(null)
+    const pendingReturnPath = useRef<string | undefined>(undefined)
 
     const redirect = () => {
         const search = window.location.search
         const params = new URLSearchParams(search)
-        const redirectUrl = params.get(REDIRECT_URL_KEY)
+        const candidate = params.get(REDIRECT_URL_KEY) ?? pendingReturnPath.current
+        const redirectUrl = safeAuthReturnPath(candidate)
+        pendingReturnPath.current = undefined
 
         navigatorRef.current?.navigate(
             redirectUrl ? redirectUrl : appConfig.authenticatedEntryPath,
@@ -100,6 +104,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const handleSignIn = (tokens: Token, user?: User) => {
+        pendingReturnPath.current = useAuthChallengeStore.getState().pending?.returnPath
         clearPendingChallenge()
         setAccessToken(tokens.accessToken)
         setSessionSignedIn(true)
@@ -110,11 +115,11 @@ function AuthProvider({ children }: AuthProviderProps) {
         }
     }
 
-    const handleSignOut = useCallback(() => {
+    const handleSignOut = useCallback((preservePending = false) => {
         setUser({})
         setAccessToken(null)
         setSessionSignedIn(false)
-        clearPendingChallenge()
+        if (!preservePending) clearPendingChallenge()
     }, [clearPendingChallenge, setAccessToken, setSessionSignedIn, setUser])
 
     const completeAuth = (resp: AuthChallengeResponse) => {
@@ -164,6 +169,7 @@ function AuthProvider({ children }: AuthProviderProps) {
                 return {
                     status: 'failed',
                     message: resp.message || 'Unable to sign in',
+                    nextStep: resp.next_step,
                 }
             }
 
@@ -275,11 +281,11 @@ function AuthProvider({ children }: AuthProviderProps) {
                     setUser(sessionUser)
                     seedAdminUiIfNeeded(sessionUser)
                 } else {
-                    handleSignOut()
+                    handleSignOut(true)
                 }
             } catch {
                 if (!cancelled) {
-                    handleSignOut()
+                    handleSignOut(true)
                 }
             }
         })()

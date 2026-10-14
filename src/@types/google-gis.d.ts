@@ -1,8 +1,7 @@
 export {}
 
 declare global {
-    interface Window {
-        google?: {
+    interface GoogleBrowserApi {
             accounts?: {
                 id?: {
                     initialize: (options: {
@@ -35,7 +34,7 @@ declare global {
                     ) => void
                 }
             }
-        }
     }
+    interface Window { google?: GoogleBrowserApi }
 }
 

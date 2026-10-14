@@ -6,6 +6,7 @@ import ForgotPasswordForm from './components/ForgotPasswordForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useNavigate } from 'react-router'
 import useTranslation from '@/utils/hooks/useTranslation'
+import useAuthPolicy from '@/utils/hooks/useAuthPolicy'
 
 type ForgotPasswordProps = {
     signInUrl?: string
@@ -15,6 +16,7 @@ export const ForgotPasswordBase = ({
     signInUrl = '/sign-in',
 }: ForgotPasswordProps) => {
     const { t } = useTranslation()
+    const { data: policy } = useAuthPolicy()
     const [emailSent, setEmailSent] = useState(false)
     const [message, setMessage] = useTimeOutMessage()
 
@@ -37,9 +39,9 @@ export const ForgotPasswordBase = ({
                 ) : (
                     <>
                         <h3 className="mb-2">{t('auth.forgotPassword.title')}</h3>
-                        <p className="font-semibold heading-text">
+                        {policy?.otp.recovery_flow_mode !== 'required' && <p className="font-semibold heading-text">
                            {t('auth.forgotPassword.subtitle')}
-                        </p>
+                        </p>}
                     </>
                 )}
             </div>
