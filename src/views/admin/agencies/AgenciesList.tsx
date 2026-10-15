@@ -8,6 +8,7 @@ import Tooltip from '@/components/ui/Tooltip'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { TbEdit, TbTrash } from 'react-icons/tb'
 import axios from 'axios'
+import dayjs from 'dayjs'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import usePermission from '@/utils/hooks/usePermission'
@@ -82,6 +83,14 @@ const AgenciesList = () => {
             cell: (props) => props.row.original.organization?.title ?? '—',
         },
         {
+            header: 'Created',
+            accessorKey: 'created_at',
+            cell: (props) =>
+                props.row.original.created_at
+                    ? dayjs(props.row.original.created_at).format('YYYY-MM-DD')
+                    : '—',
+        },
+        {
             header: '',
             id: 'actions',
             cell: (props) => {
@@ -125,6 +134,7 @@ const AgenciesList = () => {
         <>
             <AdminListPage<AdminAgency>
                 trashEnabled
+                dateFilter
                 title="Agencies"
                 endpoint="/admin/agencies"
                 columns={columns}

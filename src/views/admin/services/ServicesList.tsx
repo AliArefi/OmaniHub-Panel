@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import dayjs from 'dayjs'
 import AdminListPage from '@/components/admin/AdminListPage'
 import AdminPreviewAction from '@/components/admin/AdminPreviewAction'
 import Button from '@/components/ui/Button'
@@ -176,6 +177,14 @@ const ServicesList = () => {
             accessorKey: 'order_number',
         },
         {
+            header: 'Created',
+            accessorKey: 'created_at',
+            cell: (props) =>
+                props.row.original.created_at
+                    ? dayjs(props.row.original.created_at).format('YYYY-MM-DD')
+                    : '—',
+        },
+        {
             header: '',
             id: 'actions',
             cell: (props) => {
@@ -268,6 +277,7 @@ const ServicesList = () => {
     return (
         <>
             <AdminListPage<ServiceTreeRow>
+                dateFilter
                 trashEnabled
                 title="Services"
                 endpoint="/admin/services"

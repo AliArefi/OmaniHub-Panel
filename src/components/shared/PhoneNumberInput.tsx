@@ -56,6 +56,7 @@ const PhoneNumberInput = ({
                 <div className="min-w-[150px]">
                     <Select<CountryOption, false, GroupBase<CountryOption>>
                         isSearchable
+                        className="text-xs"
                         value={selected}
                         options={options}
                         getOptionValue={(opt) => `${opt.value}-${opt.dialCode}`}

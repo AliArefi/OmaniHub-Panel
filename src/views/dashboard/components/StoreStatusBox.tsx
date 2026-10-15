@@ -26,7 +26,7 @@ const StoreStatusBox = memo(() => {
     return (
         <Card className="flex flex-col gap-5 p-5 h-full">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-5">
                 <h2 className="text-base font-semibold">{t('dashboard.centerStatus.title')}</h2>
                 <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
                     {t('dashboard.centerStatus.published')}

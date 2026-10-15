@@ -6,6 +6,7 @@ import Container from '@/components/shared/Container'
 import DataTable from '@/components/shared/DataTable'
 import DebouceInput from '@/components/shared/DebouceInput'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import AdminDateRangeFilter from '@/components/admin/AdminDateRangeFilter'
 import Button from '@/components/ui/Button'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
@@ -16,6 +17,7 @@ import { TbPlus, TbRestore, TbSearch, TbTrash } from 'react-icons/tb'
 import type { ColumnDef, OnSortParam } from '@/components/shared/DataTable'
 import type { TableQueries } from '@/@types/common'
 import type { AdminListFilters } from '@/services/admin/AdminApiService'
+import type { AdminDateRange } from '@/components/admin/AdminDateRangeFilter'
 
 export type AdminListPageProps<T extends { id: number }> = {
     title: string
@@ -32,6 +34,8 @@ export type AdminListPageProps<T extends { id: number }> = {
     extraFilters?: React.ReactNode
     searchPlaceholder?: string
     statusFilters?: string[]
+    /** Show a created-date range filter; sends `created_from` / `created_to` (YYYY-MM-DD, inclusive). */
+    dateFilter?: boolean
     trashEnabled?: boolean
     initialPageSize?: number
     alternateView?: { label: string; endpoint: string; columns: AdminListPageProps<T>['columns'] }
@@ -61,6 +65,7 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
         extraFilters,
         searchPlaceholder = 'Search…',
         statusFilters = [],
+        dateFilter = false,
         trashEnabled = false,
         initialPageSize = 20,
         alternateView,
@@ -80,12 +85,15 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
     const [status, setStatus] = useState('')
     const [isTrash, setIsTrash] = useState(false)
     const [isAlternate, setIsAlternate] = useState(false)
+    const [dateRange, setDateRange] = useState<AdminDateRange>({})
     const [bulkAction, setBulkAction] = useState<'delete' | 'force-delete' | null>(null)
 
     const activeFilters: AdminListFilters = {
         ...filterData,
         status: isTrash || isAlternate ? undefined : status || undefined,
         trashed: isTrash || undefined,
+        created_from: dateRange.from,
+        created_to: dateRange.to,
     }
 
     const { list, total, counts, isLoading, mutate } = useAdminList<T>(
@@ -129,6 +137,12 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
 
     const changeStatus = (nextStatus: string) => {
         setStatus(nextStatus)
+        setSelected([])
+        setTableData((prev) => ({ ...cloneDeep(prev), pageIndex: 1 }))
+    }
+
+    const changeDateRange = (range: AdminDateRange) => {
+        setDateRange(range)
         setSelected([])
         setTableData((prev) => ({ ...cloneDeep(prev), pageIndex: 1 }))
     }
@@ -271,6 +285,9 @@ function AdminListPage<T extends { id: number }>(props: AdminListPageProps<T>) {
                             prefix={<TbSearch className="text-lg" />}
                             onChange={(e) => handleSearch(e.target.value)}
                         />
+                        {dateFilter && (
+                            <AdminDateRangeFilter onChange={changeDateRange} />
+                        )}
                         {extraFilters}
                     </div>
                     <DataTable
