@@ -998,7 +998,38 @@
     "expenseLedger": "Expense ledger",
     "noExpenses": "No expenses in this month and currency.",
     "saveError": "Could not save. Please review the details.",
-    "close": "Close"
+    "close": "Close",
+    "viewInvoice": "View invoice",
+    "help": {
+      "month": "Every figure on this page covers the selected calendar month only.",
+      "currency": "Totals are calculated separately for each currency. Only invoices and expenses recorded in this currency are shown.",
+      "revenue": "Sum of all invoices issued this month (after discount, including tax), whether paid or not.",
+      "collected": "Total of invoices marked as “Paid”. The status is set by you when issuing, not confirmed by a payment gateway.",
+      "expenses": "Sum of the operating expenses recorded in the Expenses tab for this month.",
+      "net": "Agency share of services minus operating expenses. Tax is not included.",
+      "flow": "How service value is split between member shares and operating expenses. Bars compare each amount with the month’s service value.",
+      "services": "Value of invoiced services after discounts and before tax.",
+      "memberPayouts": "Amount owed to members, based on each service’s member share at the time the invoice was issued.",
+      "operatingExpenses": "Costs recorded in the Expenses tab, such as rent, supplies or salaries.",
+      "atGlance": "Key monthly counters for the selected currency.",
+      "invoicesIssued": "Number of invoices issued during this month.",
+      "discounts": "Total discounts granted on invoices.",
+      "taxes": "Total tax added to invoices. Tax is not part of the agency or member shares.",
+      "agencyShare": "What the agency keeps from services after member shares, before expenses and tax.",
+      "uncollected": "Invoiced revenue that has not been marked as paid yet.",
+      "readyToInvoice": "Reservations that do not have an invoice yet. Issue one to include them in the reports.",
+      "issuedInvoices": "Invoices issued in the selected month and currency. Open “View invoice” to see the bilingual invoice and save it as PDF.",
+      "invoiceDiscount": "Discount applied to this invoice.",
+      "invoiceTotal": "Final amount payable: subtotal − discount + tax.",
+      "payment": "Paid / unpaid status recorded when the invoice was issued.",
+      "memberReport": "Each member’s invoiced services this month and how their value is split between the member and the agency.",
+      "shareRules": "Set the percentage of each service’s value that goes to the member who performs it. Changes apply to future invoices only.",
+      "memberPercent": "Percentage of the service value (after discount, before tax) paid to the member.",
+      "agencyPercent": "Remaining percentage kept by the agency (100 − member %).",
+      "addExpense": "Record costs such as rent, supplies or salaries. They are deducted from the agency net in the selected currency.",
+      "category": "A short label to group expenses, e.g. Rent, Supplies or Marketing.",
+      "expenseLedger": "All expenses recorded this month in the selected currency."
+    }
   },
   "centerStats": {
     "title": "Reservation analytics",
@@ -1555,5 +1586,55 @@
       "createCenter": "Create my first center",
       "replay": "Show the panel tour"
     }
+  },
+  "adminLocations": {
+    "title": "Locations",
+    "subtitle": "Manage the geographic hierarchy used across agencies and search.",
+    "records_one": "{{count}} record",
+    "records_other": "{{count}} records",
+    "types": {
+      "countries": "Countries",
+      "provinces": "Governorates",
+      "cities": "Cities & Wilayats",
+      "areas": "Neighborhoods"
+    },
+    "countryScope": "Country",
+    "addTitle": "Add location",
+    "editTitle": "Edit location",
+    "fields": {
+      "name": "Name",
+      "iso2": "ISO 2 code",
+      "country": "Country",
+      "governorate": "Governorate",
+      "city": "City or Wilayat",
+      "nameEn": "English name",
+      "nameAr": "Arabic name",
+      "metaTitle": "SEO title",
+      "metaDescription": "SEO description",
+      "body": "Area description",
+      "slug": "Permanent English slug",
+      "status": "Status"
+    },
+    "table": {
+      "name": "Name",
+      "slug": "Slug",
+      "status": "Status",
+      "id": "ID",
+      "actions": "Actions"
+    },
+    "active": "Active",
+    "inactive": "Inactive",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "editLabel": "Edit location",
+    "deactivate": "Deactivate",
+    "deactivateLabel": "Deactivate location",
+    "deactivateTitle": "Deactivate location",
+    "deactivateConfirm": "Deactivate “{{name}}”?",
+    "empty": "No locations found.",
+    "loading": "Loading locations...",
+    "loadError": "Unable to load locations.",
+    "saveError": "Unable to save location."
   }
 }

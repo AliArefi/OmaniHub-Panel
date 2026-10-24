@@ -70,3 +70,26 @@ export async function openFinanceInvoicePdf(agencySlug: string, reservationId: n
     window.open(objectUrl, '_blank', 'noopener,noreferrer')
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
 }
+
+export type FinanceInvoiceDetail = {
+    number: string
+    reservation_id?: number
+    issued_at?: string | null
+    created_at?: string | null
+    customer_name: string
+    customer_mobile?: string | null
+    agency_name?: string | null
+    currency: string
+    subtotal?: string | number | null
+    discount?: string | number | null
+    tax?: string | number | null
+    total: string | number
+    payment_status: 'paid' | 'unpaid'
+    items: Array<{ description_en: string; description_ar: string; quantity: number | string; unit_price: string | number; total?: string | number }>
+    guest_url?: string | null
+    member?: { id: number; name: string } | null
+}
+
+export async function getFinanceInvoice(agencySlug: string, reservationId: number) {
+    return ApiService.fetchDataWithAxios<{ data: FinanceInvoiceDetail }>({ url: `/my-agencies/${encodeURIComponent(agencySlug)}/reservations/${reservationId}/invoice` })
+}

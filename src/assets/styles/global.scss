@@ -6,6 +6,11 @@ html[lang='en'] body,
 html[lang='en'] *:not(code):not(pre):not(kbd):not(samp) {
 	font-family: 'Roboto', sans-serif !important;
 }
+/* Arabic mode: digits 0-9 render as Arabic-Indic (Omani) numerals; letters stay Kook. */
+html[lang='ar'] body,
+html[lang='ar'] *:not(code):not(pre):not(kbd):not(samp) {
+	font-family: 'Kook ArNum', 'Kook', sans-serif !important;
+}
 .apexcharts-tooltip .apexcharts-tooltip-y-group {
 	margin-right: 10px !important;
 	font-family: 'Kook' !important;

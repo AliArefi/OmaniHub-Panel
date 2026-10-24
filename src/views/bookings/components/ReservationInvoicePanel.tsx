@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Button, Input } from '@/components/ui'
-import AxiosBase from '@/services/axios/AxiosBase'
+import { Button, Dialog, Input } from '@/components/ui'
 import ApiService from '@/services/ApiService'
+import InvoiceViewer from '@/views/center/finance/InvoiceViewer'
 
 type Item = { description_en: string; description_ar: string; quantity: number; unit_price: string | number; total?: string }
 type Draft = {
@@ -26,6 +26,7 @@ export default function ReservationInvoicePanel({ agencySlug, reservationId, onI
     const [invoice, setInvoice] = useState<Invoice | null>(null)
     const [error, setError] = useState('')
     const [saving, setSaving] = useState(false)
+    const [viewing, setViewing] = useState(false)
 
     useEffect(() => {
         let active = true
@@ -63,21 +64,12 @@ export default function ReservationInvoicePanel({ agencySlug, reservationId, onI
         }
     }
 
-    const openPdf = async () => {
-        try {
-            const response = await AxiosBase.get(`${base}/pdf`, { responseType: 'blob' })
-            const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
-            window.open(url, '_blank', 'noopener,noreferrer')
-            window.setTimeout(() => URL.revokeObjectURL(url), 60000)
-        } catch { setError('Could not open PDF / تعذر فتح الملف') }
-    }
-
     return <section className="mt-5 space-y-3 border-t pt-4">
         <h4 className="text-base font-semibold">Invoice / الفاتورة</h4>
         {error && <p className="text-red-600">{error}</p>}
         {invoice ? <div className="space-y-2">
             <p>{invoice.number} · {invoice.total} {invoice.currency} · {invoice.payment_status}</p>
-            <Button onClick={openPdf}>PDF / تحميل</Button>
+            <Button onClick={() => setViewing(true)}>View invoice · PDF / عرض الفاتورة</Button>
             {invoice.guest_url && <div><label className="text-sm">Guest link / رابط العميل</label><Input readOnly value={invoice.guest_url} onFocus={(event) => event.target.select()} /></div>}
         </div> : draft && <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
@@ -100,5 +92,8 @@ export default function ReservationInvoicePanel({ agencySlug, reservationId, onI
             <label className="text-sm">Payment / الدفع <select className="rounded border p-2" value={draft.payment_status} onChange={(event) => update('payment_status', event.target.value as Draft['payment_status'])}><option value="unpaid">Unpaid / غير مدفوع</option><option value="paid">Paid / مدفوع</option></select></label>
             <div><Button variant="solid" loading={saving} onClick={issue}>Issue invoice / إصدار الفاتورة</Button></div>
         </div>}
+        <Dialog isOpen={viewing} width={960} onClose={() => setViewing(false)}>
+            {viewing && <InvoiceViewer agencySlug={agencySlug} reservationId={reservationId} />}
+        </Dialog>
     </section>
 }
