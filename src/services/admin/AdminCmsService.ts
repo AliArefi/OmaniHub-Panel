@@ -2,6 +2,7 @@ import ApiService from '@/services/ApiService'
 
 export type CmsLocale = 'ar' | 'en'
 export type CmsTranslation = {
+    meta?: Record<string, unknown>
     title: string
     slug: string
     excerpt: string

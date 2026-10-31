@@ -37,6 +37,7 @@ export type AdminOwnerSummary = {
 }
 
 export type AdminOrganization = {
+    area_id?: number | null
     id: number
     title: string
     slug: string
@@ -65,6 +66,7 @@ export type AdminOrganization = {
 }
 
 export type AdminAgency = {
+    area_id?: number | null
     id: number
     title: string
     slug: string

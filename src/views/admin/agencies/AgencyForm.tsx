@@ -26,6 +26,7 @@ import AgencyReviewsTab from './tabs/AgencyReviewsTab'
 import AgencyAnalyticsTab from './tabs/AgencyAnalyticsTab'
 import AgencyAdditionalInformationTab from './tabs/AgencyAdditionalInformationTab'
 import OwnerManagementTab from '@/components/admin/OwnerManagementTab'
+import ProviderLocationFields from '@/components/admin/ProviderLocationFields'
 import {
     apiGetAdminAgency,
     apiGetAdminAgencyServiceOptions,
@@ -65,6 +66,8 @@ const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
 ]
 
 type AgencyFormValues = {
+    city_id: number | null
+    area_id: number | null
     title: string
     slug: string
     phone: string
@@ -96,8 +99,10 @@ const AgencyForm = () => {
         apiGetAdminAgencyServiceOptions,
     )
 
-    const { control, handleSubmit, reset } = useForm<AgencyFormValues>({
+    const { control, handleSubmit, reset, watch, setValue } = useForm<AgencyFormValues>({
         defaultValues: {
+            city_id: null,
+            area_id: null,
             title: '',
             slug: '',
             phone: '',
@@ -119,6 +124,8 @@ const AgencyForm = () => {
         if (existing?.data) {
             const agency = existing.data
             reset({
+                city_id: agency.city_id ?? null,
+                area_id: agency.area_id ?? null,
                 title: agency.title,
                 slug: agency.slug,
                 phone: agency.phone ?? '',
@@ -144,6 +151,8 @@ const AgencyForm = () => {
         setSubmitting(true)
         try {
             const formData = new FormData()
+            formData.append('city_id', values.city_id === null ? '' : String(values.city_id))
+            formData.append('area_id', values.area_id === null ? '' : String(values.area_id))
             formData.append('title', values.title)
             formData.append('slug', values.slug)
             formData.append('phone', values.phone)
@@ -350,6 +359,7 @@ const AgencyForm = () => {
                     </FormItem>
                 </div>
 
+                <ProviderLocationFields cityId={watch('city_id')} areaId={watch('area_id')} onChange={(city, area) => { setValue('city_id', city); setValue('area_id', area) }} />
                 <LocalizedFieldsTabs
                     fields={LOCALIZED_FIELDS}
                     requiredFields={['title', 'about_text', 'address']}

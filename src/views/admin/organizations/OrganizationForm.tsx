@@ -11,6 +11,7 @@ import { Form, FormItem } from '@/components/ui/Form'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import LocalizedFieldsTabs from '@/components/admin/LocalizedFieldsTabs'
+import ProviderLocationFields from '@/components/admin/ProviderLocationFields'
 import AdminEditLoading from '@/components/admin/AdminEditLoading'
 import FaqsManager from '@/components/admin/FaqsManager'
 import { Tabs } from '@/components/ui/Tabs'
@@ -48,6 +49,8 @@ const LOCALIZED_FIELDS: LocalizedFieldDescriptor[] = [
 ]
 
 type OrganizationFormValues = {
+    city_id: number | null
+    area_id: number | null
     title: string
     slug: string
     description: string
@@ -68,8 +71,10 @@ const OrganizationForm = () => {
         () => apiGetAdminOrganization(slug as string),
     )
 
-    const { control, handleSubmit, reset } = useForm<OrganizationFormValues>({
+    const { control, handleSubmit, reset, watch, setValue } = useForm<OrganizationFormValues>({
         defaultValues: {
+            city_id: null,
+            area_id: null,
             title: '',
             slug: '',
             description: '',
@@ -84,6 +89,8 @@ const OrganizationForm = () => {
         if (existing?.data) {
             const org = existing.data
             reset({
+                city_id: org.city_id ?? null,
+                area_id: org.area_id ?? null,
                 title: org.title,
                 slug: org.slug,
                 description: org.description ?? '',
@@ -99,6 +106,8 @@ const OrganizationForm = () => {
         setSubmitting(true)
         try {
             const payload = {
+                city_id: values.city_id,
+                area_id: values.area_id,
                 title: values.title,
                 slug: values.slug,
                 description: values.description,
@@ -180,6 +189,7 @@ const OrganizationForm = () => {
                         </FormItem>
                     </div>
 
+                    <ProviderLocationFields cityId={watch('city_id')} areaId={watch('area_id')} onChange={(city, area) => { setValue('city_id', city); setValue('area_id', area) }} />
                     <LocalizedFieldsTabs
                         fields={LOCALIZED_FIELDS}
                         requiredFields={['title', 'description']}

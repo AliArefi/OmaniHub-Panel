@@ -32,6 +32,7 @@ import {
 } from '@/services/admin/AdminCmsService'
 import type { LocalizedFieldDescriptor } from '@/components/admin/LocalizedFieldsTabs'
 import type { Path } from 'react-hook-form'
+import ApiService from '@/services/ApiService'
 
 const TYPE_KEYS: Record<string, string> = {
     pages: 'page',
@@ -107,6 +108,7 @@ export default function CmsEntryForm() {
     const navigate = useNavigate()
     const { type = 'posts', id } = useParams()
     const typeKey = TYPE_KEYS[type] ?? type
+    const { data: serviceOptions } = useSWR(typeKey === 'post' ? 'cms-service-options' : null, () => ApiService.fetchDataWithAxios<{ data: { id: number; label: string }[] }>({ url: '/admin/cms/service-options' }))
     const isEditing = Boolean(id)
     const [submitting, setSubmitting] = useState(false)
     const { data: typesResponse } = useSWR('cms-types', apiGetCmsTypes)
@@ -223,6 +225,7 @@ export default function CmsEntryForm() {
                         excerpt: value.excerpt,
                         content_html: value.content_html,
                         custom_fields: custom,
+                        meta: (value.meta ?? {}) as Record<string, unknown>,
                         seo: {
                             title: value.seo_title,
                             description: value.seo_description,
@@ -346,6 +349,17 @@ export default function CmsEntryForm() {
                                             <Tag>Protected system entry</Tag>
                                         )}
                                     </div>
+                                    {typeKey === 'post' && LOCALES.map((locale) => (
+                                        <FormItem key={locale} label={`Suggested services (${locale})`}>
+                                            <Controller name={`translations.${locale}.meta`} control={control} render={({ field }) => {
+                                                const meta = (field.value ?? {}) as Record<string, unknown>
+                                                const ids = Array.isArray(meta.service_ids) ? meta.service_ids.map(Number) : []
+                                                const options = (serviceOptions?.data ?? []).map((service) => ({ value: service.id, label: service.label }))
+                                                return <Select isMulti options={options} value={options.filter((option) => ids.includes(option.value))}
+                                                    onChange={(selected) => field.onChange({ ...meta, service_ids: selected.map((option) => option.value) })} />
+                                            }} />
+                                        </FormItem>
+                                    ))}
                                     <LocalizedFieldsTabs
                                         fields={LOCALIZED_FIELDS}
                                         requiredFields={[
