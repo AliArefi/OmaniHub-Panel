@@ -43,10 +43,11 @@ const passwordChecks = (password: string) => {
 }
 
 const SignUpForm = (props: SignUpFormProps) => {
-    const { t } = useTranslation()
+    const { t, i18n } = useTranslation()
     const { data: policy } = useAuthPolicy()
     const passwordRequired = policy?.otp.registration_password_required ?? true
-    const emailRequired = policy?.otp.registration_otp_channel_policy === 'email' || policy?.otp.default_auth_identifier_mode === 'email_first'
+    const emailRequired = policy?.otp.registration_otp_channel_policy === 'email'
+        || (policy?.otp.registration_otp_channel_policy === 'auto' && policy?.otp.default_auth_identifier_mode === 'email_first')
     const { disableSubmit = false, className, setMessage } = props
     const [isSubmitting, setSubmitting] = useState(false)
     const navigate = useNavigate()
@@ -215,7 +216,7 @@ const SignUpForm = (props: SignUpFormProps) => {
             const result = await signUp({
                 name: values.name ?? '',
                 ...(local ? { mobile, mobile_country_code: cc, mobile_local_number: local } : {}),
-                email: values.email ?? '',
+                ...(values.email?.trim() ? { email: values.email.trim() } : {}),
                 ...(passwordRequired ? { password: values.password, password_confirmation: values.password_confirmation } : {}),
             })
 
@@ -374,7 +375,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 </FormItem>
 
                 <FormItem
-                    label={t('auth.signUp.email')}
+                    label={emailRequired ? t('auth.signUp.email') : `${t('auth.signUp.email')} (${i18n.language.startsWith('ar') ? 'اختياري' : 'optional'})`}
                     invalid={Boolean(errors.email)}
                     errorMessage={errors.email?.message}
                 >
